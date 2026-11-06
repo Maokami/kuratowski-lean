@@ -49,6 +49,8 @@ Mathlib 버전이 있는 곳에서 APFS clone(`cp -c -R -p`)으로 채우고, `.
   커밋 주소는 이 저장소의 `git config user.email` (GitHub noreply)을 쓴다.
 - 머지 정책은 **CI 통과 + 해당 PR head SHA에 대한 AI 리뷰 승인**이다. 자동 머지는 필수 검사와
   최신 base 조건을 우회하지 않는다. 충돌·검사 실패·리뷰 수정 요청은 고친 뒤 새 커밋으로 재검증한다.
+- 검사·권한 설정(`.github/**`, `scripts/**`, Lake 설정·lockfile·toolchain, 공리 감사 파일)을 바꾸는
+  PR은 자동 머지에서 제외한다. 독립 검토와 CI를 확인한 유지관리자가 머지한다.
 - 커밋 제목은 Conventional Commit의 `type(scope): 한국어 설명` 형식을 쓴다.
 
 ## 수학적 맥락

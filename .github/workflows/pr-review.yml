@@ -18,6 +18,8 @@ concurrency:
 
 jobs:
   pending:
+    outputs:
+      sha: ${{ steps.mark.outputs.sha }}
     if: >-
       (github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) ||
       (github.event_name == 'pull_request_target' && !github.event.pull_request.draft &&
@@ -27,7 +29,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       statuses: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -35,6 +37,7 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: 이전 승인 대신 진행 중 상태 기록
+        id: mark
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
@@ -91,16 +94,20 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: pr-review
-          path: .review-result/
+          path: |
+            .review-result/review.json
+            .review-result/manifest.json
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 14
 
   publish:
     needs: review
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 50
     permissions:
       contents: write
+      actions: read
       pull-requests: write
       statuses: write
     steps:
@@ -112,10 +119,30 @@ jobs:
         with:
           name: pr-review
           path: .review-result/
-      - name: 최신 커밋 확인 후 리뷰 게시와 자동 머지 예약
+      - name: 최신 커밋 리뷰 게시와 CI 통과 후 머지
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           EXPECTED_REPOSITORY: ${{ github.repository }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: python3 -I scripts/pr_review.py publish
+
+  failure-status:
+    needs: [pending, review, publish]
+    if: ${{ failure() && needs.pending.outputs.sha != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: 실패한 검토 커밋에 오류 상태 기록
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_SHA: ${{ needs.pending.outputs.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 -I scripts/pr_review.py error

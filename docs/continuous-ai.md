@@ -14,7 +14,7 @@ PR 생성·새 커밋
        → 신뢰한 기본 브랜치의 코드로 변경 전후를 텍스트 자료로 수집
        → 쓰기 권한 없는 Claude가 모든 변경 파일 검토
        → 별도 job이 SHA·판정·파일 목록을 검증하고 댓글·commit status 게시
-       → approve이면 GitHub 자동 squash merge 예약
+       → approve이면 최신 SHA의 CI 성공을 기다린 뒤 SHA를 지정해 squash merge
 main 보호: Lean CI + AI review 필수, 최신 base 필요
 머지 완료 → 원격 작업 브랜치 자동 삭제
 ```
@@ -26,10 +26,16 @@ main 보호: Lean CI + AI review 필수, 최신 base 필요
 - 변경 파일 100개, 파일당 100KB, 전체 자료 2MB를 넘거나 텍스트로 읽을 수 없으면 자동 검토를 중단한다.
 - 모델 실패·보고서 누락·파일 누락 시 승인하지 않는다. `request_changes`이면 AI review를 실패로 기록한다.
   기존 댓글을 갱신하여 같은 PR에 보고서가 계속 쌓이지 않게 한다.
-- 게시 직전 PR 번호·최신 head SHA를 다시 확인한다. 머지도 `--match-head-commit`으로 제한하고
-  `--admin`을 사용하지 않는다. 보호 규칙이 없으면 게시/머지를 중단한다.
-- base가 앞서거나 충돌이 있으면 자동 머지는 대기한다. 작성자가 기본 브랜치를 반영한 새 커밋을 올리면
+- 게시 직전 PR 번호·최신 head SHA를 다시 확인한다. 머지도 REST API의 `sha`로 제한한다.
+  지속되는 auto-merge 예약을 사용하지 않는다. main ruleset의 필수 검사가 없으면 게시/머지를 중단한다.
+- 게시 job은 최신 head의 CI를 최대 40분 기다린다. base가 앞서거나 충돌이 있으면 머지하지 않는다.
+  작성자가 기본 브랜치를 반영한 새 커밋을 올리면
   CI와 AI 리뷰가 다시 수행된다. 충돌을 자동으로 추측해 해결하거나 실패한 검사를 무시하지 않는다.
+- `.github/**`, `scripts/**`, `lakefile.toml`, `lake-manifest.json`, `lean-toolchain`,
+  `KuratowskiAudit.lean` 변경은 자동 머지 대상에서 제외한다. 검사·권한을 바꾸는 PR은 독립 AI 검토와
+  CI를 확인한 유지관리자가 머지한다. 새 push와 수정 요청 시 기존 auto-merge 예약도 해제한다.
+- 봇 토큰으로 머지한 main push는 새 workflow를 트리거하지 않을 수 있다. PR의 CI와 리뷰 실행을
+  머지 근거로 남긴다.
 - AI의 `reviewed_files`와 승인은 자기 보고·추론이다. Lean 커널 검증과 다른 증거이며 진술의 정확성을
   보장하지 않는다. 사용자가 선택한 운영 정책에 따라 사람 승인 없이 머지가 진행된다.
 
@@ -37,7 +43,7 @@ main 보호: Lean CI + AI review 필수, 최신 base 필요
 있고, 그 job은 기본 브랜치의 결정적 코드만 실행한다. 수동 장 검토 workflow는 별도로 유지한다.
 
 최초 배포 PR은 아직 기본 브랜치에 자동 리뷰 코드가 없어 로컬의 작성자/독립 AI 검토와 원격 CI를 확인한
-뒤 적용한다. 이후 main에 필수 검사·자동 머지·머지 후 브랜치 삭제를 설정하고 실제 PR로 검증한다.
+뒤 적용한다. 이후 main에 필수 검사 ruleset·머지 후 브랜치 삭제를 설정하고 실제 PR로 검증한다.
 
 ## 실행 범위
 

@@ -16,7 +16,7 @@ PR 생성·새 커밋
        → 별도 job이 SHA·판정·파일 목록을 검증하고 댓글·commit status 게시
        → approve이면 최신 SHA의 CI 성공을 기다린 뒤 SHA를 지정해 squash merge
 main 보호: Lean CI + AI review 필수, 최신 base 필요
-머지 완료 → 원격 작업 브랜치 자동 삭제
+머지 완료 → 머지된 SHA를 확인하고 lease로 원격 작업 브랜치 삭제
 ```
 
 - PR 코드는 OAuth 토큰을 가진 job에서 checkout하거나 실행하지 않는다. `pull_request_target`에서는
@@ -36,6 +36,9 @@ main 보호: Lean CI + AI review 필수, 최신 base 필요
   CI를 확인한 유지관리자가 머지한다. 새 push와 수정 요청 시 기존 auto-merge 예약도 해제한다.
 - 봇 토큰으로 머지한 main push는 새 workflow를 트리거하지 않을 수 있다. PR의 CI와 리뷰 실행을
   머지 근거로 남긴다.
+- 저장소의 브랜치 자동 삭제 설정만으로 봇 머지의 브랜치가 삭제되지 않는 경우가 있어 publish도
+  삭제를 수행한다. 같은 저장소의 머지된 PR만 대상으로 하며 main은 제외한다. `--force-with-lease`로
+  머지 뒤 새 커밋이 올라온 브랜치는 보존한다. 삭제 실패는 이미 성공한 머지를 취소하지 않으며 로그에 남긴다.
 - AI의 `reviewed_files`와 승인은 자기 보고·추론이다. Lean 커널 검증과 다른 증거이며 진술의 정확성을
   보장하지 않는다. 사용자가 선택한 운영 정책에 따라 사람 승인 없이 머지가 진행된다.
 

@@ -19,6 +19,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 import time
 from urllib.error import HTTPError
@@ -79,6 +80,27 @@ class GitHub:
         if not isinstance(response, dict) or response.get("merged") is not True:
             raise ValueError("머지 응답에서 merged=true를 확인하지 못했습니다.")
         return 200
+
+    def cleanup_branch(self, number, sha):
+        """머지한 PR의 head만 삭제한다. lease로 새 push와 삭제 사이의 경쟁을 막는다."""
+        pr = self.get_pr(number)
+        if (pr.get("merged") is not True or pr["head"]["sha"] != sha
+                or (pr["head"].get("repo") or {}).get("full_name") != self.repo
+                or pr["base"]["ref"] != "main" or pr["head"]["ref"] == "main"):
+            raise ValueError("머지된 작업 브랜치임을 확인하지 못했습니다.")
+        ref = "refs/heads/" + pr["head"]["ref"]
+        # 토큰 값은 argv/URL/파일에 넣지 않는다. credential helper만 환경에서 읽는다.
+        result = subprocess.run([
+            "git", "-c", "credential.helper=", "-c",
+            'credential.helper=!f() { echo username=x-access-token; echo "password=$GITHUB_TOKEN"; }; f',
+            "push", "--force-with-lease=" + ref + ":" + sha,
+            "https://github.com/" + self.repo + ".git", ":" + ref], check=False,
+            timeout=60, env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
+        if result.returncode:
+            print("branch_cleanup=retained (새 커밋 또는 삭제 권한 확인 필요)")
+        else:
+            print("branch_cleanup=deleted")
+        return result.returncode == 0
 
 
 def pr_number():
@@ -273,6 +295,11 @@ def wait_and_merge(api, number, sha, clock=time.monotonic, sleep=time.sleep,
         if state == "success":
             code = api.merge(number, sha)
             if code == 200:
+                try:
+                    api.cleanup_branch(number, sha)
+                except Exception as error:
+                    # 머지는 이미 성공했다. 정리 오류가 머지 실패로 표시되면 안 된다.
+                    print(f"branch_cleanup=retained ({type(error).__name__})")
                 return "merged"
             if code == 409:
                 return "stale"

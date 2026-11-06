@@ -91,6 +91,10 @@ class FakeGitHub:
         self.merges.append((number, sha))
         return self.merge_codes.pop(0) if self.merge_codes else 200
 
+    def cleanup_branch(self, number, sha):
+        assert self.merges[-1] == (number, sha)
+        return True
+
     def request(self, path, data=None, method=None):
         if method:
             self.writes.append((path, data, method))
@@ -363,6 +367,43 @@ class ReviewTests(unittest.TestCase):
                 path, data, method = request.call_args.args
                 self.assertEqual((path, data, method),
                                  ("/repos/owner/repo/pulls/1/merge", {"sha": SHA, "merge_method": "squash"}, "PUT"))
+
+    def test_cleanup_requires_merged_same_repo_non_main_and_lease(self):
+        api = MODULE["GitHub"].__new__(MODULE["GitHub"])
+        api.repo = "owner/repo"
+        pr = copy.deepcopy(PR)
+        pr["merged"] = True
+        pr["head"]["ref"] = "feat/proof"
+        with patch.object(api, "get_pr", return_value=pr), patch("subprocess.run") as run:
+            run.return_value.returncode = 0
+            self.assertTrue(api.cleanup_branch(1, SHA))
+            args = run.call_args.args[0]
+            self.assertIn("--force-with-lease=refs/heads/feat/proof:" + SHA, args)
+            self.assertEqual(args[-2:], ["https://github.com/owner/repo.git", ":refs/heads/feat/proof"])
+            run.return_value.returncode = 1
+            self.assertFalse(api.cleanup_branch(1, SHA))
+        invalid = []
+        for field, value in [("merged", False)]:
+            p = copy.deepcopy(pr)
+            p[field] = value
+            invalid.append(p)
+        for field, value in [("sha", OTHER), ("ref", "main"), ("repo", None),
+                             ("repo", {"full_name": "fork/repo"})]:
+            p = copy.deepcopy(pr)
+            p["head"][field] = value
+            invalid.append(p)
+        for p in invalid:
+            with patch.object(api, "get_pr", return_value=p), patch("subprocess.run") as run:
+                with self.assertRaises(ValueError):
+                    api.cleanup_branch(1, SHA)
+                run.assert_not_called()
+
+    def test_cleanup_error_does_not_undo_successful_merge(self):
+        api = FakeGitHub()
+        with patch.object(api, "cleanup_branch", side_effect=ValueError("not yet consistent")):
+            state, _ = publish(api)
+        self.assertEqual(state, "merged")
+        self.assertEqual(api.merges, [(1, SHA)])
 
     def test_mark_error_only_replaces_own_pending(self):
         mark = MODULE["mark_error"]

@@ -94,7 +94,8 @@ class GitHub:
             "git", "-c", "credential.helper=", "-c",
             'credential.helper=!f() { echo username=x-access-token; echo "password=$GITHUB_TOKEN"; }; f',
             "push", "--force-with-lease=" + ref + ":" + sha,
-            "https://github.com/" + self.repo + ".git", ":" + ref], check=False)
+            "https://github.com/" + self.repo + ".git", ":" + ref], check=False,
+            timeout=60, env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
         if result.returncode:
             print("branch_cleanup=retained (새 커밋 또는 삭제 권한 확인 필요)")
         else:
@@ -294,7 +295,11 @@ def wait_and_merge(api, number, sha, clock=time.monotonic, sleep=time.sleep,
         if state == "success":
             code = api.merge(number, sha)
             if code == 200:
-                api.cleanup_branch(number, sha)
+                try:
+                    api.cleanup_branch(number, sha)
+                except Exception as error:
+                    # 머지는 이미 성공했다. 정리 오류가 머지 실패로 표시되면 안 된다.
+                    print(f"branch_cleanup=retained ({type(error).__name__})")
                 return "merged"
             if code == 409:
                 return "stale"

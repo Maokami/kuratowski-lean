@@ -398,6 +398,13 @@ class ReviewTests(unittest.TestCase):
                     api.cleanup_branch(1, SHA)
                 run.assert_not_called()
 
+    def test_cleanup_error_does_not_undo_successful_merge(self):
+        api = FakeGitHub()
+        with patch.object(api, "cleanup_branch", side_effect=ValueError("not yet consistent")):
+            state, _ = publish(api)
+        self.assertEqual(state, "merged")
+        self.assertEqual(api.merges, [(1, SHA)])
+
     def test_mark_error_only_replaces_own_pending(self):
         mark = MODULE["mark_error"]
         bot = {"login": "github-actions[bot]"}

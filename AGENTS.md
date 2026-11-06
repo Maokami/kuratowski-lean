@@ -45,8 +45,10 @@ Mathlib 버전이 있는 곳에서 APFS clone(`cp -c -R -p`)으로 채우고, `.
   공리 감사), `checkdecls`, 그리고 작성에 참여하지 않은 검토자가 한다.
 - 검토자는 Lean 진술과 블루프린트 진술의 어긋남, 숨은 가정(구조체 필드나 인스턴스 인자로 들어온 조건),
   `\leanok` 표시가 실제와 맞는지를 본다.
-- 커밋과 push는 저장소 주인이 요청할 때만 한다. 커밋 주소는 이 저장소의 `git config user.email`
-  (GitHub noreply)을 쓴다.
+- 완료한 변경은 기능 브랜치에 커밋하고 push한 뒤 바로 PR로 올린다. `main`에 직접 push하지 않는다.
+  커밋 주소는 이 저장소의 `git config user.email` (GitHub noreply)을 쓴다.
+- 머지 정책은 **CI 통과 + 해당 PR head SHA에 대한 AI 리뷰 승인**이다. 자동 머지는 필수 검사와
+  최신 base 조건을 우회하지 않는다. 충돌·검사 실패·리뷰 수정 요청은 고친 뒤 새 커밋으로 재검증한다.
 - 커밋 제목은 Conventional Commit의 `type(scope): 한국어 설명` 형식을 쓴다.
 
 ## 수학적 맥락

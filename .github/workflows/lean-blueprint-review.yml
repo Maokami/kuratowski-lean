@@ -1,0 +1,70 @@
+name: Lean 블루프린트 검토
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lean-blueprint-review
+  cancel-in-progress: false
+
+jobs:
+  review:
+    # 신뢰한 기본 브랜치에서만 구독 인증을 사용한다.
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: 구독 인증 설정 확인
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo 'CLAUDE_CODE_OAUTH_TOKEN secret이 필요합니다.' >&2
+            exit 1
+          fi
+
+      - name: 소스 검토
+        id: review
+        timeout-minutes: 10
+        uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: |
+            .github/prompts/lean-blueprint-review.md를 읽고 그 범위만 검토하세요.
+            검토 대상 커밋 SHA: ${{ github.sha }}
+            Read, Glob, Grep만 사용하세요. 외부 호출, 셸 실행, 수정, 하위 에이전트는 금지합니다.
+            결과는 JSON schema에 맞춰 반환하고 reviewed_files에는 실제 읽은 파일을 기록하세요.
+          claude_args: >-
+            --max-turns 20
+            --tools Read,Glob,Grep
+            --allowedTools Read,Glob,Grep
+            --disallowedTools 'Read(./.git/**)' 'Read(./.env*)'
+            --strict-mcp-config
+            --mcp-config '{"mcpServers":{}}'
+            --disable-slash-commands
+            --json-schema '{"type":"object","properties":{"sha":{"type":"string"},"reviewed_files":{"type":"array","minItems":1,"items":{"type":"string"}},"report":{"type":"string","minLength":1}},"required":["sha","reviewed_files","report"],"additionalProperties":false}'
+
+      - name: 보고서 검증과 저장
+        env:
+          REVIEW_JSON: ${{ steps.review.outputs.structured_output }}
+          REVIEW_CONCLUSION: ${{ steps.review.outputs.conclusion }}
+          EXPECTED_SHA: ${{ github.sha }}
+          REVIEW_GITHUB_TOKEN: ${{ github.token }}
+          REVIEW_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: python3 -I scripts/save_review.py
+
+      - name: 검토 보고서 보관
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lean-blueprint-review-${{ github.sha }}
+          path: review-output/
+          if-no-files-found: error
+          retention-days: 14

@@ -139,6 +139,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 넣으면 감사 대상이 되고, `scripts/blueprint.sh`가 빠진 파일이 없는지 `mk_all --check`로 확인한다.
 작업 규칙은 `AGENTS.md`에 있다.
 
+수동 Claude Action 검토의 설정·비용·검증 한계는 [Continuous AI 실험](docs/continuous-ai.md)에 있다.
+
 `.lake/packages`는 같은 Mathlib 버전을 쓰는 `~/projects/ctic-lean`에서 APFS clone으로
 채웠다 (`cp -c -R -p`, 추가 디스크 사용 거의 없음). `checkdecls`만 따로 받았다
 (`MATHLIB_NO_CACHE_ON_UPDATE=1 lake update checkdecls`; 다른 패키지의 리비전은 그대로다).

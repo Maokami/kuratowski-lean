@@ -1,5 +1,6 @@
 import Kuratowski.Basic
 import Kuratowski.Components
+import Kuratowski.Contract
 import Kuratowski.Deletion
 import Kuratowski.Euler
 import Kuratowski.Iso

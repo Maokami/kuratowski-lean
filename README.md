@@ -6,7 +6,8 @@
 > 부분 그래프로 갖지 않는 것이다.
 
 이 저장소는 **쉬운 방향**(`K₅`나 `K₃,₃`의 세분을 포함하면 평면 그래프가 아니다)을 완전히
-증명한다. 어려운 방향(세분이 없으면 평면 그래프다)은 아직 하지 않았다.
+증명한다. 어려운 방향(세분이 없으면 평면 그래프다)은 아직 하지 않았다. 어려운 방향에 쓸 정의 가운데
+변 수축 `contractEdge`(`Contract.lean`)만 형식화했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -152,6 +153,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Perm.lean` | 순환 수 `orbitCount`, 호환 보조정리, 잘라 내기 `cut` |
 | `Basic.lean` | 회전 체계, 면, 오일러 지표, `IsPlanar` |
 | `Components.lean` | 연결 성분·고립점·변 수 세기 (변 지우기, 세분, `K.map f`) |
+| `Contract.lean` | 변 수축 `contractEdge`와 국소 성질 (어려운 방향용 정의) |
 | `Deletion.lean` | 변 지우기 수술과 면 수 공식 |
 | `Euler.lean` | 오일러 부등식, 부분 그래프 |
 | `Smoothing.lean` | 세분 되돌리기 |

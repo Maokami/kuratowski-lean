@@ -1,0 +1,26 @@
+name = "kuratowski"
+defaultTargets = ["Kuratowski", "KuratowskiAudit"]
+
+[leanOptions]
+autoImplicit = false
+pp.unicode.fun = true
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.35.0"
+
+[[lean_lib]]
+name = "Kuratowski"
+
+# 공리 감사: `Kuratowski` 모듈의 모든 선언이 표준 공리만 쓰는지 `lake build` 때 검사한다
+# (KuratowskiAudit.lean). 루트 모듈과 따로 두어 `Kuratowski/` 아래에는 형식화만 남긴다.
+[[lean_lib]]
+name = "KuratowskiAudit"
+
+# 블루프린트의 \lean{...} 이름이 실제로 있는지 검사한다 (`leanblueprint checkdecls`).
+# 리비전은 lake-manifest.json과 같은 값으로 고정한다.
+[[require]]
+name = "checkdecls"
+git = "https://github.com/PatrickMassot/checkdecls.git"
+rev = "3d425859e73fcfbef85b9638c2a91708ef4a22d4"

@@ -1,0 +1,18 @@
+% 블루프린트 본문. 웹 판(web.tex)과 PDF 판(print.tex)이 함께 쓴다.
+% 관례:
+%   \lean{...}     대응하는 Lean 선언 (namespace 포함). `leanblueprint checkdecls`가 있는지 검사한다.
+%   \leanok        진술(환경 안) 또는 증명(proof 안)이 Lean에서 검증됨
+%   \uses{...}     의존하는 항목. 진술 안이면 진술에, proof 안이면 증명에만 필요
+%   \notready      블루프린트를 더 다듬어야 함 (각 항목의 "보강할 것")
+%   \planned{...}  아직 없는 Lean 선언의 예정 이름. \lean에 넣으면 checkdecls가 실패하므로 따로 적는다.
+%                  선언을 만들면 \lean으로 옮긴다.
+%   \bfcheck{...}  scripts/check_blueprint.py의 전수 검사 항목
+
+\input{chapters/intro}
+\input{chapters/routes}
+\input{chapters/easy}
+\input{chapters/tools}
+\input{chapters/reduce}
+\input{chapters/faces}
+\input{chapters/main}
+\input{chapters/plan}

@@ -1,0 +1,14 @@
+% 웹 판과 PDF 판이 함께 쓰는 매크로와 설정.
+% 아래 정리류 환경은 의존 그래프에 기본으로 나타나는 것들이다.
+\newtheorem{theorem}{정리}
+\newtheorem{proposition}[theorem]{명제}
+\newtheorem{lemma}[theorem]{보조정리}
+\newtheorem{corollary}[theorem]{따름정리}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{정의}
+
+% 아직 없는 Lean 선언의 예정 이름 (content.tex 머리말 참고).
+\newcommand{\planned}[1]{\par\noindent\textbf{예정 Lean 이름}: \texttt{#1}\par}
+% scripts/check_blueprint.py의 전수 검사 항목.
+\newcommand{\bfcheck}[1]{\par\noindent\textbf{전수 검사}: #1\par}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- plasTeX 웹 판에서 쓰는 용어를 한국어로 바꾼다 (plastex.cfg 의 lang-terms). -->
+<languages>
+  <terms lang="en-US" babel="american">
+    <term name="proof">증명</term>
+  </terms>
+</languages>

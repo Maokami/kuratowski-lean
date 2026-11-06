@@ -1,0 +1,290 @@
+\chapter{이미 형식화한 것: 조합적 평면성과 쉬운 방향}
+\label{chap:easy}
+
+이 장의 항목은 모두 Lean으로 검증했다. 어려운 방향(\ref{chap:tools}장부터)은 여기 있는 정의와
+도구 위에 세운다.
+
+\section{순열의 순환}
+
+\begin{definition}[순환 수]
+\label{def:orbitCount}
+\lean{Kuratowski.orbitCount}
+\leanok
+유한 집합 위의 순열 \(f\)에 대해 \(\operatorname{orb}(f)\)는 \(f\)의 순환 수다. 고정점도 길이 1인
+순환 하나로 센다. Lean에서는 \texttt{SameCycle} 동치 관계로 나눈 몫의 크기(\texttt{Nat.card})다.
+\end{definition}
+
+\begin{lemma}[호환은 순환 수를 \(\pm 1\) 바꾼다]
+\label{lem:swap}
+\lean{Kuratowski.orbitCount_mul_swap_of_sameCycle, Kuratowski.orbitCount_mul_swap_of_not_sameCycle}
+\leanok
+\uses{def:orbitCount}
+\(a \ne b\)가 \(f\)의 같은 순환에 있으면 \(\operatorname{orb}(f \cdot (a\ b)) = \operatorname{orb}(f) + 1\)이다.
+\(a\), \(b\)가 서로 다른 순환에 있으면 \(\operatorname{orb}(f \cdot (a\ b)) + 1 = \operatorname{orb}(f)\)이다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+서로 다른 순환에 있으면 \(f \cdot (a\ b)\)에서 두 순환이 합쳐지고 나머지 순환은 그대로다. Lean에서는
+\(f \cdot (a\ b)\)의 한 걸음이 \(f\)의 같은 순환 안에서 움직이거나 \(a\), \(b\)의 순환 사이를 오간다는
+"구역" 보조정리로 순환들을 대응시킨다.
+
+같은 순환에 있으면 \(g = f \cdot (a\ b)\)로 두고 \(g\)에서 \(a\), \(b\)가 서로 다른 순환에 있음을 보인다.
+그렇지 않다면 \(f\)와 \(g\)의 같은 순환 관계가 일치하고 \(g\)의 \(a\)를 지나는 순환은
+\(f\)의 \(a\)를 지나는 순환에 호환 \((a\ b)\)를 곱한 것이 된다. 둘 다 같은 받침의 순환이라 부호가 같아야
+하는데 호환은 부호를 바꾸므로 모순이다. 이제 \(f = g \cdot (a\ b)\)에 앞의 경우를 적용한다.
+\end{proof}
+
+\begin{definition}[점 하나 잘라 내기]
+\label{def:cut}
+\lean{Kuratowski.cut}
+\leanok
+\(\operatorname{cut}(f, a) = f \cdot (f^{-1}(a)\ a)\). 순환 \(\cdots \to p \to a \to q \to \cdots\)를
+\(\cdots \to p \to q \to \cdots\)와 고정점 \(a\)로 바꾼다.
+\end{definition}
+
+\begin{lemma}[잘라 내기의 순환 수]
+\label{lem:orbitCount_cut}
+\lean{Kuratowski.orbitCount_cut, Kuratowski.sameCycle_cut}
+\leanok
+\uses{def:cut, def:orbitCount}
+\(f(a) = a\)이면 \(\operatorname{cut}(f, a)\)의 순환 수는 \(f\)와 같고, 아니면 1 많다.
+\(a\)가 아닌 두 점이 \(f\)의 같은 순환에 있으면 \(\operatorname{cut}(f, a)\)에서도 같은 순환에 있다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:swap}
+\(f(a) \ne a\)이면 \(f^{-1}(a) \ne a\)이고 두 점은 같은 순환에 있으므로 보조정리~\ref{lem:swap}를 쓴다.
+\end{proof}
+
+\section{회전 체계와 평면성}
+
+Mathlib에는 그래프의 평면성 정의가 없다. 위상적 정의(\(\mathbb{R}^2\)로의 매장)를 쓰려면 조르당
+곡선 정리가 필요한데 이것도 Mathlib에 없다. 그래서 위상 그래프 이론의 표준 조합적 정의를 쓴다
+(Mohar--Thomassen, \emph{Graphs on Surfaces}, 3장).
+
+\begin{definition}[회전 체계와 면]
+\label{def:rotation}
+\lean{Kuratowski.RotationSystem, Kuratowski.RotationSystem.facePerm, Kuratowski.RotationSystem.Face}
+\leanok
+\uses{def:orbitCount}
+그래프 \(G\)의 \emph{회전 체계} \(R\)은 다트(방향 있는 변) 위의 순열 \(\rho\)로서, 다트의 시작점을
+보존하고 같은 꼭짓점에서 나가는 다트들이 \(\rho\)의 한 순환을 이루는 것이다. 즉 각 꼭짓점 둘레의
+이웃 순서다. \emph{면 순열}은 \(\varphi(d) = \rho(\bar d)\)이고 (\(\bar d\)는 \(d\)의 역방향 다트),
+\emph{면}은 \(\varphi\)의 순환이다.
+\end{definition}
+
+\begin{definition}[오일러 지표]
+\label{def:eulerChar}
+\lean{Kuratowski.RotationSystem.numFaces, Kuratowski.RotationSystem.eulerChar}
+\leanok
+\uses{def:rotation}
+면의 개수 \(F = \operatorname{orb}(\varphi) + I\)이다. 여기서 \(I\)는 고립점의 수이고, 고립점 하나를
+면 하나로 센다 (꼭짓점 하나짜리 구면 매장). 오일러 지표는 \(\chi(R) = V - E + F\)이다. 개수는 모두
+\texttt{Nat.card}와 \texttt{Set.ncard}로 세므로 정의가 \texttt{Fintype}이나 \texttt{DecidableRel}
+인스턴스에 의존하지 않는다.
+\end{definition}
+
+\begin{definition}[평면 그래프]
+\label{def:IsPlanar}
+\lean{Kuratowski.IsPlanar}
+\leanok
+\uses{def:eulerChar}
+\(G\)가 \emph{평면 그래프}라는 것은 \(\chi(R) = 2c\)인 회전 체계 \(R\)이 있다는 것이다. \(c\)는 연결
+성분의 수다.
+\end{definition}
+
+정리~\ref{thm:euler}에 따라 모든 회전 체계에서 \(\chi(R) \le 2c\)이므로, 이 등식은 모든 성분이 종수
+0인 곡면(구면)에 매장된다는 뜻이다. 회전 체계와 곡면 매장의 대응(Heffter--Edmonds--Ringel)은
+위상수학의 정리이며 형식화하지 않았다. 대신 \texttt{scripts/check\_definition.py}로 같은 정의를
+작은 그래프에서 전수 검사했다. 꼭짓점 5개 이하인 그래프 가운데 정의상 비평면은 \(K_5\) 하나뿐이고,
+Petersen 그래프, 정팔면체, 정육면체 등에서도 알려진 결과와 일치한다.
+
+\section{수술과 오일러 부등식}
+
+\begin{lemma}[연결 성분, 변, 고립점 세기]
+\label{lem:components}
+\lean{Kuratowski.card_connectedComponent_of_edgeSet_eq_empty, Kuratowski.card_connectedComponent_deleteEdges_le, Kuratowski.card_connectedComponent_deleteEdges_eq, Kuratowski.ncard_isolated_add_one_le, Kuratowski.card_connectedComponent_subdivideEdge, Kuratowski.ncard_edgeSet_subdivideEdge, Kuratowski.ncard_isolated_subdivideEdge}
+\leanok
+\uses{def:subdivideEdge}
+변 \(uv\)를 지우면 연결 성분은 많아야 하나 늘고, 지운 뒤에도 \(u\)에서 \(v\)로 갈 수 있으면 그대로다.
+변이 없으면 \(c = V\)이고, 변이 있으면 \(I + 1 \le c\)이다. 변 \(xy\)를 고립점 \(w\)로 세분하면 성분은 하나 줄고, 변은
+하나 늘고, 고립점은 하나 준다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+도달 가능성에 대한 직접 계산이다 (\texttt{Kuratowski/Components.lean}).
+\end{proof}
+
+\begin{theorem}[변 지우기]
+\label{thm:del}
+\lean{Kuratowski.RotationSystem.del, Kuratowski.RotationSystem.numFaces_del, Kuratowski.RotationSystem.numFaces_del_of_sameCycle, Kuratowski.RotationSystem.numFaces_del_of_not_sameCycle, Kuratowski.RotationSystem.reachable_del_of_not_sameCycle}
+\leanok
+\uses{def:eulerChar}
+다트 \(d\)의 변을 지운 그래프에는 회전 체계 \(R \setminus d\)가 있고, 그 면 순열은
+\(\varphi \cdot (d\ \bar d)\)에서 \(d\), \(\bar d\)를 잘라 낸 것이다. 따라서 \(d\)와 \(\bar d\)가 같은 면에
+있으면 \(F\)가 1 늘고, 다른 면에 있으면 1 준다. 후자의 경우 지운 변의 두 끝은 지운 뒤에도 이어져 있다.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:swap, lem:orbitCount_cut}
+회전 \(\rho\)에서 \(d\), \(\bar d\)를 잘라 낸 것이 새 회전이다. 면 순열을 계산하면 위의 꼴이 되고,
+순환 수는 보조정리~\ref{lem:swap}와 \ref{lem:orbitCount_cut}로 센다. 다른 면에 있는 경우에는 \(d\)의 면을 따라
+돌면 지운 변을 쓰지 않는 길이 생긴다.
+\end{proof}
+
+\begin{theorem}[오일러 부등식]
+\label{thm:euler}
+\lean{Kuratowski.RotationSystem.eulerChar_le}
+\leanok
+\uses{def:eulerChar}
+모든 회전 체계에서 \(\chi(R) \le 2c\)이다.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:del, lem:components}
+변의 수에 대한 귀납법. 변이 없으면 \(\chi = V + V = 2c\)이다. 변 하나를 지우면, 같은 면인 경우
+\(\chi\)는 2 늘고 성분은 많아야 하나 는다. 다른 면인 경우 \(\chi\)도 성분 수도 그대로다.
+\end{proof}
+
+\begin{theorem}[부분 그래프]
+\label{thm:mono}
+\lean{Kuratowski.IsPlanar.mono, Kuratowski.IsPlanar.deleteEdge}
+\leanok
+\uses{def:IsPlanar}
+평면 그래프의 부분 그래프는 평면 그래프다.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:del, thm:euler, lem:components}
+변 하나를 지우는 경우만 보면 된다. 같은 면인 경우 \(\chi\)가 2 늘었는데 정리~\ref{thm:euler}에 따라
+\(\chi \le 2c'\)이고 \(c' \le c + 1\)이므로 \(c' = c + 1\)이고 등식이 유지된다. 다른 면인 경우 둘 다 그대로다.
+\end{proof}
+
+\section{세분}
+
+\begin{definition}[변 세분하기]
+\label{def:subdivideEdge}
+\lean{Kuratowski.subdivideEdge}
+\leanok
+\(H\)의 변 \(xy\)를 꼭짓점 \(w\)로 나눈 그래프는 \(H - xy + xw + wy\)이다.
+\end{definition}
+
+\begin{definition}[세분, 위상 소수]
+\label{def:subdiv}
+\lean{Kuratowski.IsSubdivision, Kuratowski.ContainsSubdivision}
+\leanok
+\uses{def:subdivideEdge}
+\(K\)(꼭짓점 집합 \(W\))를 \(f : W \hookrightarrow V\)로 \(V\)에 놓은 \(K.\mathrm{map}\,f\)에서 시작해,
+변 \(xy\)를 아직 쓰이지 않은 꼭짓점 \(w\)(\(w \notin \operatorname{range} f\), \(w\)는 고립점)로
+나누는 일을 반복해 얻는 그래프가 \(K\)의 \emph{세분}이다 (귀납 정의). \(G\)가 \(K\)의 세분을 부분
+그래프로 가지면 \(K\)는 \(G\)의 \emph{위상 소수}다 (Diestel, \emph{Graph Theory}, 1.7절).
+\end{definition}
+
+\begin{theorem}[세분 되돌리기]
+\label{thm:smooth}
+\lean{Kuratowski.IsPlanar.of_subdivideEdge}
+\leanok
+\uses{def:IsPlanar, def:subdivideEdge}
+\(H\)의 변 \(xy\)를 고립점 \(w\)로 세분한 그래프가 평면이면 \(H\)도 평면이다.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:orbitCount_cut, lem:components}
+\(w\)의 두 다트를 면 순열에서 잘라 내면 \(x \to w \to y\)로 돌던 면이 \(x \to y\)로 바로 간다. 다트를
+\(H\)의 다트로 옮기면 \(H\)의 회전 체계가 되고, 면 순열의 순환 수는 그대로다. 한편 \(w\)가 고립점이 되어
+면(고립점 하나를 면 하나로 센다)과 성분이 하나씩 늘고 변은 하나 주므로 등식이 유지된다.
+\end{proof}
+
+\section{쉬운 방향}
+
+\begin{definition}[\(K_5\)와 \(K_{3,3}\)]
+\label{def:K5K33}
+\lean{Kuratowski.K5, Kuratowski.K33}
+\leanok
+\(K_5\)는 \(\mathrm{Fin}\,5\) 위의 완전 그래프, \(K_{3,3}\)은 \(\mathrm{Fin}\,3 \oplus \mathrm{Fin}\,3\) 위의
+완전 이분 그래프다.
+\end{definition}
+
+\begin{lemma}[변 개수 상한]
+\label{lem:edge_bound}
+\lean{Kuratowski.IsPlanar.edge_bound, Kuratowski.IsPlanar.edge_bound_of_isBipartite}
+\leanok
+\uses{def:IsPlanar}
+변이 있고 차수 1인 꼭짓점이 없는 평면 그래프는 \(E + 6 + 3I \le 3V\)를 만족한다. 이분 그래프이면
+\(E + 4 + 2I \le 2V\)이다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\uses{lem:components}
+단순 그래프라 길이 1인 면이 없고, 차수 1인 꼭짓점이 없으니 길이 2인 면도 없다. 따라서
+\(3\operatorname{orb}(\varphi) \le 2E\)이다. 이분 그래프이면 길이 3인 면도 없어
+\(4\operatorname{orb}(\varphi) \le 2E\)이다. 이것을 \(\chi = 2c\)와 \(I + 1 \le c\)에 넣는다.
+\end{proof}
+
+\begin{theorem}[\(K_5\), \(K_{3,3}\)은 평면이 아니다]
+\label{thm:K5K33_nonplanar}
+\lean{Kuratowski.K5_map_not_isPlanar, Kuratowski.K33_map_not_isPlanar, Kuratowski.K5_not_isPlanar, Kuratowski.K33_not_isPlanar}
+\leanok
+\uses{def:IsPlanar, def:K5K33}
+어떤 \(f\)에 대해서도 \(K_5.\mathrm{map}\,f\)와 \(K_{3,3}.\mathrm{map}\,f\)는 평면이 아니다.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{lem:edge_bound}
+\(K_5.\mathrm{map}\,f\)에서 \(E = 10\), \(I = V - 5\)이므로 \(10 + 6 + 3(V - 5) \le 3V\)가 거짓이다.
+\(K_{3,3}.\mathrm{map}\,f\)에서는 \(E = 9\), \(I = V - 6\)이므로 \(9 + 4 + 2(V - 6) \le 2V\)가 거짓이다.
+\end{proof}
+
+\begin{theorem}[쿠라토프스키 정리, 쉬운 방향]
+\label{thm:easy}
+\lean{Kuratowski.not_isPlanar_of_containsSubdivision, Kuratowski.IsPlanar.not_containsSubdivision}
+\leanok
+\uses{def:IsPlanar, def:subdiv, def:K5K33}
+\(K_5\)나 \(K_{3,3}\)의 세분을 부분 그래프로 갖는 유한 그래프는 평면 그래프가 아니다.
+\end{theorem}
+
+\begin{proof}
+\leanok
+\uses{thm:mono, thm:smooth, thm:K5K33_nonplanar}
+\(G\)가 평면이면 세분 \(H \le G\)도 평면이고 (정리~\ref{thm:mono}), 세분을 한 단계씩 되돌린
+\(K.\mathrm{map}\,f\)도 평면이다 (정리~\ref{thm:smooth}). 이것은 정리~\ref{thm:K5K33_nonplanar}에 어긋난다.
+\end{proof}
+
+\section{그 밖의 확인}
+
+\begin{theorem}[\(K_4\)는 평면]
+\label{thm:K4}
+\lean{Kuratowski.K4_isPlanar}
+\leanok
+\uses{def:IsPlanar}
+\(K_4\)는 평면 그래프다. 정의가 공허하지 않다는 확인이다.
+\end{theorem}
+
+\begin{proof}
+\leanok
+회전 순서를 표로 준다. 면 순열의 각 순환에 이름표를 붙여 순환이 4개임을 \texttt{decide}로 확인하면
+\(4 - 6 + 4 = 2\)이다.
+\end{proof}
+
+\begin{theorem}[동형 불변]
+\label{thm:iso}
+\lean{Kuratowski.IsPlanar.of_iso}
+\leanok
+\uses{def:IsPlanar}
+평면성은 그래프 동형에 대해 불변이다.
+\end{theorem}
+
+\begin{proof}
+\leanok
+동형은 다트, 변, 고립점, 연결 성분을 일대일로 옮기고, 옮긴 면 순열은 원래 면 순열의 켤레라 순환 수가
+같다 (\texttt{orbitCount\_permCongr}).
+\end{proof}

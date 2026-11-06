@@ -1,0 +1,107 @@
+\chapter{기본 도구와 세분의 경로 표현}
+\label{chap:tools}
+
+여기서부터 어려운 방향이다. \ref{chap:tools}--\ref{chap:main}장의 항목은 아직 형식화하지 않았다.
+예정된 Lean 이름은 \texttt{\textbackslash lean} 대신 ``예정 Lean 이름''으로 적는다.
+
+\section{기본 도구}
+
+\begin{lemma}[꼭짓점 집합 넓히기]
+\label{lem:map_iff}
+\uses{def:IsPlanar}
+\planned{isPlanar\_map\_iff}
+\(f : W \hookrightarrow V\)이면 \(K.\mathrm{map}\,f\)가 평면인 것과 \(K\)가 평면인 것은 같다.
+\end{lemma}
+
+\begin{proof}
+\uses{thm:iso}
+다트는 \(f\)로 일대일 대응하고, 면 순열은 켤레(\texttt{orbitCount\_permCongr})다. \(V\) 가운데 \(f\)의
+상에 없는 점은 모두 고립점이라 꼭짓점, 면, 성분이 똑같이 \(|V| - |W|\)씩 늘어난다. 따라서 \(\chi\)와
+\(2c\)가 같은 양만큼 바뀐다.
+\end{proof}
+
+새 꼭짓점이 필요할 때 \(V\)를 \(\mathrm{Option}\,V\)로 넓히는 데 쓴다 (결정~D1, \ref{chap:plan}장).
+
+\begin{lemma}[지지 집합이 4개 이하면 평면]
+\label{lem:small}
+\uses{def:IsPlanar}
+\planned{isPlanar\_of\_ncard\_support\_le\_four}
+지지 집합(고립점이 아닌 꼭짓점의 집합)의 크기가 4 이하인 유한 그래프는 평면이다.
+\end{lemma}
+
+\begin{proof}
+\uses{thm:K4, thm:mono, lem:map_iff}
+지지 집합 \(S = S_G\)에 대해 \(G_S\)를 \(G\)를 \(S\)로 제한한 그래프(꼭짓점 타입 \(S\))라 하자. 지지 집합 밖의
+점은 고립점이므로 \(G = G_S.\mathrm{map}\,\iota\)이다 (\(\iota : S \hookrightarrow V\)는 포함 사상).
+\(|S| \le 4\)이므로 단사 \(g : S \hookrightarrow \mathrm{Fin}\,4\)가 있고, \(\mathrm{Fin}\,4\) 위의 단순 그래프는 모두
+완전 그래프 \(K_4\)의 부분 그래프이므로 \(G_S.\mathrm{map}\,g \le K_4\)이다.
+\begin{enumerate}
+  \item \(K_4\)는 평면이므로 (정리~\ref{thm:K4}) 부분 그래프 \(G_S.\mathrm{map}\,g\)도 평면이다
+        (정리~\ref{thm:mono}).
+  \item 보조정리~\ref{lem:map_iff}를 \(g\)에 쓰면 \(G_S\)가 평면이다.
+  \item 보조정리~\ref{lem:map_iff}를 \(\iota\)에 쓰면 \(G = G_S.\mathrm{map}\,\iota\)가 평면이다.
+\end{enumerate}
+map의 방향에 주의한다. 사상은 \(S\)에서 \(\mathrm{Fin}\,4\)와 \(V\)로 가므로, \(G\)를 직접
+\(K_4.\mathrm{map}\) 아래에 넣는 것이 아니라 \(G_S\)를 거쳐 두 번 옮긴다.
+\end{proof}
+
+\section{세분의 경로 표현}
+
+\begin{definition}[경로 체계]
+\label{def:paths}
+\planned{SubdivisionPaths K G (structure)}
+\(K\)(꼭짓점 집합 \(W\))의 \(G\) 안 \emph{경로 체계}는 다음으로 이루어진다.
+\begin{itemize}
+  \item 분기점 \(f : W \hookrightarrow V\)
+  \item \(K\)의 변 \(ab\)마다 \(G\)의 경로 \(P_{ab}\) (\(f(a)\)에서 \(f(b)\)까지, \texttt{IsPath},
+        \(P_{ba} = P_{ab}^{-1}\))
+  \item 경로의 내부 꼭짓점은 \(f\)의 상 밖에 있다.
+  \item 서로 다른 두 변의 경로는 내부 꼭짓점을 공유하지 않는다.
+\end{itemize}
+\end{definition}
+
+\begin{theorem}[두 표현은 같다]
+\label{thm:paths_iff}
+\uses{def:subdiv, def:paths}
+\planned{containsSubdivision\_iff\_paths}
+\(G\)가 \(K\)의 세분을 포함하는 것은 \(K\)의 \(G\) 안 경로 체계가 있는 것과 같다.
+\end{theorem}
+
+\begin{proof}
+(\(\Rightarrow\)) \texttt{IsSubdivision}에 대한 귀납법. 변 \(xy\)를 \(w\)로 나누면 \(xy\)가 들어 있던 경로
+하나에 \(w\)가 끼어든다.
+
+(\(\Leftarrow\)) 경로 내부 꼭짓점의 총수에 대한 귀납법. 내부 꼭짓점을 하나씩 \texttt{subdivideEdge}로
+넣는다. 넣는 순간 그 꼭짓점은 아직 고립점이다.
+
+이 동치는 아직 형식화하지 않았다. 귀납적인 세분 정의(정의~\ref{def:subdiv})가 이 경로 표현, 즉 표준적인
+위상 소수 정의와 같다는 것은 쉬운 방향의 두 번째 리뷰에서 수학적으로 따로 확인했다.
+\end{proof}
+
+\begin{lemma}[공통 이웃 셋이면 \(TK_5\)]
+\label{lem:TK5_of_common}
+\uses{def:subdiv, def:K5K33, def:cycseq}
+\planned{containsSubdivision\_K5\_of\_three\_common}
+\(x \sim y\)이고, \(x\), \(y\)를 지나지 않는 사이클 \(C\)에 \(x\)와 \(y\)의 공통 이웃 \(z_1, z_2, z_3\)가
+있으면 \(G\)는 \(K_5\)의 세분을 포함한다.
+\end{lemma}
+
+\begin{proof}
+\uses{thm:paths_iff}
+분기점은 \(x, y, z_1, z_2, z_3\)이다. 경로는 변 \(xy\), \(xz_i\), \(yz_i\)와 \(C\)의 세 호
+\(z_i \cdots z_j\)다.
+\end{proof}
+
+\begin{lemma}[번갈아 놓이면 \(TK_{3,3}\)]
+\label{lem:TK33_of_alt}
+\uses{def:subdiv, def:K5K33, def:cycseq}
+\planned{containsSubdivision\_K33\_of\_alternating}
+\(x \sim y\)이고, 사이클 \(C\)(\(x\), \(y\)를 지나지 않음) 위에 \(u, x', w, x''\)가 이 순환 순서로 있다고
+하자. \(u, w \in N(y)\)이고 \(x', x'' \in N(x)\)이면 \(G\)는 \(K_{3,3}\)의 세분을 포함한다.
+\end{lemma}
+
+\begin{proof}
+\uses{thm:paths_iff}
+두 편은 \(\{x, u, w\}\)와 \(\{y, x', x''\}\)이다. 경로는 변 5개(\(xy\), \(xx'\), \(xx''\), \(yu\), \(yw\))와
+\(C\)의 네 호다.
+\end{proof}

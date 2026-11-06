@@ -1,0 +1,62 @@
+\chapter{설계 결정과 형식화 순서}
+\label{chap:plan}
+
+\section{설계 결정}
+
+\begin{description}
+  \item[D1. 새 꼭짓점이 필요할 때] (보조정리~\ref{lem:split2})
+    \begin{itemize}
+      \item 권장: \(\mathrm{Option}\,V\)로 넓히고 보조정리~\ref{lem:map_iff}를 쓴다. 모든 수술을 지금처럼
+            그래프 수준에 두면 \texttt{Deletion}, \texttt{Smoothing}, \texttt{Components}의 방식을 그대로
+            쓸 수 있다.
+      \item 대안: 다트 집합과 두 순열로 된 추상 조합 지도를 도입한다. 수술은 깔끔해지지만, 오일러 부등식과
+            성분 세기를 지도 수준에서 다시 해야 한다.
+      \item 권장을 유지한다. 최종 판단은 보조정리~\ref{lem:split2}를 시작할 때 하지만, 이 결정에 걸리는 것은
+            보조정리~\ref{lem:split2}와 그것을 쓰는 \ref{lem:J1}, \ref{lem:J2}, 그리고 주 정리뿐이다. 나머지 항목(아래 1--2번
+            묶음)은 기다리지 않는다.
+      \item \(\mathrm{Option}\,V\)를 쓸 때 진술의 가정: \(V\)는 유한하고 \texttt{DecidableEq V}이며, 원래
+            꼭짓점 \(w\)는 \(\mathrm{some}\,w\), 새 꼭짓점은 \(\mathrm{none}\)이다. 쪼갤 두 모서리는 같은 면
+            순환 위의 서로 다른 두 자리이고, 변은 \texttt{Sym2}의 무방향 변이다. 쪼갠 그래프와
+            원래 그래프의 다트 대응(\texttt{Smoothing.lean}의 \texttt{dartEquiv}와 같은 꼴)을 진술에 함께 적는다.
+    \end{itemize}
+  \item[D2. 3-연결성의 대상] 고립점을 뺀 지지 집합 기준 (정의~\ref{def:conn3}). 수축이 고립점을 만들고,
+    모든 그래프가 고정된 꼭짓점 타입 \(V\) 위에 있기 때문이다.
+  \item[D3. 사이클 표현] 구간 논증에는 \(\mathbb{Z}/m \to V\) 수열이 편하다 (정의~\ref{def:cycseq}). 경로
+    체계(정의~\ref{def:paths})를 만들 때만 Mathlib의 \texttt{Walk}로 바꾼다.
+  \item[D4. 2-합 붙이기] 직접 증명한다 (보조정리~\ref{lem:sum2}). 수축으로 우회하려면 다중 변이 생겨서
+    \texttt{SimpleGraph}와 맞지 않는다.
+\end{description}
+
+\section{형식화 순서}
+
+서로 의존하지 않는 묶음은 병렬로 진행할 수 있다. 의존 그래프에서 파란 항목은 의존하는 항목이 모두
+형식화된 것이다. 아래 묶음은 그 순서를 따르되, 같은 묶음 안의 항목끼리는 서로 의존할 수 있다
+(예: 정리~\ref{thm:paths_iff}는 정의~\ref{def:paths}를 쓴다).
+\begin{enumerate}
+  \item \textbf{바로 시작 가능}
+    \begin{itemize}
+      \item 회전 체계와 무관한 것: 보조정리~\ref{lem:cyclic}, 정의~\ref{def:conn3}, 정의~\ref{def:contract},
+            정리~\ref{thm:contractible}, 정의~\ref{def:cycseq}
+      \item 정의만 있으면 되는 것: 정의~\ref{def:paths}, 정리~\ref{thm:paths_iff},
+            보조정리~\ref{lem:map_iff}, 보조정리~\ref{lem:small}
+    \end{itemize}
+  \item \textbf{1번 위에서}
+    \begin{itemize}
+      \item 회전 체계 수술: 보조정리~\ref{lem:sum0}, \ref{lem:sum1}, 정의~\ref{def:delVertex}
+      \item 경로 조작: 보조정리~\ref{lem:lift}, \ref{lem:TK5_of_common}, \ref{lem:TK33_of_alt}
+    \end{itemize}
+  \item \textbf{보강 후}: 보조정리~\ref{lem:sum2}, 보조정리~\ref{lem:split2}, 그다음
+        보조정리~\ref{lem:J1}, 그다음 보조정리~\ref{lem:J2}와 \ref{lem:S}
+  \item \textbf{마무리}: 정리~\ref{thm:reduce}, 정리~\ref{thm:hard}, 정리~\ref{thm:kuratowski}
+\end{enumerate}
+
+\section{검사 실행}
+
+\begin{verbatim}
+lake build                               # Lean 빌드와 공리 감사
+scripts/blueprint.sh                     # 위에 더해 웹·PDF 판, checkdecls, 전수 검사
+python3 -I scripts/check_definition.py   # 평면성 정의의 전수 검사
+\end{verbatim}
+작업 규칙(공리, \texttt{\textbackslash planned}에서 \texttt{\textbackslash lean}으로 옮기기, 작성자와
+검토자 분리)은 저장소의
+\texttt{AGENTS.md}에 있다.

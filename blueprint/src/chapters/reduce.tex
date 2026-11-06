@@ -1,0 +1,158 @@
+\chapter{최소 반례는 3-연결이다}
+\label{chap:reduce}
+
+\section{붙이기}
+
+세 보조정리 모두 회전 체계 수술이고, 면 수는 보조정리~\ref{lem:swap}로 센다. 2-합을 직접 증명하는
+이유는 결정~D4(\ref{chap:plan}장)에 있다. 수는 서론의 세는 규약대로 고정된 \(V\)(\(n = |V|\)) 위에서
+센다. \(F = O + I\)와 \(c\)에 고립점이 들어가므로 붙인 그래프의 \(F\), \(c\)는 그냥 더해지지 않는다.
+세 경우 모두 \(I = I_1 + I_2 - n + |S_{G_1} \cap S_{G_2}|\)이다.
+
+\begin{lemma}[서로소 합]
+\label{lem:sum0}
+\uses{def:IsPlanar}
+\planned{IsPlanar.sup\_of\_disjoint}
+\(G_1\), \(G_2\)가 평면이고 지지 집합이 서로소(\(S_{G_1} \cap S_{G_2} = \emptyset\))이면 \(G_1 \sqcup G_2\)는
+평면이다. 이때 변 집합도 서로소다.
+\end{lemma}
+
+\begin{proof}
+회전 체계를 나란히 놓는다 (다트 집합이 서로소다). 그러면 \(O = O_1 + O_2\), \(E = E_1 + E_2\),
+\(I = I_1 + I_2 - n\)이고, 따라서 \(F = F_1 + F_2 - n\), \(c = c_1 + c_2 - n\)이다. 그러므로
+\(\chi = n - E + F = \chi_1 + \chi_2 - 2n = 2c_1 + 2c_2 - 2n = 2c\)다.
+예: \(V = \mathrm{Fin}\,4\), \(G_1 = \{01\}\), \(G_2 = \{23\}\)이면 \(F = 3 + 3 - 4 = 2\), \(c = 3 + 3 - 4 = 2\).
+\end{proof}
+
+\begin{lemma}[한 점에서 붙이기]
+\label{lem:sum1}
+\uses{def:IsPlanar}
+\planned{IsPlanar.sup\_of\_inter\_eq\_singleton}
+\(G_1\), \(G_2\)가 평면이고 지지 집합이 꼭짓점 하나에서만 만나면(\(S_{G_1} \cap S_{G_2} = \{v\}\))
+\(G_1 \sqcup G_2\)는 평면이다. 이때 공유하는 변은 없다 (공유하는 변의 두 끝점은 서로 다르고 둘 다
+\(S_{G_1} \cap S_{G_2}\)에 있어야 한다).
+\end{lemma}
+
+\begin{proof}
+\uses{lem:swap}
+\(v\)에서 두 회전 순환을 이어 붙인다. \(G_1\)의 \(v\) 다트 \(p\)와 \(G_2\)의 \(v\) 다트 \(q\)에 대해 회전에
+호환 \((p\ q)\)를 곱하면 서로 다른 두 순환이 하나가 된다. 면 순열에는 호환 \((\bar p\ \bar q)\)가 곱해지고
+(\(\bar p\)는 \(p\)의 반대 다트), \(\bar p\)와 \(\bar q\)는 서로 다른 그래프의 면에 있으므로 두 면이 하나로
+합쳐진다. 따라서 \(O = O_1 + O_2 - 1\)이다. 또 \(E = E_1 + E_2\), \(I = I_1 + I_2 - n + 1\)이므로
+\(F = F_1 + F_2 - n\)이고, \(v\)를 지나는 두 성분이 하나가 되어 \(c = c_1 + c_2 - n\)이다. 그러므로
+\(\chi = \chi_1 + \chi_2 - 2n = 2c\)다.
+\end{proof}
+
+\begin{lemma}[변 하나를 따라 붙이기]
+\label{lem:sum2}
+\uses{def:IsPlanar}
+\notready
+\planned{IsPlanar.sup\_of\_inter\_eq\_edge}
+\(G_1\), \(G_2\)가 평면이고 지지 집합이 두 점에서만 만나며(\(S_{G_1} \cap S_{G_2} = \{x, y\}\), \(x \ne y\))
+\(xy\)가 두 그래프 모두의 변이면 \(G_1 \sqcup G_2\)는 평면이다. 이때 공유하는 변은 \(xy\) 하나뿐이다.
+\end{lemma}
+
+\begin{proof}
+\uses{lem:swap}
+\(x\)에서는 \(G_2\)의 다트를 \((x, y)\) 바로 뒤에, \(y\)에서는 \((y, x)\) 바로 앞에 끼운다. 방향을 맞추려면
+\(G_2\)의 회전을 거울상(\(\rho^{-1}\))으로 바꿔야 할 수 있다.
+
+세는 규약으로는 \(E = E_1 + E_2 - 1\), \(I = I_1 + I_2 - n + 2\)이고, \(xy\)를 지나는 두 성분이 하나가 되어
+\(c = c_1 + c_2 - n + 1\)이다. 따라서 \(\chi = 2c\)가 되려면 \(F = F_1 + F_2 - n + 1\), 곧
+\(O = O_1 + O_2 - 1\)이어야 한다. 예: \(V = \mathrm{Fin}\,4\)에서 삼각형 \(012\)와 \(013\)을 붙이면
+다이아몬드이고, \(O = 2 + 2 - 1 = 3\), \(F = 3 + 3 - 4 + 1 = 3\)이다. 위 수술이 실제로
+\(O = O_1 + O_2 - 1\)을 주는지는 아직 증명하지 않았다.
+
+\textbf{보강할 것.}
+\begin{itemize}
+  \item 끼우는 자리와 방향을 정확히 정하기
+  \item 거울상 보조정리 (\(\rho^{-1}\)도 회전 체계이고 면 수가 같다)
+  \item 호환 몇 번으로 쓰는지 정하고 \(O = O_1 + O_2 - 1\)을 보이기
+\end{itemize}
+\end{proof}
+
+\section{3-연결성과 수축}
+
+\begin{definition}[\(k\)-연결]
+\label{def:conn3}
+\planned{ConnectedOn G k A, ThreeConnected G}
+꼭짓점 집합 \(A\)가 \(G\)에서 \emph{\(k\)-연결}이라는 것은 \(|A| \ge k + 1\)이고, 꼭짓점 집합 \(S\)를
+\(k - 1\)개 이하로 지워도 \(A \setminus S\)의 점들이 \(G - S\)에서 서로 이어져 있다는 것이다. 여기서
+\(G - S\)는 \(S\)에 닿는 변을 모두 지운 그래프다 (꼭짓점 타입은 그대로 \(V\)). \(G\)가 \(k\)-연결이라는 것은
+지지 집합 \(S_G\)가 \(G\)에서 \(k\)-연결이라는 것이다. 2-연결과 3-연결은 \(k = 2, 3\)인 경우다.
+
+\(A \setminus S\)는 지우기 \emph{전}의 집합에서 \(S\)만 뺀 것이다. 지운 뒤 \(G - S\)의 지지 집합을 다시
+계산하면 안 된다. 그렇게 하면 별 \(K_{1,3}\)의 중심을 지웠을 때 지지 집합이 비어 공허하게 이어진 것이
+되고, 별이 2-연결이 되어 버린다. 모든 그래프가 고정된 꼭짓점 타입 \(V\) 위에 있고 수축이 고립점을
+만들기 때문에 지지 집합을 기준으로 정의한다 (결정~D2).
+\bfcheck{\texttt{[conn]}: 별 \(K_{1,3}\), 삼각형과 고립점, \(K_4\)와 고립점, 길이 2인 경로,
+보조정리~\ref{lem:J2}의 반례 그래프에서 이 정의대로 판정한다. 다른 검사도 모두 이 정의를 쓴다.}
+\end{definition}
+
+\begin{definition}[변 수축]
+\label{def:contract}
+\planned{contractEdge G x y}
+\(G/xy\)는 \(y\)를 \(x\)에 합친 그래프다 (\(x \sim y\)). \(p \ne q\)이고 \(p, q \ne y\)일 때 \(p \sim q\)는
+원래 인접이거나, \(p\)(또는 \(q\))가 \(x\)이고 다른 쪽이 \(y\)의 이웃인 경우다. \(p \ne q\) 조건이 없으면
+\(x\)가 \(y\)의 이웃이라서 고리 \(xx\)가 생긴다. \(y\)는 고립점이다. 겹친 변은 하나로 친다 (단순 그래프).
+변 수, 고립점 수, 성분 수의 관계는 \texttt{Components.lean}과 같은 방식으로 따로 세운다.
+\end{definition}
+
+\begin{theorem}[수축 가능한 변 (Thomassen 1980)]
+\label{thm:contractible}
+\uses{def:conn3, def:contract}
+\planned{ThreeConnected.exists\_contractible}
+지지 집합이 5개 이상인 3-연결 그래프에는 \(G/xy\)가 3-연결인 변 \(xy\)가 있다.
+\bfcheck{\texttt{[T]}: 지지 집합이 5개인 이름표 붙은 3-연결 그래프 전부와 바퀴 \(W_5\), \(W_6\), 삼각기둥,
+정팔면체, 정육면체 (모두 31개)}
+\end{theorem}
+
+\begin{proof}
+Diestel, \emph{Graph Theory}, 보조정리 3.2.1.
+\begin{enumerate}
+  \item 그런 변이 없다고 하자. 그러면 모든 변 \(xy\)에 대해 \(\{x, y, z\}\)가 분리 집합인 \(z\)가 있다.
+  \item 그 가운데 \(G - \{x, y, z\}\)의 성분 \(C\)가 가장 작은 것을 고른다.
+  \item \(z\)는 \(C\) 안에 이웃 \(f\)가 있다. 같은 이유로 \(\{z, f, g\}\)가 분리 집합인 \(g\)가 있다.
+  \item 이로부터 \(C\)보다 작은 성분이 나와 모순이다.
+\end{enumerate}
+\end{proof}
+
+\begin{lemma}[들어 올리기]
+\label{lem:lift}
+\uses{def:contract, def:subdiv, def:K5K33}
+\planned{kuratowskiFree\_contractEdge}
+\(x \sim y\)이고 \(G\)가 \(K_5\)와 \(K_{3,3}\)의 세분을 포함하지 않으면 (KF) \(G/xy\)도 KF다.
+\end{lemma}
+
+\begin{proof}
+\uses{thm:paths_iff}
+대우를 보인다. \(G/xy\) 안의 \(TK\)에서 합친 점 \(v\)의 역할로 경우를 나눈다.
+\begin{itemize}
+  \item 쓰이지 않거나 경로 내부에 있으면 그대로 옮기거나, \(v\)를 \(x\), \(y\), \(x\)--\(y\)로 바꾼다.
+  \item \(K_{3,3}\)의 분기점(차수 3)이면 \(x\)와 \(y\) 가운데 경로를 2개 이상 받는 쪽을 분기점으로 하고,
+        나머지는 변 \(xy\)로 잇는다. \(TK_{3,3}\)이 나온다.
+  \item \(K_5\)의 분기점(차수 4)이면 경로 4개가 \(x\)와 \(y\)에 나뉘는 방식으로 나눈다.
+        4--0 또는 3--1이면 \(TK_5\), 2--2이면 \(TK_{3,3}\)이 나온다.
+\end{itemize}
+\end{proof}
+
+\begin{theorem}[최소 반례는 3-연결]
+\label{thm:reduce}
+\uses{def:conn3, def:IsPlanar, def:subdiv, def:K5K33}
+\planned{isPlanar\_or\_threeConnected}
+\(G\)가 KF이고 변이 더 적은 모든 KF 그래프가 평면이면, \(G\)는 평면이거나 3-연결이다.
+\end{theorem}
+
+\begin{proof}
+\uses{lem:small, lem:sum0, lem:sum1, lem:sum2, thm:paths_iff, thm:mono}
+\begin{enumerate}
+  \item 지지 집합이 4개 이하이면 보조정리~\ref{lem:small}로 끝난다.
+  \item 끊어져 있으면 보조정리~\ref{lem:sum0}, 절단점이 있으면 보조정리~\ref{lem:sum1}로 처리한다.
+  \item 2-분리 \(\{x, y\}\)가 있으면 양쪽에 \(xy\)를 더한 \(G_1 + xy\), \(G_2 + xy\)를 본다.
+    \begin{itemize}
+      \item 둘 다 변이 더 적다 (2-연결이므로 각 쪽에 변이 2개 이상 있다).
+      \item 둘 다 KF다. 그 안의 \(TK\)가 \(xy\)를 쓰면, \(xy\)를 다른 쪽의 \(x\)--\(y\) 경로로 바꾸면 되기
+            때문이다.
+    \end{itemize}
+  \item 따라서 둘 다 평면이고, 보조정리~\ref{lem:sum2}와 정리~\ref{thm:mono}로 \(G\)도 평면이다.
+\end{enumerate}
+\end{proof}

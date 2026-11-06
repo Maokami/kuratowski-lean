@@ -1,0 +1,63 @@
+\chapter{개요}
+\label{chap:intro}
+
+쿠라토프스키 정리는 다음과 같다.
+\begin{quote}
+유한 그래프 \(G\)가 평면 그래프일 필요충분조건은 \(G\)가 \(K_5\)나 \(K_{3,3}\)의 세분(subdivision)을 부분
+그래프로 갖지 않는 것이다.
+\end{quote}
+이 문서는 Lean 4 형식화의 설계도(blueprint)다. 지금 상태는 다음과 같다.
+\begin{itemize}
+  \item \textbf{쉬운 방향}(세분을 포함하면 평면이 아니다, 정리~\ref{thm:easy})은 형식화를 마쳤다.
+        \ref{chap:easy}장의 항목이 모두 여기에 해당한다.
+  \item \textbf{어려운 방향}(세분이 없으면 평면이다, 정리~\ref{thm:hard})은 설계 단계다. 경로를 고른
+        근거는 \ref{chap:routes}장, 형식화 단위는 \ref{chap:tools}--\ref{chap:main}장, 남은 설계 결정과
+        진행 순서는 \ref{chap:plan}장에 있다.
+\end{itemize}
+
+평면성은 위상적 정의 대신 조합적 정의(종수 0인 회전 체계, 정의~\ref{def:IsPlanar})를 쓴다. Mathlib에
+평면성 정의도 조르당 곡선 정리도 없기 때문이다.
+
+\section*{읽는 법}
+
+\begin{itemize}
+  \item 형식화한 항목에는 대응하는 Lean 선언이 붙어 있다. 아직 없는 선언은 이름을 정해 둔 경우
+        ``예정 Lean 이름''으로 적는다.
+  \item 의존 그래프의 색은 다음을 뜻한다.
+    \begin{itemize}
+      \item 초록 테두리/배경: 진술/증명을 Lean으로 검증했다.
+      \item 파란 테두리/배경: 진술/증명에 필요한 것이 모두 검증되어 바로 형식화할 수 있다.
+      \item 주황 테두리: 블루프린트를 더 다듬어야 한다 (``보강할 것'' 참고).
+    \end{itemize}
+  \item ``Lean 검증''은 \texttt{sorry}와 추가 공리 없이 컴파일되고, 그 선언이 쓰는 공리가
+        \texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}뿐이라는 뜻이다. \texttt{lake build}가
+        \texttt{KuratowskiAudit.lean}으로 모든 선언의 공리를 검사하고, 어기면 빌드가 실패한다.
+  \item ``전수 검사''는 \texttt{scripts/check\_blueprint.py}가 작은 그래프에서 \emph{진술}을 모두 확인했다는
+        뜻이다. 증명이 옳다는 뜻은 아니다. 증명의 수술(새 회전 체계를 만드는 방법)까지 확인하는 검사는
+        이름에 ``수술''을 붙여 따로 적는다 (\texttt{[S-수술]}). 기하를 조합적으로 다시 진술한 보조정리는
+        형식화하기 전에 이렇게 먼저 확인한다. 각 검사가 실제로 틀린 진술을 잡아내는지(조건 하나를 빼거나
+        수술의 방향을 바꾸면 반례가 나오는지)도 따로 확인했다.
+\end{itemize}
+
+\section*{용어}
+
+\begin{itemize}
+  \item \textbf{공통 가정}: 꼭짓점 타입 \(V\)는 유한하고 같음을 판정할 수 있다
+        (\texttt{[Finite V] [DecidableEq V]}). 그래프는 \texttt{SimpleGraph V}라서 변은 방향이 없고
+        (\texttt{Sym2 V}의 원소) 고리가 없다. 따라서 \(x \sim y\)이면 \(x \ne y\)다. \(G_1 \sqcup G_2\)는 변
+        집합의 합집합이다.
+  \item \textbf{지지 집합}(support) \(S_G\): 고립점이 아닌 꼭짓점의 집합. 모든 그래프를 고정된 꼭짓점 타입
+        \(V\) 위에서 다루므로 크기와 연결도는 지지 집합 기준으로 말한다.
+  \item \textbf{세는 규약.} \(n = |V|\)는 고정이다. 회전 체계 \(R\)에 대해 \(O\)는 면 순열의 순환 수, \(I\)는
+        고립점 수, \(F = O + I\)는 \texttt{numFaces}, \(c\)는 고립점을 포함한 연결 성분 수다
+        (정의~\ref{def:eulerChar}). 고립점이 \(F\)와 \(c\)에 함께 들어가므로, 두 그래프를 붙일 때 \(F\)와
+        \(c\)는 그냥 더해지지 않는다. 예를 들어 \(V = \mathrm{Fin}\,4\), \(G_1 = \{01\}\), \(G_2 = \{23\}\)이면
+        \(F_1 = F_2 = 3\)이지만 \(G_1 \sqcup G_2\)는 \(F = 2\)다. 일반적으로
+        \(I(G_1 \sqcup G_2) = I_1 + I_2 - n + |S_{G_1} \cap S_{G_2}|\)이다. ``지지 집합 기준으로 센다''고 하면
+        고립점을 뺀 양(꼭짓점 \(|S_G|\), 면 \(O\), 고립점이 아닌 성분)을 뜻한다.
+  \item \textbf{KF}(쿠라토프스키 부분 그래프가 없음): \(K_5\)의 세분도 \(K_{3,3}\)의 세분도 부분 그래프로
+        갖지 않는 것. Lean으로는
+        \(\neg\)\,\texttt{ContainsSubdivision G K5} \(\wedge\) \(\neg\)\,\texttt{ContainsSubdivision G K33}이다.
+  \item \(G/xy\): 변 \(xy\)를 수축한 그래프 (정의~\ref{def:contract}).
+  \item \(TK_5\), \(TK_{3,3}\): \(K_5\), \(K_{3,3}\)의 세분.
+\end{itemize}

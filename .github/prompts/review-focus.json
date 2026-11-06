@@ -1,0 +1,34 @@
+{
+  "easy": [
+    "blueprint/src/chapters/easy.tex",
+    "Kuratowski/Basic.lean",
+    "Kuratowski/Subdivision.lean"
+  ],
+  "tools": [
+    "blueprint/src/chapters/tools.tex",
+    "Kuratowski/Basic.lean",
+    "Kuratowski/Iso.lean",
+    "Kuratowski/Planar.lean"
+  ],
+  "reduce": [
+    "blueprint/src/chapters/reduce.tex",
+    "blueprint/src/chapters/intro.tex",
+    "Kuratowski/Basic.lean",
+    "scripts/check_blueprint.py"
+  ],
+  "faces": [
+    "blueprint/src/chapters/faces.tex",
+    "blueprint/src/chapters/intro.tex",
+    "blueprint/src/chapters/reduce.tex",
+    "Kuratowski/Basic.lean",
+    "scripts/check_blueprint.py"
+  ],
+  "main": [
+    "blueprint/src/chapters/main.tex",
+    "blueprint/src/chapters/faces.tex",
+    "blueprint/src/chapters/reduce.tex",
+    "blueprint/src/chapters/tools.tex",
+    "Kuratowski/Basic.lean",
+    "Kuratowski/Subdivision.lean"
+  ]
+}

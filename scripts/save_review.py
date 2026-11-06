@@ -2,15 +2,29 @@
 
 import json
 import os
+import sys
 from pathlib import Path
 
 
-def validate_review(raw, expected_sha, conclusion, secrets=()):
+def required_files(focus):
+    mapping = json.loads(Path(".github/prompts/review-focus.json").read_text())
+    if not isinstance(focus, str) or focus not in mapping:
+        raise ValueError("등록되지 않은 focus입니다.")
+    files = mapping[focus]
+    if not files or not all(Path(file).is_file() for file in files):
+        raise ValueError("필수 검토 파일이 없습니다.")
+    return files
+
+
+def validate_review(raw, expected_sha, conclusion, expected_focus, secrets=()):
+    required = required_files(expected_focus)
     if conclusion != "success":
         raise ValueError("Claude 검토가 성공하지 않았습니다.")
     data = json.loads(raw)
     if not isinstance(data, dict) or data.get("sha") != expected_sha:
         raise ValueError("검토 SHA가 실행 대상과 다릅니다.")
+    if data.get("focus") != expected_focus:
+        raise ValueError("검토 focus가 실행 대상과 다릅니다.")
     files = data.get("reviewed_files")
     if not isinstance(files, list) or not files:
         raise ValueError("실제로 읽은 파일 목록이 필요합니다.")
@@ -24,6 +38,8 @@ def validate_review(raw, expected_sha, conclusion, secrets=()):
         if any(part == ".git" or part.startswith(".env")
                for part in resolved.relative_to(root).parts):
             raise ValueError("인증 설정 파일은 검토 대상이 아닙니다.")
+    if not set(required).issubset(files):
+        raise ValueError("필수 검토 파일이 reviewed_files에서 누락되었습니다.")
     if not isinstance(data.get("report"), str) or not data["report"].strip():
         raise ValueError("검토 보고서가 비어 있습니다.")
     serialized = json.dumps(data, ensure_ascii=False)
@@ -33,9 +49,18 @@ def validate_review(raw, expected_sha, conclusion, secrets=()):
 
 
 if __name__ == "__main__":
+    focus = os.environ["EXPECTED_FOCUS"]
+    if sys.argv[1:] == ["--prepare"]:
+        files = required_files(focus)
+        with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+            output.write(f"focus={focus}\n")
+            output.write(f"required_files={json.dumps(files)}\n")
+        sys.exit(0)
+    if sys.argv[1:]:
+        raise ValueError("사용법: save_review.py [--prepare]")
     data = validate_review(
         os.environ["REVIEW_JSON"], os.environ["EXPECTED_SHA"],
-        os.environ["REVIEW_CONCLUSION"],
+        os.environ["REVIEW_CONCLUSION"], focus,
         (os.environ["REVIEW_GITHUB_TOKEN"], os.environ["REVIEW_OAUTH_TOKEN"]),
     )
     out = Path("review-output")

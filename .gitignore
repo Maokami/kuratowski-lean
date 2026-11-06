@@ -13,3 +13,5 @@
 # 로컬 검토 보고서와 Python 캐시
 /review-output/
 __pycache__/
+.review-input/
+.review-result/

@@ -128,7 +128,7 @@ def cyclic_case(word):
     return a, b, c
 
 cnt = 0; bad = []
-for n in range(3, 10):
+for n in range(2, 10):
     for word in itertools.product("XYB-", repeat=n):
         if sum(c in "XB" for c in word) < 2 or sum(c in "YB" for c in word) < 2: continue
         cnt += 1
@@ -168,6 +168,14 @@ for n, es in graphs:
             vs = [d[0] for d in f]
             if len(set(vs)) != len(vs): bad.append((n, es)); break
 report("[J1] 2-연결 + 종수 0 → 면 경계가 사이클", not bad, f"({cnt}개 회전 체계)")
+
+# [J1-음성] 종수 0 조건을 빼면 거짓이다: K4의 종수 0이 아닌 회전 체계에는 꼭짓점이 반복되는 면이 있다.
+K4 = adjacency(4, complete(4))
+nonzero = [r for r in rotations(K4, list(K4)) if not euler_ok(K4, list(K4), r)]
+repeat = [r for r in nonzero
+          if any(len({d[0] for d in f}) != len(f) for f in faces(K4, r))]
+report("[J1-음성] 종수 0 조건을 빼면 K4에서 반례", len(repeat) > 0,
+       f"(종수 0이 아닌 회전 체계 {len(nonzero)}개 중 반례 {len(repeat)}개)")
 
 # [J2] 종수 0 회전 체계에서 v의 이웃이 2개 이상이고 H의 지지 집합에서 v를 뺀 집합이 H - v에서
 #      2-연결이면 (k_connected_on), H - v의 (유도된 회전 체계의) 한 면이 v의 이웃을 모두 v 둘레
@@ -248,6 +256,7 @@ def interval_parse(word):
     # word: v 둘레 순서의 이웃 표시 (X: x만, Y: y만, B: 둘 다). 형태 B? X* B? Y* (순환)이면
     # (b1, X 위치들, b2, Y 위치들)을 돌려준다. b1, b2는 위치 또는 None.
     n = len(word)
+    if n == 0: return None, [], None, []  # 빈 단어도 이 꼴이다
     for s in range(n):
         idx = [(s + i) % n for i in range(n)]
         i, b1, b2, xs, ys = 0, None, None, [], []
@@ -261,10 +270,17 @@ def interval_parse(word):
 def interval_ok(word):
     return interval_parse(word) is not None
 
+def cyc(rot_v, start):
+    out, w = [], start
+    for _ in range(len(rot_v)): out.append(w); w = rot_v[w]
+    return out
+
+def from_list(lst):
+    return {lst[i]: lst[(i + 1) % len(lst)] for i in range(len(lst))}
+
 cnt = 0; bad = []; skipped = 0
 for n, es in graphs:
     adj = adjacency(n, es)
-    if not connected(adj, list(adj)): continue
     for x, y in es:
         cadj = contract(n, es, x, y)
         verts = [u for u in cadj if u != y]
@@ -274,9 +290,7 @@ for n, es in graphs:
         hit = False
         for r in rs:
             if not euler_ok(cadj2, verts, r): continue
-            if not cadj2[x]: continue
-            nb, w = [], cadj2[x][0]
-            for _ in range(len(cadj2[x])): nb.append(w); w = r[x][w]
+            nb = cyc(r[x], cadj2[x][0]) if cadj2[x] else []
             word = "".join("B" if (u in adj[x] and u in adj[y]) else ("X" if u in adj[x] else "Y")
                            for u in nb)
             if interval_ok(word): hit = True; break
@@ -286,6 +300,27 @@ for n, es in graphs:
             if p is False: bad.append((n, es, x, y))
             if p is None: skipped += 1
 report("[S] 구간 조건을 만족하면 꼭짓점을 나눠도 평면", not bad, f"({cnt}개 경우, 건너뜀 {skipped})")
+# [S-음성] 구간 조건이 실제로 무언가를 거른다: K5, K3,3은 비평면이지만 어느 변을 수축해도 평면이므로,
+# 수축 그래프의 모든 종수 0 회전 체계에서 구간 조건이 실패해야 한다 ([S]의 대우).
+K33 = (6, [(i, j) for i in range(3) for j in range(3, 6)])
+neg_cnt = 0; neg_hit = []; nonplanar_ok = True
+for name, (n, es) in {"K5": (5, complete(5)), "K3,3": K33}.items():
+    adj = adjacency(n, es)
+    nonplanar_ok &= planar(adj) is False
+    for x, y in es + [(b, a) for a, b in es]:
+        cadj = contract(n, es, x, y)
+        verts = [u for u in cadj if u != y]
+        cadj2 = {u: cadj[u] for u in verts}
+        for r in rotations(cadj2, verts) or []:
+            if not euler_ok(cadj2, verts, r): continue
+            neg_cnt += 1
+            nb = cyc(r[x], cadj2[x][0])
+            word = "".join("B" if (u in adj[x] and u in adj[y]) else ("X" if u in adj[x] else "Y")
+                           for u in nb)
+            if interval_ok(word): neg_hit.append((name, x, y, word))
+report("[S-음성] K5, K3,3의 수축에서는 구간 조건이 실패", nonplanar_ok and neg_cnt > 0 and not neg_hit,
+       f"(종수 0 회전 체계 {neg_cnt}개, 구간 조건 성립 {len(neg_hit)}개)")
+
 # 주의: [S]는 진술만 본다. 구간 조건이면 G에 종수 0 회전 체계가 "있는지"를 찾을 뿐, 증명의 수술이
 # 만드는 회전 체계를 확인하지 않는다. 그것은 아래 [S-수술]이 한다.
 
@@ -295,15 +330,9 @@ report("[S] 구간 조건을 만족하면 꼭짓점을 나눠도 평면", not ba
 #   b1 둘레: R'에서 x 자리를 (x, y)로    b2 둘레: x 자리를 (y, x)로
 #   Y 글자인 이웃 둘레: x 자리를 y로     그 밖의 꼭짓점: 그대로
 # 이 R이 G의 회전 체계이고, 종수 0이며, 면 순열의 순환 수가 R'보다 |B|만큼 많은지 본다.
-def cyc(rot_v, start):
-    out, w = [], start
-    for _ in range(len(rot_v)): out.append(w); w = rot_v[w]
-    return out
-
-def from_list(lst):
-    return {lst[i]: lst[(i + 1) % len(lst)] for i in range(len(lst))}
-
-def split_rotation(adj, r, x, y, nb, parse):
+# 단, 단어가 비면(G/xy에서 x가 고립점) x, y 둘레는 서로뿐이고 xy 성분(K2)의 면 하나가 더해져 1만큼 많다.
+def split_rotation(adj, r, x, y, nb, parse, variant=None):
+    # variant: None = 증명의 수술, "b1swap" = b1 둘레를 (y, x)로, "yswap" = y 둘레에서 b1과 b2를 바꾼다
     b1, xs, b2, ys = parse
     B1 = nb[b1] if b1 is not None else None
     B2 = nb[b2] if b2 is not None else None
@@ -312,13 +341,14 @@ def split_rotation(adj, r, x, y, nb, parse):
     R = {}
     for z in adj:
         if z == x: lst = opt(B1) + X + opt(B2) + [y]
-        elif z == y: lst = opt(B2) + Y + opt(B1) + [x]
+        elif z == y:
+            lst = (opt(B1) + Y + opt(B2) if variant == "yswap" else opt(B2) + Y + opt(B1)) + [x]
         elif not adj[z]: R[z] = {}; continue
         else:
             lst = []
             for w in cyc(r[z], next(iter(r[z]))):
                 if w != x: lst.append(w)
-                elif z == B1: lst += [x, y]
+                elif z == B1: lst += ([y, x] if variant == "b1swap" else [x, y])
                 elif z == B2: lst += [y, x]
                 elif z in Y: lst.append(y)
                 else: lst.append(x)
@@ -326,31 +356,39 @@ def split_rotation(adj, r, x, y, nb, parse):
         R[z] = from_list(lst)
     return R
 
-cnt = 0; bad = []
+def surgery_ok(adj, cadj2, r, x, y, nb, parse, word, variant=None):
+    R = split_rotation(adj, r, x, y, nb, parse, variant)
+    # 빈 단어이면 xy 성분(K2)의 면 하나가 더해진다.
+    want = len(faces(cadj2, r)) + word.count("B") + (0 if word else 1)
+    return R is not None and euler_ok(adj, list(adj), R) and len(faces(adj, R)) == want
+
+cnt = 0; empty = 0; bad = []; mut_fail = {"b1swap": 0, "yswap": 0}
 for n, es in graphs:
     adj = adjacency(n, es)
     for x, y in es + [(b, a) for a, b in es]:
         cadj = contract(n, es, x, y)
         verts = [u for u in cadj if u != y]
         cadj2 = {u: cadj[u] for u in verts}
-        if not cadj2[x]: continue
         rs = rotations(cadj2, verts, cap=50_000)
         if rs is None: continue
         for r in rs:
             if not euler_ok(cadj2, verts, r): continue
-            nb = cyc(r[x], cadj2[x][0])
+            nb = cyc(r[x], cadj2[x][0]) if cadj2[x] else []
             word = "".join("B" if (u in adj[x] and u in adj[y]) else ("X" if u in adj[x] else "Y")
                            for u in nb)
             parse = interval_parse(word)
             if parse is None: continue
-            cnt += 1
-            R = split_rotation(adj, r, x, y, nb, parse)
-            nB = word.count("B")
-            if (R is None or not euler_ok(adj, list(adj), R)
-                    or len(faces(adj, R)) != len(faces(cadj2, r)) + nB):
+            cnt += 1; empty += not word
+            if not surgery_ok(adj, cadj2, r, x, y, nb, parse, word):
                 bad.append((n, es, x, y, word))
-report("[S-수술] 증명의 수술이 종수 0 회전 체계를 만들고 면 순환이 |B|개 는다", not bad,
-       f"({cnt}개 경우, 반례 {bad[:2]})")
+            for v in mut_fail:
+                if not surgery_ok(adj, cadj2, r, x, y, nb, parse, word, v): mut_fail[v] += 1
+report("[S-수술] 증명의 수술이 종수 0 회전 체계를 만들고 면 순환이 |B|개(빈 단어는 1개) 는다", not bad,
+       f"({cnt}개 경우, 그중 빈 단어 {empty}개, 반례 {bad[:2]})")
+
+# [S-수술-음성] 수술의 방향을 바꾸면 반례가 나온다 (위 검사가 방향을 실제로 가린다).
+report("[S-수술-음성] b1 순서나 y 둘레의 b1, b2를 바꾸면 반례", all(v > 0 for v in mut_fail.values()),
+       f"(b1 순서 변이 반례 {mut_fail['b1swap']}개, y 둘레 변이 반례 {mut_fail['yswap']}개)")
 
 # [cyclic≡S] 이웃만 남긴 순환 단어에서 [cyclic]의 (a)와 [S]의 구간 조건은 같은 조건이다.
 cnt = 0; bad = []

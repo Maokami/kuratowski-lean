@@ -1,8 +1,8 @@
 \chapter{기본 도구와 세분의 경로 표현}
 \label{chap:tools}
 
-여기서부터 어려운 방향이다. \ref{chap:tools}--\ref{chap:main}장의 항목은 변 수축의 정의
-(정의~\ref{def:contract})를 빼고 아직 형식화하지 않았다.
+여기서부터 어려운 방향이다. \ref{chap:tools}--\ref{chap:main}장의 항목은 꼭짓점 집합 넓히기
+(보조정리~\ref{lem:map_iff})와 변 수축의 정의(정의~\ref{def:contract})를 빼고 아직 형식화하지 않았다.
 예정된 Lean 이름은 \texttt{\textbackslash lean} 대신 ``예정 Lean 이름''으로 적는다.
 
 \section{기본 도구}
@@ -10,15 +10,31 @@
 \begin{lemma}[꼭짓점 집합 넓히기]
 \label{lem:map_iff}
 \uses{def:IsPlanar}
-\planned{isPlanar\_map\_iff}
-\(f : W \hookrightarrow V\)이면 \(K.\mathrm{map}\,f\)가 평면인 것과 \(K\)가 평면인 것은 같다.
+\lean{Kuratowski.isPlanar_map_iff, Kuratowski.dartEquivMap, Kuratowski.RotationSystem.pushDart,
+  Kuratowski.RotationSystem.pullDart, Kuratowski.ncard_isolated_map_add,
+  Kuratowski.card_connectedComponent_map_add, Kuratowski.reachable_map_apply}
+\leanok
+\(W\)와 \(V\)가 유한하고 \(f : W \hookrightarrow V\)가 단사이면, \(W\) 위의 그래프 \(K\)에 대해
+\(K.\mathrm{map}\,f\)가 평면인 것과 \(K\)가 평면인 것은 같다. \(K\)에 고립점이 있어도 된다.
 \end{lemma}
 
 \begin{proof}
-\uses{thm:iso}
-다트는 \(f\)로 일대일 대응하고, 면 순열은 켤레(\texttt{orbitCount\_permCongr})다. \(V\) 가운데 \(f\)의
-상에 없는 점은 모두 고립점이라 꼭짓점, 면, 성분이 똑같이 \(|V| - |W|\)씩 늘어난다. 따라서 \(\chi\)와
-\(2c\)가 같은 양만큼 바뀐다.
+\uses{def:rotation, def:eulerChar}
+\leanok
+\begin{itemize}
+  \item 다트: \(K\)의 다트 \((a, b)\)와 \(K.\mathrm{map}\,f\)의 다트 \((f a, f b)\)는 일대일 대응한다. 이 대응은
+        시작점을 \(f\)로 옮기고 다트 뒤집기와 교환한다.
+  \item 회전 체계: 이 대응을 따라 회전 체계를 \(K\)에서 \(K.\mathrm{map}\,f\)로, 또 거꾸로 옮긴다. 면 순열은
+        켤레가 되므로 순환 수 \(O\)가 같다 (\texttt{orbitCount\_permCongr}). 변 수 \(E\)도 같다.
+  \item 수 세기: \(n = |V|\), \(m = |W|\)라 하자. \(f\)의 상에 없는 \(n - m\)개의 점은 \(K.\mathrm{map}\,f\)의
+        고립점이고 각각 혼자 한 성분이다. 상 안에서는 \(f a\)와 \(f b\)가 이어진 것과 \(a\)와 \(b\)가
+        이어진 것이 같다. 이것을 비교할 때는 점 \(a\)가 있으므로 \(W\)가 비어 있지 않고, 그러면 \(f\)의 왼쪽
+        역함수가 \(K.\mathrm{map}\,f\)에서 \(K\)로 가는 그래프 준동형이 된다. \(W\)가 비어 있으면 그런 두 점이
+        없고, \(V\)의 점은 모두 고립점이다. 따라서 \(I' + m = I + n\), \(c' + m = c + n\)이다.
+        \(W\)나 \(V\)가 비어 있어도 된다.
+  \item 그러면 \(\chi' - 2c' = (n - E + O + I') - 2c' = (m - E + O + I) - 2c = \chi - 2c\)이므로
+        \(\chi' = 2c'\)와 \(\chi = 2c\)는 같은 조건이다.
+\end{itemize}
 \end{proof}
 
 새 꼭짓점이 필요할 때 \(V\)를 \(\mathrm{Option}\,V\)로 넓히는 데 쓴다 (결정~D1, \ref{chap:plan}장).

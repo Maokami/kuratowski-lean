@@ -8,5 +8,6 @@ import Kuratowski.Map
 import Kuratowski.NonPlanar
 import Kuratowski.Perm
 import Kuratowski.Planar
+import Kuratowski.Small
 import Kuratowski.Smoothing
 import Kuratowski.Subdivision

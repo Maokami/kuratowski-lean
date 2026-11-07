@@ -2,7 +2,8 @@
 \label{chap:tools}
 
 여기서부터 어려운 방향이다. \ref{chap:tools}--\ref{chap:main}장의 항목은 꼭짓점 집합 넓히기
-(보조정리~\ref{lem:map_iff})와 변 수축의 정의(정의~\ref{def:contract})를 빼고 아직 형식화하지 않았다.
+(보조정리~\ref{lem:map_iff}), 작은 지지 집합의 평면성(보조정리~\ref{lem:small}),
+변 수축의 정의(정의~\ref{def:contract})를 빼고 아직 형식화하지 않았다.
 예정된 Lean 이름은 \texttt{\textbackslash lean} 대신 ``예정 Lean 이름''으로 적는다.
 
 \section{기본 도구}
@@ -42,12 +43,17 @@
 \begin{lemma}[지지 집합이 4개 이하면 평면]
 \label{lem:small}
 \uses{def:IsPlanar}
-\planned{isPlanar\_of\_ncard\_support\_le\_four}
-지지 집합(고립점이 아닌 꼭짓점의 집합)의 크기가 4 이하인 유한 그래프는 평면이다.
+\lean{Kuratowski.isPlanar_of_ncard_support_le_four}
+\leanok
+유한한 꼭짓점 타입 \(V\) 위의 그래프 \(G\)에서 지지 집합(고립점이 아닌 꼭짓점의 집합)의 크기가
+4 이하면 \(G\)는 평면이다. 고립점 수에는 제한이 없고, \(V\)나 지지 집합이 비어 있어도 된다.
+Lean의 \(G.\mathrm{support}\)가 이 집합이라는 것은 Mathlib의
+\texttt{mem\_support\_iff\_not\_isIsolated}로 확인된다.
 \end{lemma}
 
 \begin{proof}
 \uses{thm:K4, thm:mono, lem:map_iff}
+\leanok
 지지 집합 \(S = S_G\)에 대해 \(G_S\)를 \(G\)를 \(S\)로 제한한 그래프(꼭짓점 타입 \(S\))라 하자. 지지 집합 밖의
 점은 고립점이므로 \(G = G_S.\mathrm{map}\,\iota\)이다 (\(\iota : S \hookrightarrow V\)는 포함 사상).
 \(|S| \le 4\)이므로 단사 \(g : S \hookrightarrow \mathrm{Fin}\,4\)가 있고, \(\mathrm{Fin}\,4\) 위의 단순 그래프는 모두

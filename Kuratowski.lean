@@ -4,6 +4,7 @@ import Kuratowski.Contract
 import Kuratowski.Deletion
 import Kuratowski.Euler
 import Kuratowski.Iso
+import Kuratowski.Map
 import Kuratowski.NonPlanar
 import Kuratowski.Perm
 import Kuratowski.Planar

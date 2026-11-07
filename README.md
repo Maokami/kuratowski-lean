@@ -6,8 +6,8 @@
 > 부분 그래프로 갖지 않는 것이다.
 
 이 저장소는 **쉬운 방향**(`K₅`나 `K₃,₃`의 세분을 포함하면 평면 그래프가 아니다)을 완전히
-증명한다. 어려운 방향(세분이 없으면 평면 그래프다)은 아직 하지 않았다. 어려운 방향에 쓸 정의 가운데
-변 수축 `contractEdge`(`Contract.lean`)만 형식화했다.
+증명한다. 어려운 방향(세분이 없으면 평면 그래프다)은 아직 하지 않았다. 어려운 방향에 쓸 도구 가운데
+변 수축 `contractEdge`(`Contract.lean`)와 꼭짓점 집합 넓히기 `isPlanar_map_iff`(`Map.lean`)를 형식화했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -31,6 +31,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `IsPlanar.edge_bound` (+ 이분 그래프판) | `NonPlanar.lean` | 차수 1인 꼭짓점이 없으면 `E + 6 + 3I ≤ 3V` (이분: `E + 4 + 2I ≤ 2V`) |
 | `K4_isPlanar` | `Planar.lean` | `K₄`는 평면 그래프 (정의가 공허하지 않다는 확인) |
 | `IsPlanar.of_iso` | `Iso.lean` | 평면성은 그래프 동형에 대해 불변 |
+| `isPlanar_map_iff` | `Map.lean` | 유한한 `W`, `V`와 단사 `f : W ↪ V`에 대해 `K.map f`가 평면 ⇔ `K`가 평면 (고립점 허용) |
 | `orbitCount_mul_swap_of_sameCycle` / `…_of_not_sameCycle` | `Perm.lean` | 호환을 곱하면 순열의 순환 수가 ±1 바뀜 |
 
 ## 정의
@@ -161,6 +162,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Subdivision.lean` | 세분 정의, 쿠라토프스키 정리(쉬운 방향) |
 | `Planar.lean` | `K₄` 평면성 |
 | `Iso.lean` | 동형 불변성 |
+| `Map.lean` | 꼭짓점 집합 넓히기: 다트 대응, 회전 체계 옮기기, 고립점·성분 수 |
 
 | 그 밖의 파일 | 내용 |
 |---|---|

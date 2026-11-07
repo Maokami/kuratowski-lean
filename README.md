@@ -8,7 +8,8 @@
 이 저장소는 **쉬운 방향**(`K₅`나 `K₃,₃`의 세분을 포함하면 평면 그래프가 아니다)을 완전히
 증명한다. 어려운 방향(세분이 없으면 평면 그래프다)은 아직 하지 않았다. 어려운 방향에 쓸 도구 가운데
 변 수축 `contractEdge`(`Contract.lean`), 꼭짓점 집합 넓히기 `isPlanar_map_iff`(`Map.lean`),
-비고립 꼭짓점이 네 개 이하인 그래프의 평면성(`Small.lean`)을 형식화했다.
+비고립 꼭짓점이 네 개 이하인 그래프의 평면성(`Small.lean`),
+지지 집합 기준의 연결성 정의(`Connected.lean`)를 형식화했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -37,6 +38,15 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `orbitCount_mul_swap_of_sameCycle` / `…_of_not_sameCycle` | `Perm.lean` | 호환을 곱하면 순열의 순환 수가 ±1 바뀜 |
 
 ## 정의
+
+### 꼭짓점 연결성 (`Connected.lean`)
+
+`ConnectedOn G k A`는 유한한 꼭짓점 타입에서 `k + 1 ≤ A.ncard`이고, `k`개 미만의 점을 지워도
+원래 집합 `A`에서 살아남은 점들이 서로 이어진다는 뜻이다. 삭제는 원래 타입에 점을 고립점으로 남긴다.
+`TwoConnected G`와 `ThreeConnected G`는 삭제 전의 `G.support`를 기준으로 한다.
+삭제 뒤 지지 집합을 다시 계산하면 별 그래프가 잘못 2-연결로 판정될 수 있어 그렇게 하지 않는다.
+`k = 0`에서는 크기 조건만 남는다. 별·경로의 음성 예와 고립점을 더한 삼각형·`K₄`의 양성 예를
+`ConnectedExamples.lean`에서 커널로 확인한다. 수축 가능한 변의 존재 정리는 아직 형식화하지 않았다.
 
 ### 평면성 (`Basic.lean`)
 
@@ -166,6 +176,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Iso.lean` | 동형 불변성 |
 | `Map.lean` | 꼭짓점 집합 넓히기: 다트 대응, 회전 체계 옮기기, 고립점·성분 수 |
 | `Small.lean` | 비고립 꼭짓점이 네 개 이하인 그래프의 평면성 |
+| `Connected.lean` | 원래 지지 집합 기준의 꼭짓점 삭제·연결성·2-연결·3-연결 정의 |
+| `ConnectedExamples.lean` | 별·경로·고립점을 더한 완전 그래프·J2 반례로 연결성 정의 확인 |
 
 | 그 밖의 파일 | 내용 |
 |---|---|

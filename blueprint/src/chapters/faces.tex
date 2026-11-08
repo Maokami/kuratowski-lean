@@ -75,15 +75,32 @@
   \item \(v\)로 가는 다트를 건너뛰는 면 순열을 계산하면, \(P_i\)의 끝 다음에 바로 \(P_{i-1}\)이 온다.
   \item 따라서 \(P_k, \ldots, P_1\)이 한 면으로 이어지고, 보조정리~\ref{lem:J1}에 의해 이 면은 사이클이다.
 \end{itemize}
-\textbf{보강할 것.} 결과를 어떤 사이클 표현(정의~\ref{def:cycseq})으로 내보낼지 정한다.
+\textbf{보강할 것.} 결과를 정의~\ref{def:cycseq}의 순환 꼭짓점 수열로 구성하고,
+이 수열의 순서가 원래 회전 체계의 이웃 순서와 일치함을 증명한다.
 \end{proof}
 
 \begin{definition}[순환 꼭짓점 수열]
 \label{def:cycseq}
+\lean{Kuratowski.CyclicSequence, Kuratowski.CyclicSequence.rotate,
+  Kuratowski.CyclicSequence.reverse, Kuratowski.CyclicSequence.neZero,
+  Kuratowski.CyclicSequence.adj_last_zero,
+  Kuratowski.CyclicSequence.triangle, Kuratowski.CyclicSequence.triangle_closing_edge,
+  Kuratowski.CyclicSequence.not_nonempty_of_lt_three, Kuratowski.CyclicSequence.not_nonempty_bot}
+\leanok
 사이클은 단사 함수 \(c : \mathbb{Z}/m \to V\) (\(m \ge 3\), \(c(i) \sim c(i + 1)\))로 나타낸다. 사이클을
-구간 단위로 다루기 위한 표현이다 (결정~D3). 두 위치 사이의 호는 경로이고, 겹치지 않는 호들은 내부가
-서로소다. Lean에서는 \texttt{c : ZMod m} \(\to\) \texttt{V}로 나타낼 예정이다.
+구간 단위로 다루기 위한 표현이다 (결정~D3). Lean의 \texttt{CyclicSequence G m}은 길이 조건,
+\texttt{vertex : ZMod m} \(\hookrightarrow\) \texttt{V}, 이웃한 위치의 인접 조건을 묶는다.
+모듈러 덧셈이므로 마지막 위치와 첫 위치 사이의 변도 포함한다. 유도 사이클일 필요는 없다.
+\texttt{rotate}는 시작점을 옮기고 \texttt{reverse}는 방향을 뒤집는다. 마지막 위치 \(-1\)과 첫 위치
+\(0\)의 인접은 \texttt{adj\_next}에서 나오며, 삼각형 예제는 \(2 + 1 = 0\)을 써서 닫는 변을 확인한다.
+길이 \(0,1,2\)와 변이 없는 그래프는 배제된다.
 \end{definition}
+
+\textbf{후속, 미형식화.} 두 위치 사이의 호를 Mathlib \texttt{Walk}의 경로(\texttt{IsPath})로 옮기고,
+겹치지 않는 호들의 내부가 서로소임을 증명한다. 전체 순환의 \texttt{IsCycle}과의 연결,
+네 위치의 순환 순서 관계도 경로 체계 단위에서 다룬다. 이 표현을 정했다고 해서
+보조정리~\ref{lem:J2}의 출력이나 보조정리~\ref{lem:TK5_of_common}, \ref{lem:TK33_of_alt}의
+경로 구성이 형식화된 것은 아니다.
 
 \section{꼭짓점 나누기}
 

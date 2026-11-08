@@ -3,6 +3,7 @@ import Kuratowski.Components
 import Kuratowski.Connected
 import Kuratowski.ConnectedExamples
 import Kuratowski.Contract
+import Kuratowski.Cyclic
 import Kuratowski.Deletion
 import Kuratowski.Euler
 import Kuratowski.Iso

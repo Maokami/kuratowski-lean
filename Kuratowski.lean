@@ -9,6 +9,8 @@ import Kuratowski.Euler
 import Kuratowski.Iso
 import Kuratowski.Map
 import Kuratowski.NonPlanar
+import Kuratowski.Paths
+import Kuratowski.PathsExamples
 import Kuratowski.Perm
 import Kuratowski.Planar
 import Kuratowski.Small

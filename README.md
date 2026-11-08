@@ -10,7 +10,8 @@
 변 수축 `contractEdge`(`Contract.lean`), 꼭짓점 집합 넓히기 `isPlanar_map_iff`(`Map.lean`),
 비고립 꼭짓점이 네 개 이하인 그래프의 평면성(`Small.lean`),
 지지 집합 기준의 연결성 정의(`Connected.lean`),
-사이클의 순환 꼭짓점 수열 표현(`Cyclic.lean`)을 형식화했다.
+사이클의 순환 꼭짓점 수열 표현(`Cyclic.lean`),
+세분의 경로 체계 정의(`Paths.lean`)를 형식화했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -39,6 +40,14 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `orbitCount_mul_swap_of_sameCycle` / `…_of_not_sameCycle` | `Perm.lean` | 호환을 곱하면 순열의 순환 수가 ±1 바뀜 |
 
 ## 정의
+
+### 세분의 경로 체계 (`Paths.lean`)
+
+`SubdivisionPaths K G`는 모든 원래 꼭짓점의 단사 분기점 배치와, 원래 변마다 배치된 두 점을 잇는
+Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같은 경로의 역순이다.
+내부는 `support`에서 두 끝점을 뺀 `walkInterior`이며, 모든 분기점의 상을 피해야 한다.
+서로 다른 **무방향 변**의 내부끼리는 서로소여야 한다. 같은 변을 뒤집은 두 방향은 내부를 공유한다.
+고립된 원래 꼭짓점도 배치에 포함한다. 이 정의와 기존 `ContainsSubdivision`의 동치는 아직 미형식화다.
 
 ### 순환 꼭짓점 수열 (`Cyclic.lean`)
 
@@ -188,6 +197,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Connected.lean` | 원래 지지 집합 기준의 꼭짓점 삭제·연결성·2-연결·3-연결 정의 |
 | `ConnectedExamples.lean` | 별·경로·고립점을 더한 완전 그래프·J2 반례로 연결성 정의 확인 |
 | `Cyclic.lean` | `ZMod`로 인덱싱한 단사 사이클 수열, 회전·역순과 경계 예제 |
+| `Paths.lean` | 세분의 경로 체계와 내부 꼭짓점 조건 |
+| `PathsExamples.lean` | 실제 내부 꼭짓점을 갖는 경로 체계와 조건 위반 후보 예제 |
 
 | 그 밖의 파일 | 내용 |
 |---|---|

@@ -4,7 +4,8 @@
 여기서부터 어려운 방향이다. \ref{chap:tools}--\ref{chap:main}장의 항목은 꼭짓점 집합 넓히기
 (보조정리~\ref{lem:map_iff}), 작은 지지 집합의 평면성(보조정리~\ref{lem:small}),
 연결성의 정의(정의~\ref{def:conn3}), 변 수축의 정의(정의~\ref{def:contract}),
-순환 꼭짓점 수열의 정의(정의~\ref{def:cycseq})를 빼고 아직 형식화하지 않았다.
+순환 꼭짓점 수열의 정의(정의~\ref{def:cycseq}), 경로 체계의 정의(정의~\ref{def:paths})를 빼고
+아직 형식화하지 않았다.
 예정된 Lean 이름은 \texttt{\textbackslash lean} 대신 ``예정 Lean 이름''으로 적는다.
 
 \section{기본 도구}
@@ -73,15 +74,28 @@ map의 방향에 주의한다. 사상은 \(S\)에서 \(\mathrm{Fin}\,4\)와 \(V\
 
 \begin{definition}[경로 체계]
 \label{def:paths}
-\planned{SubdivisionPaths K G (structure)}
+\lean{Kuratowski.SubdivisionPaths, Kuratowski.walkInterior,
+  Kuratowski.SubdivisionPaths.ofMapLE, Kuratowski.PathsExamples.k2InPath3}
+\leanok
 \(K\)(꼭짓점 집합 \(W\))의 \(G\) 안 \emph{경로 체계}는 다음으로 이루어진다.
 \begin{itemize}
   \item 분기점 \(f : W \hookrightarrow V\)
   \item \(K\)의 변 \(ab\)마다 \(G\)의 경로 \(P_{ab}\) (\(f(a)\)에서 \(f(b)\)까지, \texttt{IsPath},
         \(P_{ba} = P_{ab}^{-1}\))
-  \item 경로의 내부 꼭짓점은 \(f\)의 상 밖에 있다.
-  \item 서로 다른 두 변의 경로는 내부 꼭짓점을 공유하지 않는다.
+  \item 경로의 내부 꼭짓점은 \(f\)의 상 밖에 있다. 내부 집합은 경로의 \texttt{support}에서 두 끝점을
+        뺀 것으로 정의한다 (\texttt{walkInterior}). \texttt{IsPath}이므로 끝점이 중간에 다시 나오지 않아,
+        이 집합이 정확히 중간 꼭짓점들이다.
+  \item 서로 다른 두 \emph{무방향} 변의 경로는 내부 꼭짓점을 공유하지 않는다.
+        즉 \(\mathrm{Sym2}(a,b) \ne \mathrm{Sym2}(c,d)\)일 때 내부 집합이 서로소다.
+        같은 변을 뒤집은 \(ab\), \(ba\)에는 이 조건을 적용하지 않는다.
 \end{itemize}
+경로는 Mathlib의 \texttt{G.Walk (f a) (f b)}로 저장하고, 단순성과 역방향 일치, 내부 회피와 서로소성을
+각각 구조체 필드로 요구한다. 원래 그래프 \(K\)의 고립점도 분기점 단사에 포함된다.
+이 정의 자체에는 유한성 가정이 필요 없다. 아래 동치 정리는 아직 형식화하지 않았다.
+\texttt{ofMapLE}는 \(K.\mathrm{map}\,f \le G\)이면 각 변을 한 변짜리 경로로 하는 체계를 만든다.
+\texttt{PathsExamples.lean}에서는 \(K_2\)의 한 변을 \(0,1,2\) 경로로 실현해 내부 \(\{1\}\)이 비지
+않아도 허용됨을 확인한다. 또 유효한 단순 경로라도 내부에 분기점이 들어가거나 서로 다른 변의 후보 경로가 내부를 공유하면
+해당 조건을 어김을 확인한다. 별 안의 경로 체계 전체에 대한 비존재 정리를 증명한 것은 아니다.
 \end{definition}
 
 \begin{theorem}[두 표현은 같다]

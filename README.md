@@ -9,7 +9,8 @@
 증명한다. 어려운 방향(세분이 없으면 평면 그래프다)은 아직 하지 않았다. 어려운 방향에 쓸 도구 가운데
 변 수축 `contractEdge`(`Contract.lean`), 꼭짓점 집합 넓히기 `isPlanar_map_iff`(`Map.lean`),
 비고립 꼭짓점이 네 개 이하인 그래프의 평면성(`Small.lean`),
-지지 집합 기준의 연결성 정의(`Connected.lean`)를 형식화했다.
+지지 집합 기준의 연결성 정의(`Connected.lean`),
+사이클의 순환 꼭짓점 수열 표현(`Cyclic.lean`)을 형식화했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -38,6 +39,14 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `orbitCount_mul_swap_of_sameCycle` / `…_of_not_sameCycle` | `Perm.lean` | 호환을 곱하면 순열의 순환 수가 ±1 바뀜 |
 
 ## 정의
+
+### 순환 꼭짓점 수열 (`Cyclic.lean`)
+
+`CyclicSequence G m`은 `3 ≤ m`, 단사 `vertex : ZMod m ↪ V`, 모든 위치에서의
+`G.Adj (vertex i) (vertex (i + 1))`을 묶는다. 마지막 위치에서 첫 위치로 닫히는 변도 포함하며,
+유도 사이클만으로 제한하지 않는다. 시작점을 옮기는 `rotate`와 방향을 뒤집는 `reverse`를 제공한다.
+삼각형의 닫는 변과 길이 0·1·2 및 변이 없는 그래프의 배제를 확인했다.
+호를 Mathlib `Walk`·`IsPath`로 변환하거나 순환 순서·내부 서로소성을 증명하는 작업은 아직 남아 있다.
 
 ### 꼭짓점 연결성 (`Connected.lean`)
 
@@ -178,6 +187,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Small.lean` | 비고립 꼭짓점이 네 개 이하인 그래프의 평면성 |
 | `Connected.lean` | 원래 지지 집합 기준의 꼭짓점 삭제·연결성·2-연결·3-연결 정의 |
 | `ConnectedExamples.lean` | 별·경로·고립점을 더한 완전 그래프·J2 반례로 연결성 정의 확인 |
+| `Cyclic.lean` | `ZMod`로 인덱싱한 단사 사이클 수열, 회전·역순과 경계 예제 |
 
 | 그 밖의 파일 | 내용 |
 |---|---|

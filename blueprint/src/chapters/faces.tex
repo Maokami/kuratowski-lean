@@ -107,8 +107,8 @@ Lean의 \texttt{SplitLinked B w}는 \(w\)에서 시작하는 \(B\) 밖 다트와
 따라서 \(\chi\)는 2 늘고 성분 수는 그대로라 오일러 부등식에 모순이다.
 
 Lean 진술은 같은 면 순환에서 시작점이 같은 두 다트가 같다는 형태다. 실제 순환 수열은 다음
-보조정리~\ref{lem:face_cycle}에서 구성한다. 보조정리~\ref{lem:J2}의 지운 꼭짓점 이웃 순서는 아직
-형식화하지 않았다.
+보조정리~\ref{lem:face_cycle}에서 구성한다. 지운 꼭짓점의 이웃 순서는
+보조정리~\ref{lem:J2}에서 이 면 순환 계산에 연결한다.
 \end{proof}
 
 \begin{lemma}[면 경계의 순서를 보존하는 사이클]
@@ -160,14 +160,19 @@ Lean 진술은 같은 면 순환에서 시작점이 같은 두 다트가 같다�
 구성은 \(v\)의 이웃 유한 집합에 대한 귀납법으로 정리~\ref{thm:del}의 변 삭제를 반복한다.
 각 단계에서 위 공식을 유지하며, \(R\)이 종수 0이면 이 구성된 회전 체계도 종수 0이다.
 따라서 평면성도 유지되며, 증인은 다른 회전 체계를 고르는 것이 아니라 \(R.\mathrm{delVertex}\,v\)다.
-보조정리~\ref{lem:J2}의 면 경계 사이클과 순환 순서는 아직 형식화하지 않았다.
+보조정리~\ref{lem:J2}는 이 실제 회전 체계의 특정 면에서 이웃의 순환 순서를 얻는다.
 \end{definition}
 
 \begin{lemma}[지운 꼭짓점 둘레의 면]
 \label{lem:J2}
 \uses{def:rotation, def:eulerChar, def:conn3, def:delVertex, def:cycseq}
-\notready
-\planned{RotationSystem.exists\_cyclicSequence\_delVertex\_neighbors}
+\lean{Kuratowski.RotationSystem.exists_cyclicSequence_delVertex_neighbors,
+  Kuratowski.RotationSystem.minimalPeriod_rot_inv, Kuratowski.RotationSystem.rot_inv_pow_ncard,
+  Kuratowski.RotationSystem.exists_rot_inv_pow_snd, Kuratowski.RotationSystem.sector_iterate,
+  Kuratowski.RotationSystem.sector_iterate_next,
+  Kuratowski.RotationSystem.faceLength_delVertex_eq_sectorStart,
+  Kuratowski.RotationSystem.eq_faceLength_of_cyclicSequence}
+\leanok
 유한하고 같음을 판정할 수 있는 꼭짓점 타입 \(V\) 위의 그래프 \(H\)와 종수 0 회전 체계 \(R\)(회전 \(\rho\),
 면 순열 \(\varphi\))을 생각한다. 꼭짓점 \(v\)의 이웃 수를 \(N = |N_H(v)|\)라 하고 \(N \ge 2\)라 하자.
 지지 집합에서 \(v\)를 뺀 \(S_H \setminus \{v\}\)가 \(H - v\)(\texttt{deleteVertices H \{v\}})에서
@@ -206,6 +211,7 @@ Lean 진술은 같은 면 순환에서 시작점이 같은 두 다트가 같다�
 
 \begin{proof}
 \uses{lem:J1, lem:face_cycle}
+\leanok
 \(\varphi'\)을 \(R.\mathrm{delVertex}\,v\)의 면 순열이라 하자. \(H - v\)의 다트와 \(v\)에 닿지 않는 \(H\)의 다트는
 양 끝으로 대응하므로, 아래에서 두 다트를 양 끝이 같으면 같은 것으로 적는다.
 \begin{itemize}
@@ -252,17 +258,10 @@ Lean 진술은 같은 면 순환에서 시작점이 같은 두 다트가 같다�
         \(p_{j+1} = p_j + \ell_j > p_j\), \(p_{N-1} < p_{N-1} + \ell_{N-1} = m\)이고
         \(C(p_j) = (\varphi d_j)\text{의 시작점} = u_j\)이다.
 \end{itemize}
-\textbf{아직 형식화할 것.}
-\begin{itemize}
-  \item \(\rho\)에서 \(d_0\)의 최소 주기가 \(N = |N_H(v)|\)라는 보조정리 (\(v\)의 다트와 이웃의 전단사,
-        회전의 한 순환 조건).
-  \item 위 2-연결 유도 두 가지.
-  \item 구간 보조정리: \(\varphi^{L_j-1} d_j = \bar d_{j+1}\), \(1 \le i \le L_j - 2\)에서 \(\varphi^i d_j\)가 \(v\)에 닿지 않음,
-        \(j \ne j'\)인 \(d_j, d_{j'}\)의 면이 다름.
-  \item 반복 공식 \(\varphi'^{\,s_j + i} e = \varphi^{1+i} d_j\)의 귀납과 \(\varphi'^{\,M} e = e\).
-  \item 최소 주기 \(\mathrm{faceLength}_{R.\mathrm{delVertex}\,v}(e) = \sum_{j<N}(L_j - 2)\)과 위치 \(p_j\)의 단조성.
-\end{itemize}
-이 항목의 \texttt{notready}는 그 증명 경계를 유지한다.
+Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, 조각 반복과 최소 주기 식을
+형식화한다. 기존 \texttt{exists\_cyclicSequence\_face}의 인터페이스는 그대로 두고, 그 수열의 길이가
+면의 최소 주기와 같다는 정리로 길이를 복원한다. 진술에 적은 수학적 가정 외에는
+꼭짓점 타입의 유한성과 \texttt{DecidableEq V}만 쓴다.
 \end{proof}
 
 
@@ -330,7 +329,7 @@ Lean 진술은 같은 면 순환에서 시작점이 같은 두 다트가 같다�
 
 보조정리~\ref{lem:TK5_of_common}, \ref{lem:TK33_of_alt}에서 이 호들로 세분의 경로 체계를 구성했다.
 특히 네 위치의 순환 순서는 서로 반대 방향인 두 열린 호의 \texttt{sbtw} 조건으로 표현한다.
-보조정리~\ref{lem:J2}의 면 경계에서 이 순환 수열과 순서를 얻는 작업은 아직 미형식화다.
+보조정리~\ref{lem:J2}는 꼭짓점 삭제로 생긴 면에서 이 순환 수열과 이웃의 역순을 얻는다.
 
 \section{꼭짓점 나누기}
 

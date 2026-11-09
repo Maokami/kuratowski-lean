@@ -51,7 +51,7 @@ noncomputable def dartEquivSup (hd : Disjoint G H) : G.Dart ⊕ H.Dart ≃ (G �
   cases d <;> rfl
 
 /-- 서로소 합 순열 안의 왼쪽 순환을 보존한다. -/
-private theorem sameCycle_sumCongr_left {α β : Type*} [Finite α] [Finite β]
+theorem sameCycle_sumCongr_left {α β : Type*} [Finite α] [Finite β]
     (f : Perm α) (g : Perm β) {a b : α} (h : f.SameCycle a b) :
     (Perm.sumCongr f g).SameCycle (.inl a) (.inl b) := by
   obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
@@ -63,7 +63,7 @@ private theorem sameCycle_sumCongr_left {α β : Type*} [Finite α] [Finite β]
   exact ⟨n, by simpa only [zpow_natCast, hp] using congrArg Sum.inl hn⟩
 
 /-- 서로소 합 순열 안의 오른쪽 순환을 보존한다. -/
-private theorem sameCycle_sumCongr_right {α β : Type*} [Finite α] [Finite β]
+theorem sameCycle_sumCongr_right {α β : Type*} [Finite α] [Finite β]
     (f : Perm α) (g : Perm β) {a b : β} (h : g.SameCycle a b) :
     (Perm.sumCongr f g).SameCycle (.inr a) (.inr b) := by
   obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
@@ -74,7 +74,7 @@ private theorem sameCycle_sumCongr_right {α β : Type*} [Finite α] [Finite β]
     | succ n ih => simp only [pow_succ', Perm.mul_apply, ih, Perm.sumCongr_apply, Sum.map_inr]
   exact ⟨n, by simpa only [zpow_natCast, hp] using congrArg Sum.inr hn⟩
 
-private theorem not_sameCycle_sumCongr_cross {α β : Type*} [Finite α] [Finite β]
+theorem not_sameCycle_sumCongr_cross {α β : Type*} [Finite α] [Finite β]
     (f : Perm α) (g : Perm β) (a : α) (b : β) :
     ¬ (Perm.sumCongr f g).SameCycle (.inl a) (.inr b) := by
   intro h
@@ -222,17 +222,25 @@ private noncomputable def componentLabelH (v : V) (hvG : v ∈ G.support) (hvH :
   else .inr (.inl ⟨(H.induce H.support).connectedComponentMk ⟨u, huH⟩, hc⟩)
 
 private theorem componentLabel_of_H (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.support)
-    (hs : ∀ u, u ∈ G.support → u ∈ H.support → u = v) {u : V} (huH : u ∈ H.support) :
+    (hs : ∀ u (huG : u ∈ G.support) (huH : u ∈ H.support),
+      (G.induce G.support).connectedComponentMk ⟨u, huG⟩ =
+        (G.induce G.support).connectedComponentMk ⟨v, hvG⟩ ∧
+      (H.induce H.support).connectedComponentMk ⟨u, huH⟩ =
+        (H.induce H.support).connectedComponentMk ⟨v, hvH⟩) {u : V} (huH : u ∈ H.support) :
     componentLabel v hvG hvH u = componentLabelH v hvG hvH u huH := by
   classical
   by_cases huG : u ∈ G.support
-  · have he := hs u huG huH
-    subst u
-    simp [componentLabel, componentLabelH, hvG]
+  · obtain ⟨hG, hH⟩ := hs u huG huH
+    simp only [componentLabel, componentLabelH, huG, ↓reduceDIte, hH]
+    exact congrArg Sum.inl hG
   · simp only [componentLabel, componentLabelH, huG, huH, ↓reduceDIte]
 
 private theorem componentLabel_adj (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.support)
-    (hs : ∀ u, u ∈ G.support → u ∈ H.support → u = v) {u w : V} (h : (G ⊔ H).Adj u w) :
+    (hs : ∀ u (huG : u ∈ G.support) (huH : u ∈ H.support),
+      (G.induce G.support).connectedComponentMk ⟨u, huG⟩ =
+        (G.induce G.support).connectedComponentMk ⟨v, hvG⟩ ∧
+      (H.induce H.support).connectedComponentMk ⟨u, huH⟩ =
+        (H.induce H.support).connectedComponentMk ⟨v, hvH⟩) {u w : V} (h : (G ⊔ H).Adj u w) :
     componentLabel v hvG hvH u = componentLabel v hvG hvH w := by
   classical
   rcases h with h | h
@@ -260,14 +268,22 @@ private def supportHomRight : H.induce H.support →g G ⊔ H where
   map_rel' h := Or.inr h
 
 private theorem componentLabel_walk (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.support)
-    (hs : ∀ u, u ∈ G.support → u ∈ H.support → u = v) {u w : V} (p : (G ⊔ H).Walk u w) :
+    (hs : ∀ u (huG : u ∈ G.support) (huH : u ∈ H.support),
+      (G.induce G.support).connectedComponentMk ⟨u, huG⟩ =
+        (G.induce G.support).connectedComponentMk ⟨v, hvG⟩ ∧
+      (H.induce H.support).connectedComponentMk ⟨u, huH⟩ =
+        (H.induce H.support).connectedComponentMk ⟨v, hvH⟩) {u w : V} (p : (G ⊔ H).Walk u w) :
     componentLabel v hvG hvH u = componentLabel v hvG hvH w := by
   induction p with
   | nil => rfl
   | cons h p ih => exact (componentLabel_adj v hvG hvH hs h).trans ih
 
 private noncomputable def classifyComponent (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.support)
-    (hs : ∀ u, u ∈ G.support → u ∈ H.support → u = v) :
+    (hs : ∀ u (huG : u ∈ G.support) (huH : u ∈ H.support),
+      (G.induce G.support).connectedComponentMk ⟨u, huG⟩ =
+        (G.induce G.support).connectedComponentMk ⟨v, hvG⟩ ∧
+      (H.induce H.support).connectedComponentMk ⟨u, huH⟩ =
+        (H.induce H.support).connectedComponentMk ⟨v, hvH⟩) :
     (G ⊔ H).ConnectedComponent → GlueIndex (G := G) v hvH :=
   ConnectedComponent.lift (componentLabel v hvG hvH)
     (fun _ _ p _ ↦ componentLabel_walk v hvG hvH hs p)
@@ -279,7 +295,11 @@ private def unlabelComponent (v : V) (hvH : v ∈ H.support) :
   | .inr (.inr u) => (G ⊔ H).connectedComponentMk u.val
 
 private theorem classify_unlabel (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.support)
-    (hs : ∀ u, u ∈ G.support → u ∈ H.support → u = v) :
+    (hs : ∀ u (huG : u ∈ G.support) (huH : u ∈ H.support),
+      (G.induce G.support).connectedComponentMk ⟨u, huG⟩ =
+        (G.induce G.support).connectedComponentMk ⟨v, hvG⟩ ∧
+      (H.induce H.support).connectedComponentMk ⟨u, huH⟩ =
+        (H.induce H.support).connectedComponentMk ⟨v, hvH⟩) :
     Function.LeftInverse (classifyComponent v hvG hvH hs) (unlabelComponent (G := G) v hvH) := by
   classical
   rintro (c | c | u)
@@ -295,7 +315,11 @@ private theorem classify_unlabel (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.
     simp only [componentLabel, u.property.1, u.property.2, ↓reduceDIte]
 
 private theorem unlabel_classify (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.support)
-    (hs : ∀ u, u ∈ G.support → u ∈ H.support → u = v) :
+    (hs : ∀ u (huG : u ∈ G.support) (huH : u ∈ H.support),
+      (G.induce G.support).connectedComponentMk ⟨u, huG⟩ =
+        (G.induce G.support).connectedComponentMk ⟨v, hvG⟩ ∧
+      (H.induce H.support).connectedComponentMk ⟨u, huH⟩ =
+        (H.induce H.support).connectedComponentMk ⟨v, hvH⟩) :
     Function.RightInverse (classifyComponent v hvG hvH hs) (unlabelComponent (G := G) v hvH) := by
   classical
   intro c
@@ -314,25 +338,26 @@ private theorem unlabel_classify (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.
     · simp only [componentLabel, huG, huH, ↓reduceDIte]
       rfl
 
-/-- 한 점에서 만나는 그래프의 연결 성분 수를 고정된 꼭짓점 타입에서 센다. -/
-theorem card_connectedComponent_sup_of_inter_eq_singleton [Finite V] {v : V}
-    (hs : G.support ∩ H.support = {v}) :
-    Nat.card (G ⊔ H).ConnectedComponent + Nat.card V =
-      Nat.card G.ConnectedComponent + Nat.card H.ConnectedComponent := by
+/-- 모든 공통 지지점이 양쪽에서 같은 지정 성분에 있으면 지지 성분 하나씩만 합쳐진다. -/
+theorem card_connectedComponent_sup_of_shared_component [Finite V] {v : V}
+    (hvG : v ∈ G.support) (hvH : v ∈ H.support)
+    (hs : ∀ u (huG : u ∈ G.support) (huH : u ∈ H.support),
+      (G.induce G.support).connectedComponentMk ⟨u, huG⟩ =
+        (G.induce G.support).connectedComponentMk ⟨v, hvG⟩ ∧
+      (H.induce H.support).connectedComponentMk ⟨u, huH⟩ =
+        (H.induce H.support).connectedComponentMk ⟨v, hvH⟩) :
+    Nat.card (G ⊔ H).ConnectedComponent + Nat.card V + 1 =
+      Nat.card G.ConnectedComponent + Nat.card H.ConnectedComponent +
+        (G.support ∩ H.support).ncard := by
   classical
-  have hv : v ∈ G.support ∩ H.support := by rw [hs]; exact Set.mem_singleton v
-  have hshare : ∀ u, u ∈ G.support → u ∈ H.support → u = v := by
-    intro u huG huH
-    have hu : u ∈ G.support ∩ H.support := ⟨huG, huH⟩
-    rwa [hs, Set.mem_singleton_iff] at hu
-  let e : GlueIndex (G := G) v hv.2 ≃ (G ⊔ H).ConnectedComponent :=
-    ⟨unlabelComponent v hv.2, classifyComponent v hv.1 hv.2 hshare,
-      classify_unlabel v hv.1 hv.2 hshare, unlabel_classify v hv.1 hv.2 hshare⟩
+  let e : GlueIndex (G := G) v hvH ≃ (G ⊔ H).ConnectedComponent :=
+    ⟨unlabelComponent v hvH, classifyComponent v hvG hvH hs,
+      classify_unlabel v hvG hvH hs, unlabel_classify v hvG hvH hs⟩
   have hC := Nat.card_congr e
   dsimp only [GlueIndex] at hC
   rw [Nat.card_sum, Nat.card_sum] at hC
   change Nat.card (SupportComponent G) +
-    (Nat.card {c : SupportComponent H // c ≠ (H.induce H.support).connectedComponentMk ⟨v, hv.2⟩} +
+    (Nat.card {c : SupportComponent H // c ≠ (H.induce H.support).connectedComponentMk ⟨v, hvH⟩} +
       Nat.card {u : V // u ∉ G.support ∧ u ∉ H.support}) =
       Nat.card (G ⊔ H).ConnectedComponent at hC
   have hG := card_connectedComponent_map_add (G.induce G.support) (Function.Embedding.subtype _)
@@ -344,12 +369,11 @@ theorem card_connectedComponent_sup_of_inter_eq_singleton [Finite V] {v : V}
   rw [spanningCoe_induce_support] at hG hH
   rw [Nat.card_coe_set_eq] at hG hH
   have hB := Set.ncard_add_ncard_compl
-    ({(H.induce H.support).connectedComponentMk ⟨v, hv.2⟩} : Set (SupportComponent H))
+    ({(H.induce H.support).connectedComponentMk ⟨v, hvH⟩} : Set (SupportComponent H))
   rw [Set.ncard_singleton] at hB
   change 1 + Nat.card {c : SupportComponent H //
-      c ≠ (H.induce H.support).connectedComponentMk ⟨v, hv.2⟩} = Nat.card (SupportComponent H) at hB
+      c ≠ (H.induce H.support).connectedComponentMk ⟨v, hvH⟩} = Nat.card (SupportComponent H) at hB
   have hU := Set.ncard_union_add_ncard_inter G.support H.support
-  rw [hs, Set.ncard_singleton] at hU
   have hN := Set.ncard_add_ncard_compl (G.support ∪ H.support)
   have heq : (G.support ∪ H.support)ᶜ = {u | u ∉ G.support ∧ u ∉ H.support} := by
     ext u
@@ -359,11 +383,47 @@ theorem card_connectedComponent_sup_of_inter_eq_singleton [Finite V] {v : V}
     Nat.card V at hN
   omega
 
-/-- 한 점에서 만나는 그래프의 고립점 수를 고정된 꼭짓점 타입에서 센다. -/
-theorem ncard_isolated_sup_of_inter_eq_singleton [Finite V] {v : V}
+/-- 공통 변의 두 끝점에서만 만나는 두 그래프의 연결 성분 수. -/
+theorem card_connectedComponent_sup_of_inter_eq_edge [Finite V] {x y : V}
+    (hGxy : G.Adj x y) (hHxy : H.Adj x y) (hs : G.support ∩ H.support = {x, y}) :
+    Nat.card (G ⊔ H).ConnectedComponent + Nat.card V =
+      Nat.card G.ConnectedComponent + Nat.card H.ConnectedComponent + 1 := by
+  have hc := card_connectedComponent_sup_of_shared_component
+    hGxy.mem_support_left hHxy.mem_support_left (by
+      intro u huG huH
+      have hu : u = x ∨ u = y := by
+        have hu : u ∈ G.support ∩ H.support := ⟨huG, huH⟩
+        simpa only [hs, Set.mem_insert_iff, Set.mem_singleton_iff] using hu
+      rcases hu with rfl | rfl
+      · exact ⟨rfl, rfl⟩
+      · exact ⟨ConnectedComponent.eq.mpr (show (G.induce G.support).Adj
+          ⟨u, huG⟩ ⟨x, hGxy.mem_support_left⟩ from hGxy.symm).reachable,
+          ConnectedComponent.eq.mpr (show (H.induce H.support).Adj
+          ⟨u, huH⟩ ⟨x, hHxy.mem_support_left⟩ from hHxy.symm).reachable⟩)
+  rw [hs, Set.ncard_pair hGxy.ne] at hc
+  omega
+
+/-- 한 점에서 만나는 그래프의 연결 성분 수를 고정된 꼭짓점 타입에서 센다. -/
+theorem card_connectedComponent_sup_of_inter_eq_singleton [Finite V] {v : V}
     (hs : G.support ∩ H.support = {v}) :
+    Nat.card (G ⊔ H).ConnectedComponent + Nat.card V =
+      Nat.card G.ConnectedComponent + Nat.card H.ConnectedComponent := by
+  have hv : v ∈ G.support ∩ H.support := by rw [hs]; exact Set.mem_singleton v
+  have h := card_connectedComponent_sup_of_shared_component hv.1 hv.2 (by
+    intro u huG huH
+    have he : u = v := by
+      have hu : u ∈ G.support ∩ H.support := ⟨huG, huH⟩
+      rwa [hs, Set.mem_singleton_iff] at hu
+    subst u
+    exact ⟨rfl, rfl⟩)
+  rw [hs, Set.ncard_singleton] at h
+  omega
+
+/-- 합집합의 고립점 수에는 지지 집합 교집합의 크기만큼 보정이 들어간다. -/
+theorem ncard_isolated_sup_add [Finite V] :
     {u | (G ⊔ H).IsIsolated u}.ncard + Nat.card V =
-      {u | G.IsIsolated u}.ncard + {u | H.IsIsolated u}.ncard + 1 := by
+      {u | G.IsIsolated u}.ncard + {u | H.IsIsolated u}.ncard +
+        (G.support ∩ H.support).ncard := by
   have hsup : (G ⊔ H).support = G.support ∪ H.support := by
     ext u
     simp [SimpleGraph.mem_support, exists_or]
@@ -376,8 +436,14 @@ theorem ncard_isolated_sup_of_inter_eq_singleton [Finite V] {v : V}
   rw [hc] at hG hH hU
   rw [hsup] at hU
   have hI := Set.ncard_union_add_ncard_inter G.support H.support
-  rw [hs, Set.ncard_singleton] at hI
   omega
+
+/-- 한 점에서 만나는 그래프의 고립점 수를 고정된 꼭짓점 타입에서 센다. -/
+theorem ncard_isolated_sup_of_inter_eq_singleton [Finite V] {v : V}
+    (hs : G.support ∩ H.support = {v}) :
+    {u | (G ⊔ H).IsIsolated u}.ncard + Nat.card V =
+      {u | G.IsIsolated u}.ncard + {u | H.IsIsolated u}.ncard + 1 := by
+  simpa only [hs, Set.ncard_singleton] using ncard_isolated_sup_add (G := G) (H := H)
 
 /-- 블루프린트 `lem:sum1`: 지지 집합이 꼭짓점 하나에서 만나는 평면 그래프의 합집합은 평면이다. -/
 theorem IsPlanar.sup_of_inter_eq_singleton [Finite V] {v : V} (hG : IsPlanar G) (hH : IsPlanar H)

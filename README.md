@@ -48,6 +48,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `ThreeConnected.exists_contractible` | `Contractible.lean` | 유한한 V에서 비고립 꼭짓점이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재 |
 | `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
 | `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
+| `PermutationDeletion.orbitCount_cut_pair_face` | `PermutationDeletion.lean` | 역다트 두 점 삭제 뒤 면 순환 수가 하나 줄어드는 조건 |
 | `IsPlanar.sup_of_disjoint` | `Sum.lean` | 유한한 V에서 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면 |
 | `containsSubdivision_K5_of_three_common` | `CommonNeighbors.lean` | 인접한 두 점이 사이클 밖에 있고 사이클 위 공통 이웃이 셋이면 K₅ 세분 포함 (V 유한성 불필요) |
 | `isPlanar_of_ncard_support_le_four` | `Small.lean` | 유한 그래프의 비고립 꼭짓점이 네 개 이하면 평면 (고립점 수는 제한 없음) |
@@ -178,6 +179,9 @@ python3 -I scripts/check_definition.py
 기하를 조합적으로 다시 진술한 보조정리는 형식화하기 전에 `scripts/check_blueprint.py`로 작은
 그래프에서 먼저 검사했다.
 
+공통 변 붙이기(`lem:sum2`)에 필요한 일반 순열의 두 점 삭제 공식과, 교집합이 양쪽의 한 성분에
+놓일 때의 성분 수 공식을 형식화했다. 실제 합집합의 회전 체계까지 연결하는 일반 평면성 증명은 진행 중이다.
+
 ## 블루프린트 빌드
 
 `leanblueprint`(`uv tool install leanblueprint`), TeX Live(xelatex, kotex), graphviz가 필요하다.
@@ -252,7 +256,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `CommonNeighbors.lean` | 인접한 두 점과 사이클 위의 공통 이웃 셋에서 K₅ 세분 구성 |
 | `AlternatingNeighbors.lean` | 교대하는 사이클 위 네 점과 바깥 허브 둘에서 K₃,₃ 세분 구성 |
 | `Sum.lean` | 서로소 타입 합의 회전·면·성분 수, 지지 집합이 서로소인 합집합의 평면성 |
-| `GlueOne.lean` | 공통 꼭짓점에서 회전을 잇기, 면·성분·고립점 수, 한 점 붙이기의 평면성 |
+| `GlueOne.lean` | 공통 꼭짓점에서 회전을 잇기, 면·성분·고립점 수, 공통 성분 교집합의 세기와 한 점 붙이기의 평면성 |
+| `PermutationDeletion.lean` | 일반 순열에서 역다트 두 점 삭제의 면 순열·순환 수 공식 |
 | `WalkLift.lean` | 수축 그래프의 걸음·경로를 원래 그래프로 옮기기와 내부 제어 |
 | `Lift.lean` | 분기점 교체·2–2 분할에서 K₃,₃ 구성, KF 수축 닫힘 |
 | `PathsExamples.lean` | 실제 내부 꼭짓점을 갖는 경로 체계와 조건 위반 후보 예제 |

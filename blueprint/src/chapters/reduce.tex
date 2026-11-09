@@ -60,6 +60,54 @@
 \(\chi = \chi_1 + \chi_2 - 2n = 2c\)다.
 \end{proof}
 
+\begin{lemma}[공통 성분에 놓인 교집합의 세기]
+\label{lem:shared_component_counts}
+\uses{lem:map_iff}
+\lean{Kuratowski.card_connectedComponent_sup_of_shared_component,
+  Kuratowski.card_connectedComponent_sup_of_inter_eq_edge, Kuratowski.ncard_isolated_sup_add}
+\leanok
+유한한 \(V\) 위의 \(G_1,G_2\)에서 \(v\in S_{G_1}\cap S_{G_2}\)이고, 모든 공통 지지점이 각 그래프의
+지지 집합에 제한한 그래프에서 \(v\)와 같은 성분에 있다고 하자. 고립점을 포함한 성분 수에 대해
+\[
+ c(G_1\sqcup G_2)+n+1=c(G_1)+c(G_2)+|S_{G_1}\cap S_{G_2}|
+\]
+이다. 특히 지지 집합 교집합이 \(\{x,y\}\)이고 두 그래프 모두에 변 \(xy\)가 있으면
+\(c(G_1\sqcup G_2)+n=c(G_1)+c(G_2)+1\)이다. 고립점 수에는 추가 연결 가정 없이 항상
+\(I(G_1\sqcup G_2)+n=I(G_1)+I(G_2)+|S_{G_1}\cap S_{G_2}|\)가 성립한다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+합집합의 성분을 \(G_1\) 지지 집합의 성분, \(G_2\) 지지 집합에서 \(v\)의 성분을 뺀 나머지 성분,
+두 그래프의 공통 고립점으로 분류한다. 공통 지지점들이 양쪽에서 같은 지정 성분에 있으므로 이 분류는
+변을 따라 변하지 않고 성분과 일대일 대응한다. 보조정리~\ref{lem:map_iff}의 지지 집합 제한 공식과
+포함 배제로 식을 얻는다. 고립점 식은 지지 집합 합집합의 여집합을 세면 된다.
+\end{proof}
+
+\begin{lemma}[순열에서 두 점 삭제의 순환 수]
+\label{lem:pair_deletion}
+\uses{lem:swap, lem:orbitCount_cut}
+\lean{Kuratowski.PermutationDeletion.orbitCount_cut_pair_face}
+\leanok
+유한한 타입 \(D\)(같음 판정 가능)의 순열 \(\rho,\sigma\)와 서로 다른 \(a,b\in D\)가
+\(\sigma(a)=b\), \(\sigma(b)=a\)를 만족한다고 하자. 또
+\[
+ \rho(a)\ne a,\qquad \rho(b)\ne b,\qquad \rho(b)\ne a
+\]
+이고 \(a,b\)가 \(\rho\sigma\)의 서로 다른 순환에 있다고 하자.
+\(\psi=\rho\sigma(a\ b)\)에서 \(a\), \(b\)를 차례로 잘라 고정점으로 만든 뒤 두 점을 뺀 부분형에
+제한한 순열을 \(\psi'\)라 하면, \(O(\psi')+1=O(\rho\sigma)\)다.
+이 정리는 단순 그래프의 다트라는 가정을 쓰지 않는다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\(\psi(a)=\rho(a)\), \(\psi(b)=\rho(b)\)다. 위 세 부등식 때문에 두 잘라 내기가 각각 고정점 순환을
+하나씩 추가한다. 부분형에 제한하면 이 두 고정점 순환이 제거되므로 순환 수는 \(O(\psi)\)와 같다.
+한편 서로 다른 두 순환에 호환 \((a\ b)\)를 곱하면 두 순환이 합쳐지므로
+\(O(\psi)+1=O(\rho\sigma)\)다.
+\end{proof}
+
 \begin{lemma}[변 하나를 따라 붙이기]
 \label{lem:sum2}
 \uses{def:IsPlanar}
@@ -77,7 +125,7 @@
 \end{lemma}
 
 \begin{proof}
-\uses{lem:swap, lem:orbitCount_cut}
+\uses{lem:swap, lem:orbitCount_cut, lem:pair_deletion, lem:shared_component_counts}
 두 그래프의 다트에 출처를 붙인 서로소 합 \(D = D_1 \oplus D_2\)에서 작업한다. 공통 변의 두 사본을
 일단 유지하므로 이 중간 상태는 단순 그래프의 회전 체계가 아니라 \(D\) 위의 순열이다. 역다트 사상을
 \(\sigma\), 원래 회전의 서로소 합을 \(\rho\), 면 순열을 \(\phi = \rho\sigma\)라 하자.

@@ -32,6 +32,7 @@ import Kuratowski.PathsSubdivision
 import Kuratowski.Perm
 import Kuratowski.PermutationDeletion
 import Kuratowski.Planar
+import Kuratowski.Reduction
 import Kuratowski.Small
 import Kuratowski.Smoothing
 import Kuratowski.SplitVertex

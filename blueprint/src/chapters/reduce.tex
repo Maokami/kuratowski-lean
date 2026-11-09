@@ -211,9 +211,57 @@ Lean에서는 \texttt{GlueEdge.lean}이 이중 다트 위의 순열에서 실제
 Lean 정의는 모든 \(x\), \(y\)에 대해 주어진다. \(x = y\)이면 \(x\)에 닿는 변을 모두 지운 그래프가 되는데,
 실제 수축은 \(x \sim y\)(따라서 \(x \ne y\))를 가정하므로 이 경우는 쓰이지 않는다.
 \texttt{scripts/check\_blueprint.py}의 \texttt{contract}와는 \(x \ne y\)이면 늘 같고, \(x = y\)이면 일반적으로
-다르다 (Lean은 \(x\)에 닿는 변을 지우고 Python은 \(G\)를 그대로 둔다). 변 수, 고립점 수, 성분 수의 관계는 \texttt{Components.lean}과 같은 방식으로 따로
-세운다 (아직 형식화하지 않았다).
+다르다 (Lean은 \(x\)에 닿는 변을 지우고 Python은 \(G\)를 그대로 둔다). 변 수, 고립점 수, 성분 수는
+아래 보조정리~\ref{lem:contract_counts}에서 조건을 구분해 다룬다.
 \end{definition}
+
+\begin{lemma}[수축의 변과 성분 수]
+\label{lem:contract_counts}
+\uses{def:contract}
+\lean{Kuratowski.ncard_edgeSet_contractEdge_lt, Kuratowski.card_connectedComponent_contractEdge,
+  Kuratowski.ncard_isolated_contractEdge, Kuratowski.ncard_edgeSet_of_dartEquiv_delete_pair,
+  Kuratowski.le_contractEdge_of_isIsolated, Kuratowski.deleteVertices_contractEdge_left}
+\leanok
+유한한 꼭짓점 타입 위에서 \(x \sim y\)이면 \(E(G/xy) < E(G)\), \(c(G/xy) = c(G)+1\)이다.
+수축 뒤 \(x\)가 고립점이 아니면 \(I(G/xy) = I(G)+1\)이다. \(xy\)가 \(K_2\) 성분이면 수축 뒤
+\(x\), \(y\)가 모두 고립점이 되므로 마지막 식의 비고립 가정은 필요하다.
+또 임의의 그래프 \(H\)와 다트 \(p \in D_G\)에 대해
+\(D_G \setminus \{p,\bar p\} \simeq D_H\)인 전단사가 있으면 \(E(G)=E(H)+1\)이다.
+\(H \le G\)이고 \(H\)에서 \(y\)가 고립점이면 \(H \le G/xy\)이고, 인접 가정 없이도
+\((G/xy)-x = G-\{x,y\}\)다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+\(y \mapsto x\)로 변을 보내면 수축 뒤의 변은 원래 변에서 \(xy\)를 뺀 집합의 상에 포함되므로 변 수는 줄어든다.
+\(y\)가 아닌 두 점은 수축 전후에 이어짐이 같고, \(y\)는 수축 뒤 혼자 한 성분이다. 따라서 수축 뒤 성분은
+원래 성분들과 \(y\)의 단독 성분으로 분류된다. \(x,y\) 밖 점들의 고립 여부는 유지된다.
+두 다트를 뺀 전단사에서는 다트 수가 2 줄고 변 하나당 다트가 둘이므로 변 수 식이 따른다.
+부분 그래프의 고립점에는 변이 닿지 않으므로 수축해도 그 부분 그래프의 변은 남는다.
+마지막 그래프 등식은 인접 관계를 펼치면 바로 따른다.
+\end{proof}
+
+\begin{lemma}[연결도의 기본 성질과 최소 분리 집합]
+\label{lem:connectivity_tools}
+\uses{def:conn3}
+\lean{Kuratowski.ConnectedOn.mono, Kuratowski.ConnectedOn.deleteVertex,
+  Kuratowski.ConnectedOn.ncard_neighborSet_ge, Kuratowski.exists_adj_mem_sepComponent_of_connectedOn}
+\leanok
+유한한 꼭짓점 타입에서 \(A\)가 \(G\)에서 \(k\)-연결이면 \(j \le k\)인 \(j\)-연결이고,
+각 \(x \in A\)의 이웃 수는 \(k\) 이상이다. \(A\)가 \((k+1)\)-연결이면 \(A \setminus \{v\}\)는
+\(G-v\)에서 \(k\)-연결이다.
+또 지지 집합이 \(k\)-연결이고 크기 \(k\)인 \(T\)가 지지 집합의 두 점을 분리하면, \(T\)의 각 점은
+\(G-T\)의 각 지지 성분에 이웃을 갖는다. 정확히, \(c \in S_G \setminus T\), \(t \in T\)마다 어떤
+\(d \in S_G \setminus T\)가 있어 \(c\)와 \(d\)가 \(G-T\)에서 이어지고 \(t \sim d\)다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+삭제할 점 수의 하한을 낮추면 단조성이 따른다. 한 점 삭제 뒤에는 추가 삭제 집합에 그 점을 더해
+원래 연결성을 쓴다. 이웃 수가 \(k\)보다 적으면 이웃을 모두 지워 \(x\)를 고립시키며, 크기 조건으로
+기준 집합의 다른 점이 남아 모순이다. 마지막 주장에서 \(t\)가 한 성분에 이웃이 없으면 \(T \setminus \{t\}\)를
+지워도 그 성분을 벗어나지 못한다. 크기가 \(k-1\)인 분리 집합이 되어 \(k\)-연결성에 모순이다.
+\end{proof}
 
 \begin{theorem}[수축 가능한 변]
 \label{thm:contractible}
@@ -285,6 +333,27 @@ Lean의 \texttt{KuratowskiFree G}는 이 두 세분이 없다는 조건의 논�
 들어 올려지고, \(K_5\)의 세분은 \(K_5\)나 \(K_{3,3}\)의 세분으로 들어 올려진다. 둘 다 없다는 가정에 모순이다.
 \end{proof}
 
+\begin{lemma}[바깥 경로를 한 변으로 바꾸기]
+\label{lem:path_replacement}
+\uses{def:subdiv, def:K5K33, def:paths}
+\lean{Kuratowski.KuratowskiFree.sup_edge_of_path, Kuratowski.KuratowskiFree.mono,
+  Kuratowski.contractAvoidWalk, Kuratowski.contractAvoidWalk_length,
+  Kuratowski.contractAvoidWalk_support}
+\leanok
+KF 그래프 \(G\), 부분 그래프 \(H \le G\), 서로 다른 \(x,z\)를 잇는 \(G\)의 단순 경로 \(P\)가 있고,
+\(P\)의 내부 꼭짓점이 모두 \(H\)의 고립점이면 \(H+ xz\)도 KF다. 꼭짓점 타입의 유한성은 필요 없다.
+\end{lemma}
+
+\begin{proof}
+\uses{lem:lift, lem:contract_counts}
+\leanok
+경로 길이에 대한 강한 귀납법. 한 변 경로면 \(H+xz \le G\)다. 첫 내부점 \(u\)가 있으면 \(xu\)를
+수축한다. 보조정리~\ref{lem:lift}로 KF가 유지되고, \(u\)가 \(H\)의 고립점이라 \(H\)의 변도 남는다.
+경로의 꼬리는 \(x\)를 피하므로 \(u \mapsto x\) 사영에서 접히는 변 없이 길이가 그대로다.
+\texttt{bypass}로 경로로 줄이면 길이가 엄밀히 작아지고, 내부는 여전히 \(H\)의 지지 집합 밖이다.
+귀납 가정으로 결론을 얻는다. KF의 부분 그래프 닫힘은 세분의 포함 관계에서 바로 따른다.
+\end{proof}
+
 \begin{theorem}[최소 반례는 3-연결]
 \label{thm:reduce}
 \uses{def:conn3, def:IsPlanar, def:subdiv, def:K5K33}
@@ -293,7 +362,7 @@ Lean의 \texttt{KuratowskiFree G}는 이 두 세분이 없다는 조건의 논�
 \end{theorem}
 
 \begin{proof}
-\uses{lem:small, lem:sum0, lem:sum1, lem:sum2, thm:paths_iff, thm:mono}
+\uses{lem:small, lem:sum0, lem:sum1, lem:sum2, lem:path_replacement, lem:connectivity_tools, thm:mono}
 \begin{enumerate}
   \item 지지 집합이 4개 이하이면 보조정리~\ref{lem:small}로 끝난다.
   \item 끊어져 있으면 보조정리~\ref{lem:sum0}, 절단점이 있으면 보조정리~\ref{lem:sum1}로 처리한다.

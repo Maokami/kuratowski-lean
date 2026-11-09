@@ -154,6 +154,108 @@ named = {
 }
 graphs += list(named.values())
 
+# [sum2-수술] 공통 변 01을 따라 붙인다. 평행 변을 가진 중간 상태는 그래프가 아니라
+# 태그가 붙은 두 다트 집합의 순열이다. 원래 회전이 종수 0이 아닌 경우도 면 순환 식을 검사한다.
+# rho0 = rho * swap(p, rho2^-1(q)) * swap(rho1^-1(p.symm), q.symm).
+# 두각형 {p.symm, q}를 만든 뒤 q와 q.symm을 잘라 내고 G1 쪽 공통 변을 남긴다.
+def sum2_perm_orbits(perm):
+    todo, result = set(perm), []
+    while todo:
+        cur = next(iter(todo)); orb = []
+        while cur in todo:
+            todo.remove(cur); orb.append(cur); cur = perm[cur]
+        if cur != orb[0]:
+            raise ValueError("순열의 서로 다른 순환이 겹침")
+        result.append(orb)
+    return result
+
+def sum2_cut_perm(perm, point):
+    perm = perm.copy()
+    predecessor = next(d for d in perm if perm[d] == point)
+    perm[predecessor], perm[point] = perm[point], point
+    return perm
+
+def sum2_surgery_ok(n, edges1, edges2, r1, r2, variant=None):
+    adj1, adj2 = adjacency(n, edges1), adjacency(n, edges2)
+    rho = {(side,u,v): (side,u,r[u][v]) for side, adj, r in [(0,adj1,r1),(1,adj2,r2)]
+        for u in adj for v in adj[u]}
+    sym = lambda d: (d[0],d[2],d[1])
+    pred = {v:k for k,v in rho.items()}
+    p, q = (0,0,1), (1,0,1)
+    a, b = pred[q], pred[sym(p)]
+    if variant == 'x': a = q
+    if variant == 'y': b = sym(p)
+    rho[p], rho[a] = rho[a], rho[p]
+    rho[b], rho[sym(q)] = rho[sym(q)], rho[b]
+    phi = {d:rho[sym(d)] for d in rho}
+    bigon = phi[sym(p)] == q and phi[q] == sym(p)
+    source_orbits = len(faces(adj1,r1)) + len(faces(adj2,r2))
+    before = len(sum2_perm_orbits(phi))
+    rho = sum2_cut_perm(sum2_cut_perm(rho,q),sym(q))
+    keep = set(rho) - {q,sym(q)}
+    if not all(rho[d] in keep and rho[d][1] == d[1] for d in keep): return False
+    result = {u:{} for u in range(n)}
+    for d in keep:
+        if d[2] in result[d[1]]: return False
+        result[d[1]][d[2]] = rho[d][2]
+    adj = adjacency(n,sorted(set(edges1)|set(edges2)))
+    if not all(set(result[u]) == set(adj[u]) and set(result[u].values()) == set(adj[u])
+               for u in adj): return False
+    if not all(not result[u] or len(sum2_perm_orbits(result[u])) == 1 for u in adj): return False
+    good = bigon and before == source_orbits and len(faces(adj,result))+1 == source_orbits
+    if euler_ok(adj1,list(adj1),r1) and euler_ok(adj2,list(adj2),r2):
+        good &= euler_ok(adj,list(adj),result)
+    return good
+
+# 배정에서 어느 쪽에 놓였어도 실제 변이 없는 점은 공통 고립점이다. 서로 다른 배정이
+# 같은 (n, E1, E2)를 만들 수 있으므로 seen으로 중복을 뺀다. 작은 쌍은 n별 1, 7, 81, 1527개다.
+sum2_seen, sum2_count, sum2_mutations = set(), 0, {'x':0,'y':0}
+sum2_cache = {}
+sum2_bad = []
+def sum2_all_rot(n,edges):
+    key = n,edges
+    if key not in sum2_cache: sum2_cache[key] = list(rotations(adjacency(n,edges),list(range(n))))
+    return sum2_cache[key]
+
+def sum2_check_pair(n,e1,e2):
+    global sum2_count
+    key = n,e1,e2
+    if key in sum2_seen: return
+    sum2_seen.add(key)
+    adj1, adj2 = adjacency(n,e1), adjacency(n,e2)
+    adj = adjacency(n,sorted(set(e1)|set(e2)))
+    counts_ok = (set(support(adj1)) & set(support(adj2)) == {0,1}
+                 and len(set(e1)|set(e2))+1 == len(e1)+len(e2))
+    iso = lambda a: sum(not a[v] for v in a)
+    counts_ok &= iso(adj)+n == iso(adj1)+iso(adj2)+2
+    counts_ok &= components(adj,list(adj))+n == components(adj1,list(adj1))+components(adj2,list(adj2))+1
+    if not counts_ok:
+        sum2_bad.append(("개수 식",n,e1,e2))
+        return
+    for r1 in sum2_all_rot(n,e1):
+        for r2 in sum2_all_rot(n,e2):
+            sum2_count += 1
+            if not sum2_surgery_ok(n,e1,e2,r1,r2): sum2_bad.append(("회전 수술",n,e1,e2))
+            for variant in sum2_mutations:
+                sum2_mutations[variant] += not sum2_surgery_ok(n,e1,e2,r1,r2,variant)
+
+for n in range(2,6):
+    for assignment in itertools.product(range(3),repeat=n-2):
+        sets = [{0,1}|{i+2 for i,a in enumerate(assignment) if a==side} for side in [0,1]]
+        candidates = [[e for e in itertools.combinations(sorted(s),2) if e!=(0,1)] for s in sets]
+        lists = [sorted(set(tuple(sorted([(0,1)]+[e for i,e in enumerate(es) if mask>>i&1]))
+            for mask in range(1<<len(es)))) for es in candidates]
+        for e1 in lists[0]:
+            for e2 in lists[1]: sum2_check_pair(n,e1,e2)
+# 공통 변을 따라 K4 둘을 붙이고 꼭짓점 6은 공통 고립점으로 둔다.
+sum2_check_pair(7,tuple(itertools.combinations([0,1,2,3],2)),tuple(itertools.combinations([0,1,4,5],2)))
+
+report("[sum2-수술] 공통 변의 두각형을 만들고 중복 변을 지운다", not sum2_bad,
+       f"({len(sum2_seen)}개 그래프 쌍, {sum2_count}개 회전 쌍, 반례 {sum2_bad[:1]})")
+report("[sum2-수술-음성] 선행 다트 선택을 바꾸면 두각형·면 수 조건에 반례", all(sum2_mutations.values()),
+       f"(x 쪽 변이 {sum2_mutations['x']}개, y 쪽 변이 {sum2_mutations['y']}개)")
+sum2_cache.clear()
+
 # [J1] 2-연결 그래프의 종수 0 회전 체계에서 면 경계는 사이클이다 (꼭짓점이 반복되지 않는다).
 cnt = 0; bad = []
 for n, es in graphs:

@@ -96,9 +96,31 @@
 길이 \(0,1,2\)와 변이 없는 그래프는 배제된다.
 \end{definition}
 
-\textbf{후속, 미형식화.} 두 위치 사이의 호를 Mathlib \texttt{Walk}의 경로(\texttt{IsPath})로 옮기고,
-겹치지 않는 호들의 내부가 서로소임을 증명한다. 전체 순환의 \texttt{IsCycle}과의 연결,
-네 위치의 순환 순서 관계도 경로 체계 단위에서 다룬다. 이 표현을 정했다고 해서
+\begin{lemma}[순서를 보존하는 사이클과 두 호]
+\label{lem:cycseq_walks}
+\uses{def:cycseq, def:paths}
+\lean{Kuratowski.CyclicSequence.toWalk, Kuratowski.CyclicSequence.toWalk_isCycle,
+  Kuratowski.CyclicSequence.length_toWalk, Kuratowski.CyclicSequence.getVert_toWalk,
+  Kuratowski.CyclicSequence.arc, Kuratowski.CyclicSequence.arc_isPath,
+  Kuratowski.CyclicSequence.length_arc, Kuratowski.CyclicSequence.mem_support_arc_iff,
+  Kuratowski.CyclicSequence.mem_walkInterior_arc, Kuratowski.CyclicSequence.disjoint_arc_interiors}
+\leanok
+순환 수열 \(c\)는 \(c(0)\)에서 출발해 돌아오는 길이 \(m\)의 Mathlib \texttt{IsCycle}을 준다.
+\(0 \le i \le m\)에서 이 걸음의 \(i\)번째 점은 \(c(i)\)다. 위치 \(a\)에서 \(b\)까지의 정방향 호는
+길이 \((b-a).\mathrm{val}\)의 \texttt{IsPath}이며, \(a=b\)이면 길이 0이다. \(c(t)\)가 이 호의 내부에
+있는 조건은 \(0 < (t-a).\mathrm{val} < (b-a).\mathrm{val}\)이다. 따라서 \(a\)에서 \(b\)로 가는 호와
+\(b\)에서 \(a\)로 가는 호는 양 끝점을 뺀 내부가 서로소다. 꼭짓점 타입의 유한성은 필요 없다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+표준 사이클 그래프의 걸음을 단사인 꼭짓점 배치로 옮긴다. 원래 순서 방향이 되도록 기본 걸음을 뒤집는다.
+시작점을 \(a\)로 회전시킨 뒤 \((b-a).\mathrm{val}\)걸음만 취하면 호가 된다. 전체 길이보다 짧은 사이클의
+앞부분은 단순 경로다. 내부의 위치를 모듈러 차의 정수 대표로 판정하면 반대 방향의 두 열린 구간은 겹치지 않는다.
+\end{proof}
+
+\textbf{후속, 미형식화.} 여러 구간의 내부 서로소성과 네 위치의 순환 순서 관계는 경로 체계 단위에서
+추가로 다룬다. 위 보조정리를 증명했다고 해서
 보조정리~\ref{lem:J2}의 출력이나 보조정리~\ref{lem:TK5_of_common}, \ref{lem:TK33_of_alt}의
 경로 구성이 형식화된 것은 아니다.
 

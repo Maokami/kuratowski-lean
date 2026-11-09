@@ -154,6 +154,100 @@ named = {
 }
 graphs += list(named.values())
 
+# ---------------------------------------------------------------------------
+# [split2] 같은 면의 두 모서리에서 꼭짓점 쪼개기 (블루프린트 lem:split2).
+# 회전 r[u][x]는 u 둘레에서 x 다음 이웃이다. 다트 (u, x)에 대해 ρ(u, x) = (u, r[u][x])이고
+# 면 순열은 φ(u, x) = ρ(x, u)다 (faces와 같은 규약).
+# 같은 꼭짓점 w로 들어오는 서로 다른 두 다트 e1, e2를 고르고 ρ' = ρ ∘ (ē1 ē2)로 둔다.
+# w의 다트는 ρ'에서 두 순환으로 나뉜다. ē2의 순환 B를 새 꼭짓점 n(Lean의 none)에 붙인다.
+# 다트 d는 (B에 있으면 n, 아니면 d의 시작점) → (d̄가 B에 있으면 n, 아니면 d의 끝점)으로 옮긴다.
+#  양성: e1, e2가 같은 면이면 n' = n + 1, E' = E, I' = I, O' = O + 1, 곧 χ' = χ + 2.
+#        성분은 어떤 a ∈ A, b ∈ B의 끝점이 G - w에서 이어지면 c' = c, 그런 쌍이 없으면 c' = c + 1.
+#  음성: e1, e2가 다른 면이면 두 면이 합쳐져 O' = O - 1이다 (같은 면 가정이 필요하다).
+#  경계: 경로 0-1-2에서 w = 1을 쪼개면 w가 절단점이라 c' = c + 1이다.
+# 규모: 꼭짓점 5개 이하의 모든 그래프와 모든 회전 체계 (이름 있는 큰 그래프는 넣지 않는다).
+# ---------------------------------------------------------------------------
+def split2_apply(n, adj, r, e1, e2):
+    rho = {(u, x): (u, r[u][x]) for u in adj for x in adj[u]}
+    rev = lambda d: (d[1], d[0])
+    a1, a2 = rev(e1), rev(e2)
+    sw = {a1: a2, a2: a1}
+    rho2 = {d: rho[sw.get(d, d)] for d in rho}
+    B, cur = set(), a2
+    while cur not in B:
+        B.add(cur); cur = rho2[cur]
+    pairs = {d: (n if d in B else d[0], n if rev(d) in B else d[1]) for d in rho}
+    if any(a == b for a, b in pairs.values()): return None
+    if len(set(pairs.values())) != len(pairs): return None
+    adj2 = adjacency(n + 1, sorted({tuple(sorted(p)) for p in pairs.values()}))
+    r2 = {a: {} for a in range(n + 1)}
+    for d, (a, b) in pairs.items():
+        a_next, b_next = pairs[rho2[d]]
+        if a_next != a: return None
+        r2[a][b] = b_next
+    for a in adj2:
+        if set(r2[a]) != set(adj2[a]) or set(r2[a].values()) != set(adj2[a]): return None
+        if adj2[a]:
+            start, cur, seen = adj2[a][0], r2[a][adj2[a][0]], 1
+            while cur != start: cur = r2[a][cur]; seen += 1
+            if seen != len(adj2[a]): return None
+    return adj2, r2, B
+
+def split2_counts(adj, r):
+    E = sum(len(adj[v]) for v in adj) // 2
+    O = len(faces(adj, r))
+    I = sum(1 for v in adj if not adj[v])
+    return len(adj), E, O, I, components(adj, list(adj))
+
+def split2_linked(adj, w, A, B):
+    """어떤 A의 점과 어떤 B의 점이 G - w에서 이어지는가 (A 전체에서 시작하는 탐색)."""
+    rest = remove_vertices(adj, {w})
+    seen, st = set(A), list(A)
+    while st:
+        u = st.pop()
+        for x in rest[u]:
+            if x not in seen: seen.add(x); st.append(x)
+    return bool(seen & set(B))
+
+split2_pos = split2_cut = split2_neg = split2_neg_merge = 0
+split2_bad = []
+for n, es in graphs:
+    if n > 5: continue
+    adj = adjacency(n, es)
+    for r in rotations(adj, list(adj)):
+        fs = faces(adj, r)
+        face_of = {d: i for i, f in enumerate(fs) for d in f}
+        n0, E0, O0, I0, C0 = split2_counts(adj, r)
+        incoming = {}
+        for d in face_of: incoming.setdefault(d[1], []).append(d)
+        for w, ins in incoming.items():
+            for e1, e2 in itertools.combinations(ins, 2):
+                res = split2_apply(n, adj, r, e1, e2)
+                if res is None:
+                    split2_bad.append(("구성", n, es, e1, e2)); continue
+                adj2, r2, B = res
+                n1, E1, O1, I1, C1 = split2_counts(adj2, r2)
+                if face_of[e1] == face_of[e2]:
+                    split2_pos += 1
+                    A_nb = [x for x in adj[w] if (w, x) not in B]
+                    B_nb = [x for x in adj[w] if (w, x) in B]
+                    linked = split2_linked(adj, w, A_nb, B_nb)
+                    good = (n1 == n0 + 1 and E1 == E0 and I1 == I0 and O1 == O0 + 1
+                            and (n1 - E1 + O1 + I1) == (n0 - E0 + O0 + I0) + 2
+                            and C1 == C0 + (0 if linked else 1))
+                    if not good: split2_bad.append(("양성", n, es, e1, e2))
+                    if n == 3 and sorted(es) == [(0, 1), (1, 2)] and w == 1:
+                        split2_cut += (not linked) and C1 == C0 + 1
+                else:
+                    split2_neg += 1
+                    split2_neg_merge += O1 == O0 - 1
+report("[split2] 같은 면의 두 모서리에서 쪼개면 χ가 2 늘고 성분 조건이 맞는다", not split2_bad,
+       f"({split2_pos}개 경우, 반례 {split2_bad[:1]})")
+report("[split2-음성] 다른 면의 두 다트로 쪼개면 면이 합쳐진다 (O' = O - 1)",
+       split2_neg > 0 and split2_neg_merge == split2_neg, f"({split2_neg}개 경우)")
+report("[split2-절단점] 경로 0-1-2의 가운데를 쪼개면 c' = c + 1", split2_cut > 0,
+       f"({split2_cut}개 경우)")
+
 # [sum2-수술] 공통 변 01을 따라 붙인다. 평행 변을 가진 중간 상태는 그래프가 아니라
 # 태그가 붙은 두 다트 집합의 순열이다. 원래 회전이 종수 0이 아닌 경우도 면 순환 식을 검사한다.
 # rho0 = rho * swap(p, rho2^-1(q)) * swap(rho1^-1(p.symm), q.symm).

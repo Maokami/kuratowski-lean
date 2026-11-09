@@ -15,7 +15,8 @@
 내부 서로소성(`CyclicWalk.lean`), 유한 그래프에서 두 세분 표현의 동치(`PathsSubdivision.lean`,
 `SubdivisionOfPaths.lean`), 순환 단어 분류(`CyclicWord.lean`), 서로소 합의 평면성(`Sum.lean`),
 공통 이웃 셋에서 `K₅` 세분 구성(`CommonNeighbors.lean`), 교대 배치에서 `K₃,₃` 세분 구성
-(`AlternatingNeighbors.lean`), 한 점 붙이기의 평면성(`GlueOne.lean`)도 증명했다.
+(`AlternatingNeighbors.lean`), 한 점 붙이기의 평면성(`GlueOne.lean`), 수축에서 세분 들어 올리기
+(`WalkLift.lean`, `Lift.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -41,6 +42,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `IsPlanar.of_iso` | `Iso.lean` | 평면성은 그래프 동형에 대해 불변 |
 | `isPlanar_map_iff` | `Map.lean` | 유한한 `W`, `V`와 단사 `f : W ↪ V`에 대해 `K.map f`가 평면 ⇔ `K`가 평면 (고립점 허용) |
 | `containsSubdivision_K33_of_alternating` | `AlternatingNeighbors.lean` | 사이클 위 교대 배치와 바깥의 인접한 두 점에서 K₃,₃ 세분 구성 (V 유한성 불필요) |
+| `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
 | `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
 | `IsPlanar.sup_of_disjoint` | `Sum.lean` | 유한한 V에서 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면 |
 | `containsSubdivision_K5_of_three_common` | `CommonNeighbors.lean` | 인접한 두 점이 사이클 밖에 있고 사이클 위 공통 이웃이 셋이면 K₅ 세분 포함 (V 유한성 불필요) |
@@ -83,6 +85,14 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 뺀 두 열린 호 각각에 `X/B`가 있음. `classify`가 이 분류를 증명하며 길이 2도 허용한다.
 Mathlib의 `sbtw` 열린 호와 실제 사이클 경로의 내부가 같다는 연결도 증명했다.
 정규식 `B? X* B? Y*`와 첫 경우의 동치는 아직 Lean으로 형식화하지 않았다.
+
+### 수축에서 세분 들어 올리기 (`WalkLift.lean`, `Lift.lean`)
+
+`KuratowskiFree G`는 `K₅`의 세분과 `K₃,₃`의 세분이 모두 없다는 뜻이다.
+`kuratowskiFree_contractEdge`는 인접한 두 점을 수축해도 이 성질이 유지됨을 증명한다.
+대우에서는 수축 그래프의 경로를 원래 변이나 두 변으로 옮기고 `bypass`로 단순 경로로 줄인다.
+분기점의 경로가 2–2로 나뉘는 K₅ 경우에는 여섯 분기점과 아홉 경로로 K₃,₃을 만든다.
+K₃,₃의 분기점은 차수가 3이라 그 경우가 불가능하다. 최종 정리에는 `V`의 유한성 가정이 없다.
 
 ### 꼭짓점 연결성 (`Connected.lean`)
 
@@ -235,6 +245,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `AlternatingNeighbors.lean` | 교대하는 사이클 위 네 점과 바깥 허브 둘에서 K₃,₃ 세분 구성 |
 | `Sum.lean` | 서로소 타입 합의 회전·면·성분 수, 지지 집합이 서로소인 합집합의 평면성 |
 | `GlueOne.lean` | 공통 꼭짓점에서 회전을 잇기, 면·성분·고립점 수, 한 점 붙이기의 평면성 |
+| `WalkLift.lean` | 수축 그래프의 걸음·경로를 원래 그래프로 옮기기와 내부 제어 |
+| `Lift.lean` | 분기점 교체·2–2 분할에서 K₃,₃ 구성, KF 수축 닫힘 |
 | `PathsExamples.lean` | 실제 내부 꼭짓점을 갖는 경로 체계와 조건 위반 후보 예제 |
 
 | 그 밖의 파일 | 내용 |

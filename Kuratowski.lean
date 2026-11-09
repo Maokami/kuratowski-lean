@@ -13,6 +13,7 @@ import Kuratowski.Deletion
 import Kuratowski.Euler
 import Kuratowski.GlueOne
 import Kuratowski.Iso
+import Kuratowski.Lift
 import Kuratowski.Map
 import Kuratowski.NonPlanar
 import Kuratowski.Paths
@@ -26,3 +27,4 @@ import Kuratowski.Smoothing
 import Kuratowski.Subdivision
 import Kuratowski.SubdivisionOfPaths
 import Kuratowski.Sum
+import Kuratowski.WalkLift

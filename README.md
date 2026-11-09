@@ -20,7 +20,8 @@
 (`ConnectedContraction.lean`, `Contractible.lean`), 꼭짓점 삭제의 회전 체계 구성과 평면성 보존
 (`VertexDeletion.lean`), 같은 면에서 꼭짓점을 쪼개는 수술과 면 경계의 단사성
 (`SplitVertex.lean`, `FaceBoundary.lean`), 면 경계의 순서를 보존하는 사이클 구성
-(`FaceCycle.lean`)도 증명했다.
+(`FaceCycle.lean`), 지운 꼭짓점의 이웃을 특정 면에서 역순으로 열거하기
+(`DelVertexFace.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -50,6 +51,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `card_connectedComponent_split_of_linked` / `…_of_not_linked` | `SplitVertex.lean` | 두 반쪽 이웃의 연결 조건에 따라 성분 수가 유지되거나 하나 늘어남 |
 | `RotationSystem.eq_of_sameCycle_facePerm_of_fst_eq` | `FaceBoundary.lean` | 2-연결 그래프의 종수 0 회전에서 같은 면의 시작점은 서로 다름 |
 | `RotationSystem.exists_cyclicSequence_face` | `FaceCycle.lean` | 면 순열 반복의 시작점·정방향을 보존하는 CyclicSequence 구성 |
+| `RotationSystem.exists_cyclicSequence_delVertex_neighbors` | `DelVertexFace.lean` | 실제 지운 회전의 고정된 면에서 이웃이 역순으로 나타나는 위치를 구성 |
 | `IsPlanar.deleteVertex`, `RotationSystem.delVertex_rot_toProd` | `VertexDeletion.lean` | 꼭짓점의 변들을 삭제하고 회전 순서에서 해당 다트를 건너뛰며 평면성 보존 |
 | `ThreeConnected.exists_contractible` | `Contractible.lean` | 유한한 V에서 비고립 꼭짓점이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재 |
 | `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
@@ -88,7 +90,9 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 내부가 서로소다. `CyclicArcs.lean`은 정수 대표의 위치 구간이 겹치지 않는 두 호의 내부 분리와
 사이클 밖 점·구간 밖 위치의 회피를 증명한다. `AlternatingNeighbors.lean`에서는 두 `sbtw` 조건으로
 네 위치의 순환 순서를 표현하고, 네 호로 `K₃,₃`의 경로 체계를 구성한다. `FaceCycle.lean`은 2-연결·종수 0인 면을 시작점과 정방향이 같은
-순환 수열로 바꾼다. 지운 꼭짓점의 이웃을 같은 면 위에 역순으로 놓는 J2는 아직 미형식화다.
+순환 수열로 바꾼다. `DelVertexFace.lean`은 지운 회전 체계의 특정 면을 고정하고,
+지운 꼭짓점 둘레 회전의 역순으로 나타나는 이웃들의 위치를 구성한다(J2).
+면 길이는 원래 면 조각 길이의 합이고, 위치는 앞 조각 길이의 부분합이다.
 
 ### 순환 단어 분류 (`CyclicWord.lean`)
 
@@ -246,6 +250,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `SplitVertex.lean` | Option V의 꼭짓점 쪼개기, 다트 대응, 회전·χ·성분 수와 연결 조건 |
 | `FaceBoundary.lean` | 꼭짓점 쪼개기와 2-연결성으로 면 경계 단사성(J1) 증명 |
 | `FaceCycle.lean` | 면의 최소 주기와 길이 ≥ 3, 순서를 보존하는 CyclicSequence 구성 |
+| `DelVertexFace.lean` | 꼭짓점 둘레 회전의 이웃 열거와 삭제 뒤 특정 면의 조각·위치 계산(J2) |
 | `Euler.lean` | 오일러 부등식, 부분 그래프 |
 | `Smoothing.lean` | 세분 되돌리기 |
 | `NonPlanar.lean` | 변 개수 상한, `K₅`·`K₃,₃` 비평면성 |

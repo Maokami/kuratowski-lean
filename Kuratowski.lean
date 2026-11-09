@@ -11,6 +11,7 @@ import Kuratowski.Cyclic
 import Kuratowski.CyclicArcs
 import Kuratowski.CyclicWalk
 import Kuratowski.CyclicWord
+import Kuratowski.DelVertexFace
 import Kuratowski.Deletion
 import Kuratowski.Euler
 import Kuratowski.FaceBoundary

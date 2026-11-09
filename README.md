@@ -103,7 +103,8 @@ K₃,₃의 분기점은 차수가 3이라 그 경우가 불가능하다. 최종
 `TwoConnected G`와 `ThreeConnected G`는 삭제 전의 `G.support`를 기준으로 한다.
 삭제 뒤 지지 집합을 다시 계산하면 별 그래프가 잘못 2-연결로 판정될 수 있어 그렇게 하지 않는다.
 `k = 0`에서는 크기 조건만 남는다. 별·경로의 음성 예와 고립점을 더한 삼각형·`K₄`의 양성 예를
-`ConnectedExamples.lean`에서 커널로 확인한다. 수축 가능한 변의 존재 정리는 아직 형식화하지 않았다.
+`ConnectedExamples.lean`에서 커널로 확인한다. 지지 집합이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재는
+`Contractible.lean`의 `ThreeConnected.exists_contractible`로 증명했다.
 
 ### 평면성 (`Basic.lean`)
 

@@ -1,9 +1,11 @@
 import Kuratowski.Basic
+import Kuratowski.CommonNeighbors
 import Kuratowski.Components
 import Kuratowski.Connected
 import Kuratowski.ConnectedExamples
 import Kuratowski.Contract
 import Kuratowski.Cyclic
+import Kuratowski.CyclicArcs
 import Kuratowski.CyclicWalk
 import Kuratowski.CyclicWord
 import Kuratowski.Deletion
@@ -12,6 +14,7 @@ import Kuratowski.Iso
 import Kuratowski.Map
 import Kuratowski.NonPlanar
 import Kuratowski.Paths
+import Kuratowski.PathsBuild
 import Kuratowski.PathsExamples
 import Kuratowski.PathsSubdivision
 import Kuratowski.Perm
@@ -20,3 +23,4 @@ import Kuratowski.Small
 import Kuratowski.Smoothing
 import Kuratowski.Subdivision
 import Kuratowski.SubdivisionOfPaths
+import Kuratowski.Sum

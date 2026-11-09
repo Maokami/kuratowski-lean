@@ -119,8 +119,29 @@
 앞부분은 단순 경로다. 내부의 위치를 모듈러 차의 정수 대표로 판정하면 반대 방향의 두 열린 구간은 겹치지 않는다.
 \end{proof}
 
-\textbf{후속, 미형식화.} 여러 구간의 내부 서로소성과 네 위치의 순환 순서 관계는 경로 체계 단위에서
-추가로 다룬다. 위 보조정리를 증명했다고 해서
+\begin{lemma}[서로 겹치지 않는 위치 구간의 호]
+\label{lem:cycseq_disjoint_arcs}
+\uses{lem:cycseq_walks, lem:cyclic}
+\lean{Kuratowski.CyclicSequence.disjoint_arc_interiors_of_le,
+  Kuratowski.CyclicSequence.disjoint_arc_interiors_wrap,
+  Kuratowski.CyclicSequence.not_mem_arc_support_of_not_mem_range,
+  Kuratowski.CyclicSequence.not_mem_arc_interior_of_le,
+  Kuratowski.CyclicSequence.not_mem_arc_interior_wrap}
+\leanok
+정수 대표가 \(a.\mathrm{val} \le b.\mathrm{val} \le c.\mathrm{val} \le d.\mathrm{val}\)인 네 위치에 대해,
+\(a\)에서 \(b\)로 가는 호와 \(c\)에서 \(d\)로 가는 호의 내부는 서로소다. \(d\)에서 \(a\)로 감기는
+호와 \(b\)에서 \(c\)로 가는 호의 내부도 서로소다. 사이클 밖의 점은 어느 호에도 나타나지 않는다.
+또 감기지 않는 호의 바깥 위치와 양 끝점은 그 내부에 없고, \(b\)에서 \(a\)로 감기는 호의 내부는
+\(a.\mathrm{val} \le t.\mathrm{val} \le b.\mathrm{val}\)인 모든 위치를 피한다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+각 호의 내부를 \texttt{sbtw}의 엄격한 순환 부등식으로 바꾸면 위치 구간들의 부등식이 모순된다.
+사이클 밖의 점에 대해서는 호의 모든 점이 순환 수열의 상에 속한다는 사실을 쓴다.
+\end{proof}
+
+\textbf{후속, 미형식화.} 네 위치의 순환 순서 관계는 경로 체계 단위에서 추가로 다룬다. 위 보조정리를 증명했다고 해서
 보조정리~\ref{lem:J2}의 출력이나 보조정리~\ref{lem:TK5_of_common}, \ref{lem:TK33_of_alt}의
 경로 구성이 형식화된 것은 아니다.
 

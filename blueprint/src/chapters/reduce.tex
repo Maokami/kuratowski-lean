@@ -11,16 +11,25 @@
 \begin{lemma}[서로소 합]
 \label{lem:sum0}
 \uses{def:IsPlanar}
-\planned{IsPlanar.sup\_of\_disjoint}
-\(G_1\), \(G_2\)가 평면이고 지지 집합이 서로소(\(S_{G_1} \cap S_{G_2} = \emptyset\))이면 \(G_1 \sqcup G_2\)는
+\lean{Kuratowski.IsPlanar.sup_of_disjoint, Kuratowski.IsPlanar.sum,
+  Kuratowski.RotationSystem.sum, Kuratowski.RotationSystem.sum_eulerChar}
+\leanok
+유한한 꼭짓점 타입 \(V\) 위의 \(G_1\), \(G_2\)가 평면이고 지지 집합이 서로소(\(S_{G_1} \cap S_{G_2} = \emptyset\))이면 \(G_1 \sqcup G_2\)는
 평면이다. 이때 변 집합도 서로소다.
 \end{lemma}
 
 \begin{proof}
-회전 체계를 나란히 놓는다 (다트 집합이 서로소다). 그러면 \(O = O_1 + O_2\), \(E = E_1 + E_2\),
-\(I = I_1 + I_2 - n\)이고, 따라서 \(F = F_1 + F_2 - n\), \(c = c_1 + c_2 - n\)이다. 그러므로
-\(\chi = n - E + F = \chi_1 + \chi_2 - 2n = 2c_1 + 2c_2 - 2n = 2c\)다.
-예: \(V = \mathrm{Fin}\,4\), \(G_1 = \{01\}\), \(G_2 = \{23\}\)이면 \(F = 3 + 3 - 4 = 2\), \(c = 3 + 3 - 4 = 2\).
+\uses{lem:map_iff, thm:mono}
+\leanok
+먼저 서로소 타입 합 \(V_1 \oplus V_2\) 위의 그래프에서 두 회전 체계를 나란히 놓는다. 다트는 두 다트
+집합의 서로소 합이고, 회전과 면 순열은 각 쪽에서 독립적으로 작용한다. 따라서 면 순환·변·고립점·연결
+성분 수가 모두 더해지며 \(\chi = \chi_1 + \chi_2 = 2(c_1 + c_2)\)다. 이것이 \texttt{IsPlanar.sum}이다.
+
+원래 고정 타입 \(V\)의 두 그래프를 각각 지지 집합으로 제한한다. 고립점은 보조정리~\ref{lem:map_iff}로
+제거할 수 있다. 두 지지 집합이 서로소이므로 그 타입 합에서 \(V\)로 가는 포함 사상이 단사다. 위 평면
+그래프를 이 단사 사상으로 옮기면 \(G_1 \sqcup G_2\)를 포함하므로 평면성의 단조성으로 끝난다.
+예: \(V = \mathrm{Fin}\,4\), \(G_1 = \{01\}\), \(G_2 = \{23\}\)이면 고립점을 포함한 고정 타입의 수는
+\(F = 3 + 3 - 4 = 2\), \(c = 3 + 3 - 4 = 2\)다.
 \end{proof}
 
 \begin{lemma}[한 점에서 붙이기]

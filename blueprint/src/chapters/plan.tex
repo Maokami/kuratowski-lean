@@ -15,8 +15,9 @@
     모든 그래프가 고정된 꼭짓점 타입 \(V\) 위에 있기 때문이다.
   \item[D3. 사이클 표현] 구간 논증에는 \(\mathbb{Z}/m \to V\) 수열이 편하다 (정의~\ref{def:cycseq}). 경로
     체계(정의~\ref{def:paths})를 만들 때만 Mathlib의 \texttt{Walk}로 바꾼다.
-  \item[D4. 2-합 붙이기] 직접 증명한다 (보조정리~\ref{lem:sum2}). 수축으로 우회하려면 다중 변이 생겨서
-    \texttt{SimpleGraph}와 맞지 않는다.
+  \item[D4. 2-합 붙이기] 직접 증명했다 (보조정리~\ref{lem:sum2}, \texttt{GlueEdge.lean}).
+    공통 변의 두 사본을 유지하는 중간 상태는 일반 다트 순열로 다루고, 중복 변을 지운 뒤
+    \texttt{SimpleGraph}의 회전 체계로 옮긴다.
 \end{description}
 
 \section{형식화 순서}
@@ -43,9 +44,11 @@
     \end{itemize}
   \item \textbf{1번 위에서}
     \begin{itemize}
-      \item 회전 체계 수술: 보조정리~\ref{lem:sum0}(완료), \ref{lem:sum1}(완료), 정의~\ref{def:delVertex}(완료)
+      \item 회전 체계 수술: 보조정리~\ref{lem:sum0}(완료), \ref{lem:sum1}(완료),
+            \ref{lem:sum2}(완료), 정의~\ref{def:delVertex}(완료)
       \item 완료: 보조정리~\ref{lem:sum0}(\texttt{Sum.lean}),
             보조정리~\ref{lem:sum1}(\texttt{GlueOne.lean}),
+            보조정리~\ref{lem:sum2}(\texttt{GlueEdge.lean}),
             정의~\ref{def:delVertex}(\texttt{VertexDeletion.lean}),
             보조정리~\ref{lem:TK5_of_common}(\texttt{CommonNeighbors.lean}),
             유한 원래 꼭짓점 타입의 세분 구성(\texttt{PathsBuild.lean}),
@@ -54,7 +57,7 @@
       \item 완료: 보조정리~\ref{lem:lift}(\texttt{WalkLift.lean}, \texttt{Lift.lean})
     \end{itemize}
   \item \textbf{면 수술}: 보조정리~\ref{lem:split2}와 \ref{lem:J1}은 완료했다.
-        남은 형식화는 보조정리~\ref{lem:sum2}, \ref{lem:J2}, \ref{lem:S}다.
+        남은 형식화는 보조정리~\ref{lem:J2}, \ref{lem:S}다.
   \item \textbf{마무리}: 정리~\ref{thm:reduce}, 정리~\ref{thm:hard}, 정리~\ref{thm:kuratowski}
 \end{enumerate}
 

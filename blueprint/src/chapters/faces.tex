@@ -165,37 +165,106 @@ Lean 진술은 같은 면 순환에서 시작점이 같은 두 다트가 같다�
 
 \begin{lemma}[지운 꼭짓점 둘레의 면]
 \label{lem:J2}
-\uses{def:delVertex, def:cycseq, def:conn3}
+\uses{def:rotation, def:eulerChar, def:conn3, def:delVertex, def:cycseq}
 \notready
-\(R\)이 \(H\)의 종수 0 회전 체계이고, \(v\)의 이웃이 \(R\) 순서로 \(u_1, \ldots, u_k\) (\(k \ge 2\))라 하자.
-지지 집합에서 \(v\)를 뺀 \(S_H \setminus \{v\}\)가 \(H - v\)에서 2-연결이면 (정의~\ref{def:conn3}),
-\(H - v\)의 한 면은 \(u_k, \ldots, u_1\)을 이 순환 순서대로 지나는 사이클이다.
+\planned{RotationSystem.exists\_cyclicSequence\_delVertex\_neighbors}
+유한하고 같음을 판정할 수 있는 꼭짓점 타입 \(V\) 위의 그래프 \(H\)와 종수 0 회전 체계 \(R\)(회전 \(\rho\),
+면 순열 \(\varphi\))을 생각한다. 꼭짓점 \(v\)의 이웃 수를 \(N = |N_H(v)|\)라 하고 \(N \ge 2\)라 하자.
+지지 집합에서 \(v\)를 뺀 \(S_H \setminus \{v\}\)가 \(H - v\)(\texttt{deleteVertices H \{v\}})에서
+2-연결이라 하자 (정의~\ref{def:conn3}). \(v\)에서 나가는 다트 \(d_0\)를 하나 고르고
+\[
+  d_j = \rho^{-j} d_0, \qquad u_j = (d_j)\text{의 끝점} \qquad (0 \le j < N)
+\]
+이라 두자. 곧 \(u_0, u_1, \ldots, u_{N-1}\)은 \(v\) 둘레의 회전을 거꾸로 돈 이웃 열이다.
+\(\varphi(d_0)\)와 양 끝이 같은 \(H - v\)의 다트 \(e\)가 존재한다 (\(\varphi(d_0)\)는 \(u_0\)에서 출발해 \(v\)로 가지 않는다).
+그러면 길이 \(m\)의 순환 꼭짓점 수열 \(C\)(정의~\ref{def:cycseq})가 있어
+\[
+  C(k\bmod m) = \bigl((R.\mathrm{delVertex}\,v).\varphi^{k}\, e\bigr)\text{의 시작점} \qquad (k \in \mathbb{N})
+\]
+이다. 곧 \(C\)는 실제 회전 체계 \(R.\mathrm{delVertex}\,v\)(정의~\ref{def:delVertex})에서 \(e\)가 속한 면이며
+새 회전 증인을 고르지 않는다. 또 자연수 위치 \(p_0 = 0 < p_1 < \cdots < p_{N-1} < m\)이 있어
+\(C(p_j) = u_j\)이다. 곧 \(e\)에서 출발해 그 면을 따라가면 이웃을 \(v\) 둘레 회전의 역순으로 정확히 한 번씩 만난다.
+
+이 진술은 ``\(H - v\)의 어떤 면이 \(u_0, \ldots, u_{N-1}\)을 이 순환 순서대로 지나는 사이클이다''를 강화한 것이다.
+그 존재 진술도 참이며 \texttt{[J2]}가 검사한다. 다만 \(H - v\)가 사이클이면 두 면이 모두 이웃을 지나고
+반대쪽 면은 정순으로 지나므로, 존재 진술은 방향을 바꾼 음성 대조를 구별하지 못한다. 그래서 면을 \(v\)가
+있던 자리의 면, 곧 \(e\)의 면으로 고정한다. 증명이 실제로 만드는 면도 이 면이다.
 
 가정을 ``\(H - v\)가 2-연결''(곧 \(H - v\)의 지지 집합 기준)로 약하게 하면 거짓이다. 변이
 \(\{01, 12, 20, 30, 31, 34\}\)이고 \(v = 3\)인 평면 그래프에서 \(H - v\)는 삼각형 \(012\)와 고립점 \(3\), \(4\)라서
 2-연결이지만, 이웃 \(4\)가 \(H - v\)의 고립점이라 이웃 \(\{0, 1, 4\}\)를 지나는 사이클이 없다. 지금
 가정에서는 \(\{0, 1, 2, 4\}\)가 \(H - v\)에서 이어져 있지 않으므로 이 경우가 빠진다.
-\bfcheck{\texttt{[J2]}: 1,892개 경우. \texttt{[J2-반례]}: 위 그래프에서 약한 가정은 성립하고 결론은
-틀리며(종수 0 회전 체계 4개), 지금 가정은 성립하지 않는다. 검사의 가정을 약한 쪽으로 바꾸면
-\texttt{[J2]}도 실패한다.}
+\bfcheck{\texttt{[J2]}: 1,892개 경우(어떤 면이 사이클이고 이웃을 역순의 순환 순서로 지남).
+\texttt{[J2-위치]}: 같은 경우의 모든 시작 이웃 4,620개에서, 면을 \(e = \varphi(v, s)\)로 고정하면 꼭짓점이 겹치지 않고
+\(u_j\)의 위치가 \(0\)에서 엄격히 증가한다. \texttt{[J2-위치-음성]}: 같은 고정 면에 정순 \(\rho^{j} d_0\)의 끝점을
+넣으면 \(N \ge 3\)인 2,284개 모두에서 실패한다. \texttt{[J2-구간]}: 같은 4,620개에서 아래 증명의 구간 분해,
+곧 \(L_j \ge 3\), \(\varphi^{L_j-1} d_j = \bar d_{j+1}\), \(P_j\)가 \(v\)에 닿지 않음, \(d_j\)들의 면이 서로 다름,
+\(m = \sum_j (L_j - 2)\), \(p_j = \sum_{t<j} (L_t - 2)\)가 성립한다. \texttt{[J2-반례]}: 위 그래프에서 약한 가정은
+성립하고 결론은 틀리며(종수 0 회전 체계 4개), 지금 가정은 성립하지 않는다. 유한 검사이며 일반 증명을
+대신하지 않는다.}
 \end{lemma}
 
 \begin{proof}
 \uses{lem:J1, lem:face_cycle}
+\(\varphi'\)을 \(R.\mathrm{delVertex}\,v\)의 면 순열이라 하자. \(H - v\)의 다트와 \(v\)에 닿지 않는 \(H\)의 다트는
+양 끝으로 대응하므로, 아래에서 두 다트를 양 끝이 같으면 같은 것으로 적는다.
 \begin{itemize}
-  \item 가정에서 \(H - v\)와 \(H\)가 모두 2-연결이다. \(S_H \setminus \{v\}\)는 점이 3개 이상이고 \(H - v\)에서
-        이어져 있으므로 각 점이 \(H - v\)에서 이웃을 갖는다. 따라서 \(H - v\)의 지지 집합은
-        \(S_H \setminus \{v\}\)이고 \(H - v\)는 2-연결이다. \(H\)에서 \(v\)를 지우면 가정 그대로이고, 다른 점
-        \(z\)를 지우면 \(S_H \setminus \{v, z\}\)가 이어져 있고 \(v\)는 남은 이웃을 통해 거기에 이어진다
-        (\(k \ge 2\)).
-  \item \(H\)에서 \(u_{i-1}v\)와 \(vu_i\) 사이의 면은 \(v\)를 한 번만 지난다 (보조정리~\ref{lem:J1}).
-  \item 그 면에서 \(v\) 부분을 뺀 길을 \(P_i\)라 하자 (\(u_i\)에서 \(u_{i-1}\)까지).
-  \item \(v\)로 가는 다트를 건너뛰는 면 순열을 계산하면, \(P_i\)의 끝 다음에 바로 \(P_{i-1}\)이 온다.
-  \item 따라서 \(P_k, \ldots, P_1\)이 한 면으로 이어지고, 보조정리~\ref{lem:J1}에 의해 이 면은 사이클이다.
+  \item \textbf{\(H - v\)와 \(H\)의 2-연결.} \(S_H \setminus \{v\}\)는 점이 3개 이상이고 \(H - v\)에서
+        이어져 있으므로 각 점이 \(H - v\)에서 이웃을 갖는다. 따라서 \((H - v)\)의 지지 집합은
+        \(S_H \setminus \{v\}\)이고 \(H - v\)는 2-연결이다 (\texttt{TwoConnected}).
+        \(H\)도 2-연결이다. 아무것도 지우지 않으면 \(S_H \setminus \{v\}\)가 이어져 있고 \(v\)는 이웃으로 거기에
+        붙는다. \(v\)를 지우면 가정 그대로다. 다른 점 \(z\)를 지우면 \(S_H \setminus \{v, z\}\)가 \(H - \{v, z\}\)에서
+        이어져 있고, \(N \ge 2\)이므로 \(v\)는 \(z\)가 아닌 이웃을 통해 거기에 이어진다.
+  \item \textbf{\(v\) 둘레의 회전.} \(v\)에서 나가는 다트는 \(\rho\)의 한 순환을 이루고(회전 체계의 조건)
+        그 수는 \(N\)이다. 따라서 \(d_0, \ldots, d_{N-1}\)은 서로 다르고 \(d_N = d_0\)이다.
+        \(\rho^{-1} d_j = d_{j+1}\)이다.
+  \item \textbf{\(H\)의 면 조각.} \(L_j\)를 \(d_j\)의 면 길이(\(\varphi\)의 최소 주기)라 하자.
+        \(H\)가 2-연결이므로 \(L_j \ge 3\)이다 (보조정리~\ref{lem:face_cycle}의 길이 하한).
+        \(\varphi(x) = d_j\)이면 \(\rho(\bar x) = d_j\)라 \(x = \overline{\rho^{-1} d_j} = \bar d_{j+1}\)이므로
+        \(\varphi^{L_j - 1} d_j = \bar d_{j+1} = (u_{j+1}, v)\)이다. \(H\)는 2-연결이고 \(R\)은 종수 0이므로
+        보조정리~\ref{lem:J1}에서 이 면의 다트 \(\varphi^i d_j\) (\(0 \le i < L_j\))의 시작점은 서로 다르다.
+        시작점이 \(v\)인 것은 \(i = 0\)뿐이고, \(\varphi^i d_j\)의 끝점은 \(\varphi^{i+1} d_j\)의 시작점이다.
+        따라서 \(\ell_j = L_j - 2 \ge 1\)개의 다트
+        \[
+          P_j = \bigl(\varphi^{1} d_j, \varphi^{2} d_j, \ldots, \varphi^{\ell_j} d_j\bigr)
+        \]
+        는 모두 \(v\)에 닿지 않는 \(H - v\)의 다트이고, \(P_j\)는 \(u_j\)에서 \(u_{j+1}\)로 가는 걸음이다.
+        특히 \(\varphi(d_0)\)는 \(v\)에 닿지 않으므로 \(e\)가 있다.
+  \item \textbf{조각은 서로소.} \(j \ne j'\)이면 \(d_j \ne d_{j'}\)이고 둘의 시작점은 모두 \(v\)이므로,
+        보조정리~\ref{lem:J1}에서 \(d_j\)와 \(d_{j'}\)은 \(\varphi\)의 서로 다른 순환에 있다. \(P_j\)의 다트는
+        \(d_j\)의 면에 있으므로 서로 다른 \(j\)의 조각은 다트를 공유하지 않는다. 한 조각 안의 다트도
+        최소 주기 아래의 반복이라 서로 다르다. 따라서 \(M = \ell_0 + \cdots + \ell_{N-1}\)개의 다트가 모두 다르다.
+  \item \textbf{지운 회전의 계산.} \(H - v\)의 다트 \(x\)에 대해 \(\varphi(x)\)가 \(v\)로 가지 않으면
+        \(\varphi'(x) = \varphi(x)\)이고, \(\varphi(x) = (w, v)\)이면 \(\varphi'(x) = \rho((w, v)) = \varphi(v, w)\)다
+        (\texttt{delVertex\_facePerm\_toProd}). \(P_j\)의 마지막이 아닌 다트에서는 다음 다트가 \(P_j\) 안에 있어
+        첫 경우이고, 마지막 다트 \(\varphi^{\ell_j} d_j\)에서는 \(\varphi\)가 \(\bar d_{j+1}\)이라 둘째 경우다.
+        따라서 \(s_j = \ell_0 + \cdots + \ell_{j-1}\)이라 두면 \(0 \le i < \ell_j\)에서
+        \[
+          \varphi'^{\,s_j + i}\, e = \varphi^{1 + i} d_j
+        \]
+        이다 (\(j\)와 \(i\)에 대한 귀납, \(P_0\)의 첫 다트가 \(e\)). \(d_N = d_0\)이므로
+        \(\varphi'^{\,M} e = \varphi(d_0) = e\)이다.
+  \item \textbf{면 길이와 위치.} 위 두 항목에서 \(\varphi'^{\,k} e\) (\(0 \le k < M\))는 서로 다르고
+        \(\varphi'^{\,M} e = e\)이므로 \(e\)의 \(\varphi'\) 최소 주기는 정확히 \(m = M = \sum_{j<N} (L_j - 2)\)다.
+        \(R.\mathrm{delVertex}\,v\)는 종수 0이고(정의~\ref{def:delVertex}) \(H - v\)는 2-연결이므로
+        보조정리~\ref{lem:face_cycle}을 \(e\)에 적용하면 길이 \(m\)의 순환 꼭짓점 수열 \(C\)가 있어
+        \(C(k)\)는 \(\varphi'^{\,k} e\)의 시작점이다. \(p_j = s_j\)로 두면 \(p_0 = 0\),
+        \(p_{j+1} = p_j + \ell_j > p_j\), \(p_{N-1} < p_{N-1} + \ell_{N-1} = m\)이고
+        \(C(p_j) = (\varphi d_j)\text{의 시작점} = u_j\)이다.
 \end{itemize}
-\textbf{보강할 것.} 결과를 정의~\ref{def:cycseq}의 순환 꼭짓점 수열로 구성하고,
-이 수열의 순서가 원래 회전 체계의 이웃 순서와 일치함을 증명한다.
+\textbf{아직 형식화할 것.}
+\begin{itemize}
+  \item \(\rho\)에서 \(d_0\)의 최소 주기가 \(N = |N_H(v)|\)라는 보조정리 (\(v\)의 다트와 이웃의 전단사,
+        회전의 한 순환 조건).
+  \item 위 2-연결 유도 두 가지.
+  \item 구간 보조정리: \(\varphi^{L_j-1} d_j = \bar d_{j+1}\), \(1 \le i \le L_j - 2\)에서 \(\varphi^i d_j\)가 \(v\)에 닿지 않음,
+        \(j \ne j'\)인 \(d_j, d_{j'}\)의 면이 다름.
+  \item 반복 공식 \(\varphi'^{\,s_j + i} e = \varphi^{1+i} d_j\)의 귀납과 \(\varphi'^{\,M} e = e\).
+  \item 최소 주기 \(\mathrm{faceLength}_{R.\mathrm{delVertex}\,v}(e) = \sum_{j<N}(L_j - 2)\)과 위치 \(p_j\)의 단조성.
+\end{itemize}
+이 항목의 \texttt{notready}는 그 증명 경계를 유지한다.
 \end{proof}
+
 
 \begin{definition}[순환 꼭짓점 수열]
 \label{def:cycseq}

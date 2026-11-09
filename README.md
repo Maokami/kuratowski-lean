@@ -18,7 +18,9 @@
 (`AlternatingNeighbors.lean`), 한 점 붙이기의 평면성(`GlueOne.lean`), 수축에서 세분 들어 올리기
 (`WalkLift.lean`, `Lift.lean`), 3-연결 그래프의 수축 가능한 변 존재
 (`ConnectedContraction.lean`, `Contractible.lean`), 꼭짓점 삭제의 회전 체계 구성과 평면성 보존
-(`VertexDeletion.lean`)도 증명했다.
+(`VertexDeletion.lean`), 같은 면에서 꼭짓점을 쪼개는 수술과 면 경계의 단사성
+(`SplitVertex.lean`, `FaceBoundary.lean`), 면 경계의 순서를 보존하는 사이클 구성
+(`FaceCycle.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -44,6 +46,10 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `IsPlanar.of_iso` | `Iso.lean` | 평면성은 그래프 동형에 대해 불변 |
 | `isPlanar_map_iff` | `Map.lean` | 유한한 `W`, `V`와 단사 `f : W ↪ V`에 대해 `K.map f`가 평면 ⇔ `K`가 평면 (고립점 허용) |
 | `containsSubdivision_K33_of_alternating` | `AlternatingNeighbors.lean` | 사이클 위 교대 배치와 바깥의 인접한 두 점에서 K₃,₃ 세분 구성 (V 유한성 불필요) |
+| `RotationSystem.eulerChar_split` | `SplitVertex.lean` | 같은 면의 두 모서리에서 꼭짓점을 쪼개면 χ가 2 늘어남 |
+| `card_connectedComponent_split_of_linked` / `…_of_not_linked` | `SplitVertex.lean` | 두 반쪽 이웃의 연결 조건에 따라 성분 수가 유지되거나 하나 늘어남 |
+| `RotationSystem.eq_of_sameCycle_facePerm_of_fst_eq` | `FaceBoundary.lean` | 2-연결 그래프의 종수 0 회전에서 같은 면의 시작점은 서로 다름 |
+| `RotationSystem.exists_cyclicSequence_face` | `FaceCycle.lean` | 면 순열 반복의 시작점·정방향을 보존하는 CyclicSequence 구성 |
 | `IsPlanar.deleteVertex`, `RotationSystem.delVertex_rot_toProd` | `VertexDeletion.lean` | 꼭짓점의 변들을 삭제하고 회전 순서에서 해당 다트를 건너뛰며 평면성 보존 |
 | `ThreeConnected.exists_contractible` | `Contractible.lean` | 유한한 V에서 비고립 꼭짓점이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재 |
 | `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
@@ -80,8 +86,8 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 호의 길이는 `(b - a).val`이며 `a = b`이면 길이 0이다. 서로 반대 방향의 두 호는 양 끝점을 뺀
 내부가 서로소다. `CyclicArcs.lean`은 정수 대표의 위치 구간이 겹치지 않는 두 호의 내부 분리와
 사이클 밖 점·구간 밖 위치의 회피를 증명한다. `AlternatingNeighbors.lean`에서는 두 `sbtw` 조건으로
-네 위치의 순환 순서를 표현하고, 네 호로 `K₃,₃`의 경로 체계를 구성한다. 면 경계에서 이 수열과 순서를
-얻는 J2 보조정리는 아직 미형식화다.
+네 위치의 순환 순서를 표현하고, 네 호로 `K₃,₃`의 경로 체계를 구성한다. `FaceCycle.lean`은 2-연결·종수 0인 면을 시작점과 정방향이 같은
+순환 수열로 바꾼다. 지운 꼭짓점의 이웃을 같은 면 위에 역순으로 놓는 J2는 아직 미형식화다.
 
 ### 순환 단어 분류 (`CyclicWord.lean`)
 
@@ -200,7 +206,7 @@ scripts/blueprint.sh serve    # 만든 웹 판을 http://127.0.0.1:8000 에서 �
 
 `checkdecls`를 위해 `lakefile.toml`에 [checkdecls](https://github.com/PatrickMassot/checkdecls)
 의존성을 넣었다. 아직 Lean 선언이 없는 항목은 `\lean` 대신 `\planned{...}`로 예정 이름을 적는다.
-`\lean`에 넣으면 `checkdecls`가 실패하기 때문이다. GitHub 원격 저장소가 아직 없어 `\github`,
+`\lean`에 넣으면 `checkdecls`가 실패하기 때문이다. `\github`,
 `\home`, `\dochome`은 비워 두었다 (Lean 링크는 API 문서가 생기면 동작한다).
 
 ## 빌드
@@ -235,6 +241,9 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Contractible.lean` | 최소 지지 성분 논증으로 3-연결성을 보존하는 변의 존재 |
 | `Deletion.lean` | 변 지우기 수술과 면 수 공식 |
 | `VertexDeletion.lean` | 변 삭제 반복으로 꼭짓점 삭제, 회전·면 순열의 건너뛰기 공식과 종수 0 보존 |
+| `SplitVertex.lean` | Option V의 꼭짓점 쪼개기, 다트 대응, 회전·χ·성분 수와 연결 조건 |
+| `FaceBoundary.lean` | 꼭짓점 쪼개기와 2-연결성으로 면 경계 단사성(J1) 증명 |
+| `FaceCycle.lean` | 면의 최소 주기와 길이 ≥ 3, 순서를 보존하는 CyclicSequence 구성 |
 | `Euler.lean` | 오일러 부등식, 부분 그래프 |
 | `Smoothing.lean` | 세분 되돌리기 |
 | `NonPlanar.lean` | 변 개수 상한, `K₅`·`K₃,₃` 비평면성 |

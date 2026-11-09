@@ -13,6 +13,8 @@ import Kuratowski.CyclicWalk
 import Kuratowski.CyclicWord
 import Kuratowski.Deletion
 import Kuratowski.Euler
+import Kuratowski.FaceBoundary
+import Kuratowski.FaceCycle
 import Kuratowski.GlueOne
 import Kuratowski.Iso
 import Kuratowski.Lift
@@ -27,6 +29,7 @@ import Kuratowski.PermutationDeletion
 import Kuratowski.Planar
 import Kuratowski.Small
 import Kuratowski.Smoothing
+import Kuratowski.SplitVertex
 import Kuratowski.Subdivision
 import Kuratowski.SubdivisionOfPaths
 import Kuratowski.Sum

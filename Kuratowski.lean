@@ -23,6 +23,7 @@ import Kuratowski.PathsBuild
 import Kuratowski.PathsExamples
 import Kuratowski.PathsSubdivision
 import Kuratowski.Perm
+import Kuratowski.PermutationDeletion
 import Kuratowski.Planar
 import Kuratowski.Small
 import Kuratowski.Smoothing

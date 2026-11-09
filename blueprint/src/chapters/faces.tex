@@ -338,6 +338,23 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
 두 모서리를 변으로 잇는 것(보조정리~\ref{lem:add_edge})이다. 변·고립점·성분 수의 세기는 따로 둔다.
 아래에서 다트는 양 끝으로 적는다. Lean에서는 다트 대응과 \texttt{toProd}로 적고 캐스트를 쓰지 않는다.
 
+\begin{lemma}[변을 넣을 때의 세기]
+\label{lem:edge_add_counts}
+\uses{def:eulerChar}
+\lean{Kuratowski.ncard_edgeSet_sup_edge, Kuratowski.ncard_isolated_sup_edge,
+  Kuratowski.card_connectedComponent_sup_edge_of_reachable}
+\leanok
+유한한 꼭짓점 타입 위에서 서로 다르고 인접하지 않은 두 점 사이에 변을 넣으면 변 수는 하나 늘어난다.
+두 점이 원래 비고립이면 고립점 수가 같고, 원래 이어져 있으면 성분 수가 같다.
+고립점과 성분 수의 등식 자체는 꼭짓점 타입이 무한해도 성립한다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+변 집합에 새 변 하나를 넣고, 이미 비고립인 두 점에만 닿으므로 고립점 집합은 같다.
+원래 이어진 두 점 사이의 새 변은 원래 걸음으로 바꿀 수 있어 연결 성분의 동치 관계도 같다.
+\end{proof}
+
 \begin{lemma}[공통 이웃이 없는 변의 수축 되돌리기]
 \label{lem:uncontract}
 \uses{def:contract, def:rotation, def:eulerChar}
@@ -366,7 +383,7 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
 \end{lemma}
 
 \begin{proof}
-\uses{lem:swap}
+\uses{lem:swap, lem:contract_counts}
 \begin{itemize}
   \item \textbf{다트 대응.} \((x,y)\), \((y,x)\)가 아닌 \(G\)의 다트는 끝점의 \(y\)를 \(x\)로 바꿔 \(G/xy\)의 다트로
         보낸다. \(G/xy\)에서 \(y\)는 고립점이고, 공통 이웃이 없으므로 \((x,z)\)와 \((y,z)\)가 같은 다트로 가지 않아
@@ -409,7 +426,7 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
 \end{lemma}
 
 \begin{proof}
-\uses{lem:swap}
+\uses{lem:swap, lem:edge_add_counts}
 \(G + uv\)의 다트는 \(G\)의 다트와 \((u, v)\), \((v, u)\)다. \(\tau\)를 \(\rho\)에 두 새 다트를 고정점으로 붙인 순열이라
 하면 \(\rho_1 = \tau\,(a\ uv)\,(c\ vu)\)이고 \(\varphi_1 = \tau\sigma\,(\bar a\ vu)\,(\bar c\ uv)\)다. \(\tau\sigma\)의 순환 수는
 \(O(R) + 1\)이다(2-순환 \((uv\ vu)\)). 첫 호환은 \(\bar a\)의 순환과 2-순환을 합치고(\(-1\)), 합친 순환에는 \(\bar c\)와

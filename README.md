@@ -55,6 +55,9 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `IsPlanar.deleteVertex`, `RotationSystem.delVertex_rot_toProd` | `VertexDeletion.lean` | 꼭짓점의 변들을 삭제하고 회전 순서에서 해당 다트를 건너뛰며 평면성 보존 |
 | `ThreeConnected.exists_contractible` | `Contractible.lean` | 유한한 V에서 비고립 꼭짓점이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재 |
 | `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
+| `KuratowskiFree.sup_edge_of_path` | `PathReplacement.lean` | 내부가 부분 그래프의 고립점인 바깥 경로를 한 변으로 더해도 KF 유지 (V 유한성 불필요) |
+| `ncard_edgeSet_contractEdge_lt`, `card_connectedComponent_contractEdge` | `ContractCounts.lean` | 실제 변 수축은 변 수를 줄이고, 고립점으로 남긴 점 때문에 성분 수는 하나 증가 |
+| `ConnectedOn.deleteVertex`, `ConnectedOn.ncard_neighborSet_ge` | `ConnectivityTools.lean` | 한 점 삭제 뒤 연결도 하한과 기준 집합 점의 이웃 수 하한 |
 | `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
 | `IsPlanar.sup_of_inter_eq_edge` | `GlueEdge.lean` | 유한한 V에서 지지 집합이 공통 변의 두 끝점에서만 만나는 두 평면 그래프의 합집합은 평면 |
 | `PermutationDeletion.orbitCount_cut_pair_face` | `PermutationDeletion.lean` | 역다트 두 점 삭제 뒤 면 순환 수가 하나 줄어드는 조건 |
@@ -109,6 +112,10 @@ Mathlib의 `sbtw` 열린 호와 실제 사이클 경로의 내부가 같다는 �
 대우에서는 수축 그래프의 경로를 원래 변이나 두 변으로 옮기고 `bypass`로 단순 경로로 줄인다.
 분기점의 경로가 2–2로 나뉘는 K₅ 경우에는 여섯 분기점과 아홉 경로로 K₃,₃을 만든다.
 K₃,₃의 분기점은 차수가 3이라 그 경우가 불가능하다. 최종 정리에는 `V`의 유한성 가정이 없다.
+`PathReplacement.lean`은 내부가 부분 그래프의 지지 집합 밖인 경로를 한 변으로 추가해도 KF가 유지됨을
+증명한다. 첫 내부점을 수축하며 경로 길이에 대해 귀납하므로, 변이 적은 그래프를 만드는 축약에 쓸 수 있다.
+`ContractCounts.lean`의 성분 수 증가는 꼭짓점 타입을 고정하고 합쳐진 점을 고립점으로 남기는 규약에 따른다.
+남긴 점도 고립되면 고립점 증가가 둘일 수 있어, 고립점 수 +1 정리에는 그 점의 비고립 가정이 있다.
 
 ### 꼭짓점 연결성 (`Connected.lean`)
 
@@ -243,6 +250,9 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Basic.lean` | 회전 체계, 면, 오일러 지표, `IsPlanar` |
 | `Components.lean` | 연결 성분·고립점·변 수 세기 (변 지우기, 세분, `K.map f`) |
 | `Contract.lean` | 변 수축 `contractEdge`와 국소 성질 (어려운 방향용 정의) |
+| `ContractCounts.lean` | 수축의 변 수 감소·성분 수·고립점 수, 두 다트 제외 전단사와 변 추가의 세기 |
+| `ConnectivityTools.lean` | 연결도 단조성·한 점 삭제·이웃 수 하한·임의 크기 최소 분리 집합의 이웃 |
+| `PathReplacement.lean` | 지지 집합 바깥 경로를 한 변으로 바꿀 때의 KF 보존 |
 | `ConnectedContraction.lean` | 수축의 지지 집합·걸음 사영·세 점 분리 집합과 각 성분의 이웃 |
 | `Contractible.lean` | 최소 지지 성분 논증으로 3-연결성을 보존하는 변의 존재 |
 | `Deletion.lean` | 변 지우기 수술과 면 수 공식 |

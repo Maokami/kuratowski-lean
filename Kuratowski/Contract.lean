@@ -9,7 +9,8 @@ import Mathlib.Combinatorics.SimpleGraph.Basic
 정의는 모든 `x`, `y`에 대해 주어지지만, 실제 변 수축은 `G.Adj x y`(따라서 `x ≠ y`)를 가정한다.
 `x = y`이면 `y`에 닿는 변을 모두 지운 그래프가 된다 (`contractEdge_self_adj`).
 `scripts/check_blueprint.py`의 `contract`와는 `x ≠ y`이면 늘 같고, `x = y`이면 일반적으로 다르다
-(Lean은 `x`에 닿는 변을 지우고 Python은 `G`를 그대로 둔다). 변·고립점·성분 수의 관계는 아직 세우지 않았다.
+(Lean은 `x`에 닿는 변을 지우고 Python은 `G`를 그대로 둔다). 변·고립점·성분 수는
+`ContractCounts.lean`에서 별도로 다룬다.
 -/
 
 namespace Kuratowski

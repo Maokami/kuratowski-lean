@@ -5,7 +5,9 @@ import Kuratowski.Components
 import Kuratowski.Connected
 import Kuratowski.ConnectedContraction
 import Kuratowski.ConnectedExamples
+import Kuratowski.ConnectivityTools
 import Kuratowski.Contract
+import Kuratowski.ContractCounts
 import Kuratowski.Contractible
 import Kuratowski.Cyclic
 import Kuratowski.CyclicArcs
@@ -22,6 +24,7 @@ import Kuratowski.Iso
 import Kuratowski.Lift
 import Kuratowski.Map
 import Kuratowski.NonPlanar
+import Kuratowski.PathReplacement
 import Kuratowski.Paths
 import Kuratowski.PathsBuild
 import Kuratowski.PathsExamples

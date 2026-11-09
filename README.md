@@ -22,7 +22,8 @@
 (`SplitVertex.lean`, `FaceBoundary.lean`), 면 경계의 순서를 보존하는 사이클 구성
 (`FaceCycle.lean`), 지운 꼭짓점의 이웃을 특정 면에서 역순으로 열거하기
 (`DelVertexFace.lean`), 변 수가 최소인 비평면 KF 그래프의 3-연결성 축약
-(`Reduction.lean`)도 증명했다.
+(`Reduction.lean`), 공통 이웃 없는 수축의 되돌리기와 같은 면 변 추가
+(`Uncontract.lean`, `AddEdge.lean`)도 증명했다. 꼭짓점 나누기 S의 전체 조립은 아직 진행 중이다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -62,6 +63,8 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `ConnectedOn.deleteVertex`, `ConnectedOn.ncard_neighborSet_ge` | `ConnectivityTools.lean` | 한 점 삭제 뒤 연결도 하한과 기준 집합 점의 이웃 수 하한 |
 | `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
 | `IsPlanar.sup_of_inter_eq_edge` | `GlueEdge.lean` | 유한한 V에서 지지 집합이 공통 변의 두 끝점에서만 만나는 두 평면 그래프의 합집합은 평면 |
+| `RotationSystem.exists_uncontract` | `Uncontract.lean` | 공통 이웃 없고 x/y 이웃이 각각 한 호이면 수축을 되돌려도 면 수 유지·종수 0 보존 |
+| `RotationSystem.exists_addEdge` | `AddEdge.lean` | 같은 면의 두 모서리를 새 변으로 이으면 면 수 +1·종수 0 보존 |
 | `PermutationDeletion.orbitCount_cut_pair_face` | `PermutationDeletion.lean` | 역다트 두 점 삭제 뒤 면 순환 수가 하나 줄어드는 조건 |
 | `IsPlanar.sup_of_disjoint` | `Sum.lean` | 유한한 V에서 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면 |
 | `containsSubdivision_K5_of_three_common` | `CommonNeighbors.lean` | 인접한 두 점이 사이클 밖에 있고 사이클 위 공통 이웃이 셋이면 K₅ 세분 포함 (V 유한성 불필요) |
@@ -287,6 +290,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Sum.lean` | 서로소 타입 합의 회전·면·성분 수, 지지 집합이 서로소인 합집합의 평면성 |
 | `GlueOne.lean` | 공통 꼭짓점에서 회전을 잇기, 면·성분·고립점 수, 공통 성분 교집합의 세기와 한 점 붙이기의 평면성 |
 | `GlueEdge.lean` | 공통 변의 두 끝에서 회전을 잇고 중복 변을 삭제해 합집합의 평면성 증명 |
+| `Uncontract.lean` | 공통 이웃 없는 수축의 다트 대응·조건부 호환·회전 식·면 수와 종수 0 보존 |
+| `AddEdge.lean` | 같은 면 모서리의 변 추가·옛 다트 대응·회전 식·면 수 +1과 종수 0 보존 |
 | `PermutationDeletion.lean` | 일반 순열에서 역다트 두 점 삭제의 면 순열·순환 수 공식 |
 | `WalkLift.lean` | 수축 그래프의 걸음·경로를 원래 그래프로 옮기기와 내부 제어 |
 | `Lift.lean` | 분기점 교체·2–2 분할에서 K₃,₃ 구성, KF 수축 닫힘 |

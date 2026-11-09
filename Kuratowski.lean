@@ -1,3 +1,4 @@
+import Kuratowski.AddEdge
 import Kuratowski.AlternatingNeighbors
 import Kuratowski.Basic
 import Kuratowski.CommonNeighbors
@@ -39,5 +40,6 @@ import Kuratowski.SplitVertex
 import Kuratowski.Subdivision
 import Kuratowski.SubdivisionOfPaths
 import Kuratowski.Sum
+import Kuratowski.Uncontract
 import Kuratowski.VertexDeletion
 import Kuratowski.WalkLift

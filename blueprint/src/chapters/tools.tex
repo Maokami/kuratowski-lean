@@ -7,7 +7,8 @@
 순환 꼭짓점 수열의 정의(정의~\ref{def:cycseq})와 사이클·호 변환(보조정리~\ref{lem:cycseq_walks}),
 경로 체계의 정의(정의~\ref{def:paths})와 유한 그래프에서의 동치(정리~\ref{thm:paths_iff}),
 순환 단어 분류(보조정리~\ref{lem:cyclic}), 서로소 합의 평면성(보조정리~\ref{lem:sum0}),
-공통 이웃 셋에서 \(TK_5\) 구성(보조정리~\ref{lem:TK5_of_common})을 빼고
+공통 이웃 셋에서 \(TK_5\) 구성(보조정리~\ref{lem:TK5_of_common})과 교대 배치에서 \(TK_{3,3}\) 구성
+(보조정리~\ref{lem:TK33_of_alt})을 빼고
 아직 형식화하지 않았다.
 예정된 Lean 이름은 \texttt{\textbackslash lean} 대신 ``예정 Lean 이름''으로 적는다.
 
@@ -179,7 +180,7 @@ map의 방향에 주의한다. 사상은 \(S\)에서 \(\mathrm{Fin}\,4\)와 \(V\
 \uses{def:subdiv, def:K5K33, def:cycseq}
 \lean{Kuratowski.containsSubdivision_K5_of_three_common}
 \leanok
-\(x \sim y\)이고, \(x\), \(y\)를 지나지 않는 사이클 \(C\)에 \(x\)와 \(y\)의 공통 이웃 \(z_1, z_2, z_3\)가
+\(x \sim y\)이고, \(x\), \(y\)를 지나지 않는 사이클 \(C\)에 \(x\)와 \(y\)의 서로 다른 공통 이웃 \(z_1, z_2, z_3\)가
 있으면 \(G\)는 \(K_5\)의 세분을 포함한다.
 \end{lemma}
 
@@ -196,13 +197,21 @@ map의 방향에 주의한다. 사상은 \(S\)에서 \(\mathrm{Fin}\,4\)와 \(V\
 \begin{lemma}[번갈아 놓이면 \(TK_{3,3}\)]
 \label{lem:TK33_of_alt}
 \uses{def:subdiv, def:K5K33, def:cycseq}
-\planned{containsSubdivision\_K33\_of\_alternating}
+\lean{Kuratowski.containsSubdivision_K33_of_alternating, Kuratowski.SubdivisionPaths.ofBipartite}
+\leanok
 \(x \sim y\)이고, 사이클 \(C\)(\(x\), \(y\)를 지나지 않음) 위에 \(u, x', w, x''\)가 이 순환 순서로 있다고
 하자. \(u, w \in N(y)\)이고 \(x', x'' \in N(x)\)이면 \(G\)는 \(K_{3,3}\)의 세분을 포함한다.
+Lean에서는 네 위치 \(u,p,w,q : \mathbb{Z}/m\)에 대해 \(\texttt{sbtw}\ u\ p\ w\)와
+\(\texttt{sbtw}\ w\ q\ u\)로 이 순환 순서를 표현한다. 실제 그래프의 네 점은 \(C(u),C(p),C(w),C(q)\)다.
+두 열린 호를 쓰므로 네 위치는 서로 다르다. \(G\)의 꼭짓점 타입은 유한하지 않아도 된다.
 \end{lemma}
 
 \begin{proof}
-\uses{thm:paths_iff}
+\uses{lem:paths_finite_source, lem:cycseq_disjoint_arcs}
+\leanok
 두 편은 \(\{x, u, w\}\)와 \(\{y, x', x''\}\)이다. 경로는 변 5개(\(xy\), \(xx'\), \(xx''\), \(yu\), \(yw\))와
-\(C\)의 네 호다.
+\(C\)의 네 연속한 호다. 위치의 정수 대표가 증가하는 경우에는 네 호의 내부 분리와 분기점 회피를
+직접 적용한다. 일반 순환 순서는 네 회전으로 나누고, 홀수 번 회전한 경우에는 두 허브 \(x,y\)의 역할을
+바꾼다. 완전 이분 그래프의 한쪽에서 다른 쪽으로 가는 경로만 주는 생성자 \texttt{ofBipartite}로 경로
+체계를 만들고, 원래 꼭짓점 타입 \(\mathrm{Fin}\,3 \oplus \mathrm{Fin}\,3\)의 유한성을 써서 세분을 얻는다.
 \end{proof}

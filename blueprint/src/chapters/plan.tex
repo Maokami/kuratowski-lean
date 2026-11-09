@@ -4,21 +4,13 @@
 \section{설계 결정}
 
 \begin{description}
-  \item[D1. 새 꼭짓점이 필요할 때] (보조정리~\ref{lem:split2})
-    \begin{itemize}
-      \item 권장: \(\mathrm{Option}\,V\)로 넓히고 보조정리~\ref{lem:map_iff}를 쓴다. 모든 수술을 지금처럼
-            그래프 수준에 두면 \texttt{Deletion}, \texttt{Smoothing}, \texttt{Components}의 방식을 그대로
-            쓸 수 있다.
-      \item 대안: 다트 집합과 두 순열로 된 추상 조합 지도를 도입한다. 수술은 깔끔해지지만, 오일러 부등식과
-            성분 세기를 지도 수준에서 다시 해야 한다.
-      \item 권장을 유지한다. 최종 판단은 보조정리~\ref{lem:split2}를 시작할 때 하지만, 이 결정에 걸리는 것은
-            보조정리~\ref{lem:split2}와 그것을 쓰는 \ref{lem:J1}, \ref{lem:J2}, 그리고 주 정리뿐이다. 나머지 항목(아래 1--2번
-            묶음)은 기다리지 않는다.
-      \item \(\mathrm{Option}\,V\)를 쓸 때 진술의 가정: \(V\)는 유한하고 \texttt{DecidableEq V}이며, 원래
-            꼭짓점 \(w\)는 \(\mathrm{some}\,w\), 새 꼭짓점은 \(\mathrm{none}\)이다. 쪼갤 두 모서리는 같은 면
-            순환 위의 서로 다른 두 자리이고, 변은 \texttt{Sym2}의 무방향 변이다. 쪼갠 그래프와
-            원래 그래프의 다트 대응(\texttt{Smoothing.lean}의 \texttt{dartEquiv}와 같은 꼴)을 진술에 함께 적는다.
-    \end{itemize}
+  \item[D1. 새 꼭짓점이 필요할 때] 보조정리~\ref{lem:split2}에서 \(\mathrm{Option}\,V\)를 쓰기로 확정했다.
+    원래 꼭짓점 \(w\)는 \(\mathrm{some}\,w\), 새 꼭짓점은 \(\mathrm{none}\)이다.
+    \texttt{SplitVertex.lean}은 유한하고 같음을 판정할 수 있는 \(V\)에서, 같은 끝점의 두 다트에서
+    회전 체계를 구성한다. 서로 다른 두 다트가 같은 면에 있으면 오일러 지표 증가 정리를 적용한다. 원래 다트와 새 그래프 다트의 전단사로 회전과
+    면 순열을 옮기며, 고립점과 성분 수를 직접 센다. \texttt{FaceBoundary.lean}이 이를 써서
+    보조정리~\ref{lem:J1}의 면 경계 단사성을 증명한다. \texttt{FaceCycle.lean}은 면 순환을
+    시작점과 정방향이 같은 \texttt{CyclicSequence}로 바꾼다(보조정리~\ref{lem:face_cycle}).
   \item[D2. 3-연결성의 대상] 고립점을 뺀 지지 집합 기준 (정의~\ref{def:conn3}). 수축이 고립점을 만들고,
     모든 그래프가 고정된 꼭짓점 타입 \(V\) 위에 있기 때문이다.
   \item[D3. 사이클 표현] 구간 논증에는 \(\mathbb{Z}/m \to V\) 수열이 편하다 (정의~\ref{def:cycseq}). 경로
@@ -61,8 +53,8 @@
       \item 완료: 보조정리~\ref{lem:TK33_of_alt}(\texttt{AlternatingNeighbors.lean})
       \item 완료: 보조정리~\ref{lem:lift}(\texttt{WalkLift.lean}, \texttt{Lift.lean})
     \end{itemize}
-  \item \textbf{보강 후}: 보조정리~\ref{lem:sum2}, 보조정리~\ref{lem:split2}, 그다음
-        보조정리~\ref{lem:J1}, 그다음 보조정리~\ref{lem:J2}와 \ref{lem:S}
+  \item \textbf{면 수술}: 보조정리~\ref{lem:split2}와 \ref{lem:J1}은 완료했다.
+        남은 형식화는 보조정리~\ref{lem:sum2}, \ref{lem:J2}, \ref{lem:S}다.
   \item \textbf{마무리}: 정리~\ref{thm:reduce}, 정리~\ref{thm:hard}, 정리~\ref{thm:kuratowski}
 \end{enumerate}
 

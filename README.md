@@ -17,7 +17,8 @@
 공통 이웃 셋에서 `K₅` 세분 구성(`CommonNeighbors.lean`), 교대 배치에서 `K₃,₃` 세분 구성
 (`AlternatingNeighbors.lean`), 한 점 붙이기의 평면성(`GlueOne.lean`), 수축에서 세분 들어 올리기
 (`WalkLift.lean`, `Lift.lean`), 3-연결 그래프의 수축 가능한 변 존재
-(`ConnectedContraction.lean`, `Contractible.lean`)도 증명했다.
+(`ConnectedContraction.lean`, `Contractible.lean`), 꼭짓점 삭제의 회전 체계 구성과 평면성 보존
+(`VertexDeletion.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -43,6 +44,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `IsPlanar.of_iso` | `Iso.lean` | 평면성은 그래프 동형에 대해 불변 |
 | `isPlanar_map_iff` | `Map.lean` | 유한한 `W`, `V`와 단사 `f : W ↪ V`에 대해 `K.map f`가 평면 ⇔ `K`가 평면 (고립점 허용) |
 | `containsSubdivision_K33_of_alternating` | `AlternatingNeighbors.lean` | 사이클 위 교대 배치와 바깥의 인접한 두 점에서 K₃,₃ 세분 구성 (V 유한성 불필요) |
+| `IsPlanar.deleteVertex`, `RotationSystem.delVertex_rot_toProd` | `VertexDeletion.lean` | 꼭짓점의 변들을 삭제하고 회전 순서에서 해당 다트를 건너뛰며 평면성 보존 |
 | `ThreeConnected.exists_contractible` | `Contractible.lean` | 유한한 V에서 비고립 꼭짓점이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재 |
 | `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
 | `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
@@ -228,6 +230,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `ConnectedContraction.lean` | 수축의 지지 집합·걸음 사영·세 점 분리 집합과 각 성분의 이웃 |
 | `Contractible.lean` | 최소 지지 성분 논증으로 3-연결성을 보존하는 변의 존재 |
 | `Deletion.lean` | 변 지우기 수술과 면 수 공식 |
+| `VertexDeletion.lean` | 변 삭제 반복으로 꼭짓점 삭제, 회전·면 순열의 건너뛰기 공식과 종수 0 보존 |
 | `Euler.lean` | 오일러 부등식, 부분 그래프 |
 | `Smoothing.lean` | 세분 되돌리기 |
 | `NonPlanar.lean` | 변 개수 상한, `K₅`·`K₃,₃` 비평면성 |

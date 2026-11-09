@@ -13,7 +13,7 @@ import Mathlib.Combinatorics.SimpleGraph.Maps
 
 `K`에서 인접하지 않는 두 꼭짓점에 대해서는 아무것도 요구하지 않는다. 그래서 `G`에 분기점 사이의
 다른 변(현)이 있어도 된다. 귀납적인 세분 정의(`IsSubdivision`)와의 동치(`thm:paths_iff`)는
-아직 형식화하지 않았다.
+`PathsSubdivision.lean`(정방향)과 `SubdivisionOfPaths.lean`(역방향, 유한한 `V`)에 있다.
 -/
 
 namespace Kuratowski

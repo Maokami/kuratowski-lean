@@ -35,16 +35,18 @@
 \begin{enumerate}
   \item \textbf{바로 시작 가능}
     \begin{itemize}
-      \item 회전 체계와 무관한 것: 보조정리~\ref{lem:cyclic}, 정의~\ref{def:conn3}(완료),
+      \item 회전 체계와 무관한 것: 보조정리~\ref{lem:cyclic}(완료), 정의~\ref{def:conn3}(완료),
             정의~\ref{def:contract}(완료), 정리~\ref{thm:contractible}, 정의~\ref{def:cycseq}(완료)
-      \item 정의만 있으면 되는 것: 정의~\ref{def:paths}(완료), 정리~\ref{thm:paths_iff},
+      \item 정의만 있으면 되는 것: 정의~\ref{def:paths}(완료), 정리~\ref{thm:paths_iff}(완료),
             보조정리~\ref{lem:map_iff}(완료), 보조정리~\ref{lem:small}(완료)
       \item 완료: 정의~\ref{def:conn3}(\texttt{Connected.lean}),
             정의~\ref{def:contract}(\texttt{Contract.lean}),
             보조정리~\ref{lem:map_iff}(\texttt{Map.lean}),
             보조정리~\ref{lem:small}(\texttt{Small.lean}),
             정의~\ref{def:cycseq}(\texttt{Cyclic.lean}, \texttt{CyclicWalk.lean}; 사이클과 두 호까지 완료),
-            정의~\ref{def:paths}(\texttt{Paths.lean}, \texttt{PathsSubdivision.lean}; 세분에서 경로 체계로 가는 방향 완료, 역방향은 후속)
+            정의~\ref{def:paths}와 정리~\ref{thm:paths_iff}(\texttt{Paths.lean},
+            \texttt{PathsSubdivision.lean}, \texttt{SubdivisionOfPaths.lean}; 유한한 \(V\)에서 동치 완료),
+            보조정리~\ref{lem:cyclic}(\texttt{CyclicWord.lean}; 정규식 구간 조건과의 동치는 후속)
     \end{itemize}
   \item \textbf{1번 위에서}
     \begin{itemize}

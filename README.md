@@ -12,7 +12,8 @@
 지지 집합 기준의 연결성 정의(`Connected.lean`),
 사이클의 순환 꼭짓점 수열 표현(`Cyclic.lean`),
 세분의 경로 체계 정의(`Paths.lean`)를 형식화했다. 순환 수열에서 사이클·경로를 만드는 변환과 두 호의
-내부 서로소성(`CyclicWalk.lean`), 세분에서 경로 체계로 가는 방향(`PathsSubdivision.lean`)도 증명했다.
+내부 서로소성(`CyclicWalk.lean`), 유한 그래프에서 두 세분 표현의 동치(`PathsSubdivision.lean`,
+`SubdivisionOfPaths.lean`), 순환 단어 분류(`CyclicWord.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -49,8 +50,9 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 내부는 `support`에서 두 끝점을 뺀 `walkInterior`이며, 모든 분기점의 상을 피해야 한다.
 서로 다른 **무방향 변**의 내부끼리는 서로소여야 한다. 같은 변을 뒤집은 두 방향은 내부를 공유한다.
 고립된 원래 꼭짓점도 배치에 포함한다. `IsSubdivision.exists_subdivisionPaths`는 기존 세분으로부터
-분기점 배치가 그대로인 경로 체계를 구성하며 유한성을 요구하지 않는다. 동치 전체의 역방향은 아직
-미형식화이고, 유한한 꼭짓점 타입을 가정한다. 무한 완전 그래프의 모든 변을 한 번씩 나누는 경로 체계는
+분기점 배치가 그대로인 경로 체계를 구성하며 유한성을 요구하지 않는다. 역방향은 `SubdivisionOfPaths.lean`의
+`SubdivisionPaths.exists_isSubdivision_le`이며 유한한 꼭짓점 타입 `V`를 가정한다. 합치면
+`containsSubdivision_iff_paths`이고 `W`의 유한성은 단사 분기점 배치에서 유도하므로 별도 가정하지 않는다. 무한 완전 그래프의 모든 변을 한 번씩 나누는 경로 체계는
 기존 유한 단계의 세분 정의로 표현할 수 없는 예다(이 무한 반례 자체는 Lean으로 형식화하지 않았다).
 
 ### 순환 꼭짓점 수열 (`Cyclic.lean`)
@@ -62,6 +64,14 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 `CyclicWalk.lean`의 `toWalk`는 길이 `m`인 `IsCycle`이고, `arc a b`는 정방향의 `IsPath`다.
 호의 길이는 `(b - a).val`이며 `a = b`이면 길이 0이다. 서로 반대 방향의 두 호는 양 끝점을 뺀
 내부가 서로소다. 여러 구간을 나누는 성질과 네 위치의 순환 순서 관계는 아직 남아 있다.
+
+### 순환 단어 분류 (`CyclicWord.lean`)
+
+`X`, `Y`, `B`, `-`의 양의 길이 순환 단어에서 `X/B`, `Y/B` 위치가 각각 둘 이상이면 다음 중 하나가
+성립한다: 모든 `Y/B`가 연속한 두 `X/B` 사이의 닫힌 호에 있음, `B`가 셋 이상, 또는 두 `Y/B` 위치를
+뺀 두 열린 호 각각에 `X/B`가 있음. `classify`가 이 분류를 증명하며 길이 2도 허용한다.
+Mathlib의 `sbtw` 열린 호와 실제 사이클 경로의 내부가 같다는 연결도 증명했다.
+정규식 `B? X* B? Y*`와 첫 경우의 동치는 아직 Lean으로 형식화하지 않았다.
 
 ### 꼭짓점 연결성 (`Connected.lean`)
 
@@ -206,6 +216,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `CyclicWalk.lean` | 순환 수열에서 Mathlib 사이클·호 경로 구성, 두 방향 호의 내부 서로소성 |
 | `Paths.lean` | 세분의 경로 체계와 내부 꼭짓점 조건 |
 | `PathsSubdivision.lean` | 기존 세분에서 분기점 배치를 보존하는 경로 체계 구성 |
+| `SubdivisionOfPaths.lean` | 유한 그래프에서 경로 체계로 세분을 구성하고 두 표현의 동치 증명 |
+| `CyclicWord.lean` | 네 글자 순환 단어의 구간·공통 위치 셋·교대 배치 분류 |
 | `PathsExamples.lean` | 실제 내부 꼭짓점을 갖는 경로 체계와 조건 위반 후보 예제 |
 
 | 그 밖의 파일 | 내용 |

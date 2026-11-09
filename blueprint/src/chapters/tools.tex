@@ -5,7 +5,8 @@
 (보조정리~\ref{lem:map_iff}), 작은 지지 집합의 평면성(보조정리~\ref{lem:small}),
 연결성의 정의(정의~\ref{def:conn3}), 변 수축의 정의(정의~\ref{def:contract}),
 순환 꼭짓점 수열의 정의(정의~\ref{def:cycseq})와 사이클·호 변환(보조정리~\ref{lem:cycseq_walks}),
-경로 체계의 정의(정의~\ref{def:paths})와 세분에서의 변환(보조정리~\ref{lem:subdivision_paths_forward})을 빼고
+경로 체계의 정의(정의~\ref{def:paths})와 유한 그래프에서의 동치(정리~\ref{thm:paths_iff}),
+순환 단어 분류(보조정리~\ref{lem:cyclic})를 빼고
 아직 형식화하지 않았다.
 예정된 Lean 이름은 \texttt{\textbackslash lean} 대신 ``예정 Lean 이름''으로 적는다.
 
@@ -101,22 +102,27 @@ map의 방향에 주의한다. 사상은 \(S\)에서 \(\mathrm{Fin}\,4\)와 \(V\
 
 \begin{theorem}[두 표현은 같다]
 \label{thm:paths_iff}
-\uses{def:subdiv, def:paths}
-\planned{containsSubdivision\_iff\_paths}
+\uses{def:subdiv, def:paths, lem:subdivision_paths_forward}
+\lean{Kuratowski.containsSubdivision_iff_paths,
+  Kuratowski.SubdivisionPaths.exists_isSubdivision_le, Kuratowski.IsSubdivision.insertPath}
+\leanok
 유한한 꼭짓점 타입 \(V\) 위의 그래프 \(G\)와 임의의 꼭짓점 타입 \(W\) 위의 그래프 \(K\)에 대해,
 \(G\)가 \(K\)의 세분을 포함하는 것은 \(K\)의 \(G\) 안 경로 체계가 있는 것과 같다.
 \end{theorem}
 
 \begin{proof}
+\leanok
 (\(\Rightarrow\)) \texttt{IsSubdivision}에 대한 귀납법. 변 \(xy\)를 \(w\)로 나누면 \(xy\)가 들어 있던 경로
 하나에 \(w\)가 끼어든다.
 
-(\(\Leftarrow\)) 경로 내부 꼭짓점의 총수에 대한 귀납법. 내부 꼭짓점을 하나씩 \texttt{subdivideEdge}로
-넣는다. 넣는 순간 그 꼭짓점은 아직 고립점이다.
+(\(\Leftarrow\)) \(K.\mathrm{map}\,f\)에서 시작해 \(K\)의 변을 하나씩 그 경로로 바꾼다. 분기점 배치가
+단사이므로 \(V\)가 유한하면 \(W\)도 유한하며, 따라서 처리할 변 집합은 유한하다. 중간 그래프에서 이미
+처리한 변은 경로로, 나머지는 두 분기점을 잇는 변으로 둔다. 아직 처리하지 않은 경로의 내부점은 다른
+경로의 내부 및 모든 분기점과 겹치지 않아 고립점이다. 한 경로를 넣을 때는 그 내부점을 처음부터 하나씩
+\texttt{subdivideEdge}로 넣는 걸음 귀납법을 쓴다. 모든 변을 처리한 그래프는 경로들이 지나는 변의 합집합이고
+\(G\)의 부분 그래프다. 양방향 모두 분기점 배치를 보존한다.
 
-정방향은 아래 보조정리로 형식화했다. 역방향은 아직 형식화하지 않았다. 귀납적인 세분 정의
-(정의~\ref{def:subdiv})가 이 경로 표현, 즉 표준적인
-위상 소수 정의와 같다는 것은 쉬운 방향의 두 번째 리뷰에서 수학적으로 따로 확인했다.
+이로써 귀납적인 세분 정의(정의~\ref{def:subdiv})와 경로 표현의 동치를 유한한 \(V\)에서 형식화했다.
 \end{proof}
 
 \begin{lemma}[세분에서 경로 체계로]

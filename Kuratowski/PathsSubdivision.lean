@@ -13,7 +13,7 @@ import Kuratowski.Subdivision
 `K`-변의 경로는 같은 변 `xy`를 지날 수 없으므로(`SubdivisionPaths.sym2_eq_of_mem_edges`),
 새 꼭짓점 `w`는 많아야 한 변의 경로 내부에만 들어간다.
 
-역방향(경로 체계에서 세분)은 아직 형식화하지 않았다.
+역방향(경로 체계에서 세분)과 동치는 `SubdivisionOfPaths.lean`에 있다. 그쪽은 유한한 `V`를 가정한다.
 -/
 
 namespace Kuratowski

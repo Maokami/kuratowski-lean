@@ -16,7 +16,8 @@
 `SubdivisionOfPaths.lean`), 순환 단어 분류(`CyclicWord.lean`), 서로소 합의 평면성(`Sum.lean`),
 공통 이웃 셋에서 `K₅` 세분 구성(`CommonNeighbors.lean`), 교대 배치에서 `K₃,₃` 세분 구성
 (`AlternatingNeighbors.lean`), 한 점 붙이기의 평면성(`GlueOne.lean`), 수축에서 세분 들어 올리기
-(`WalkLift.lean`, `Lift.lean`)도 증명했다.
+(`WalkLift.lean`, `Lift.lean`), 3-연결 그래프의 수축 가능한 변 존재
+(`ConnectedContraction.lean`, `Contractible.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -42,6 +43,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `IsPlanar.of_iso` | `Iso.lean` | 평면성은 그래프 동형에 대해 불변 |
 | `isPlanar_map_iff` | `Map.lean` | 유한한 `W`, `V`와 단사 `f : W ↪ V`에 대해 `K.map f`가 평면 ⇔ `K`가 평면 (고립점 허용) |
 | `containsSubdivision_K33_of_alternating` | `AlternatingNeighbors.lean` | 사이클 위 교대 배치와 바깥의 인접한 두 점에서 K₃,₃ 세분 구성 (V 유한성 불필요) |
+| `ThreeConnected.exists_contractible` | `Contractible.lean` | 유한한 V에서 비고립 꼭짓점이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재 |
 | `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
 | `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
 | `IsPlanar.sup_of_disjoint` | `Sum.lean` | 유한한 V에서 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면 |
@@ -101,7 +103,8 @@ K₃,₃의 분기점은 차수가 3이라 그 경우가 불가능하다. 최종
 `TwoConnected G`와 `ThreeConnected G`는 삭제 전의 `G.support`를 기준으로 한다.
 삭제 뒤 지지 집합을 다시 계산하면 별 그래프가 잘못 2-연결로 판정될 수 있어 그렇게 하지 않는다.
 `k = 0`에서는 크기 조건만 남는다. 별·경로의 음성 예와 고립점을 더한 삼각형·`K₄`의 양성 예를
-`ConnectedExamples.lean`에서 커널로 확인한다. 수축 가능한 변의 존재 정리는 아직 형식화하지 않았다.
+`ConnectedExamples.lean`에서 커널로 확인한다. 지지 집합이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재는
+`Contractible.lean`의 `ThreeConnected.exists_contractible`로 증명했다.
 
 ### 평면성 (`Basic.lean`)
 
@@ -222,6 +225,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Basic.lean` | 회전 체계, 면, 오일러 지표, `IsPlanar` |
 | `Components.lean` | 연결 성분·고립점·변 수 세기 (변 지우기, 세분, `K.map f`) |
 | `Contract.lean` | 변 수축 `contractEdge`와 국소 성질 (어려운 방향용 정의) |
+| `ConnectedContraction.lean` | 수축의 지지 집합·걸음 사영·세 점 분리 집합과 각 성분의 이웃 |
+| `Contractible.lean` | 최소 지지 성분 논증으로 3-연결성을 보존하는 변의 존재 |
 | `Deletion.lean` | 변 지우기 수술과 면 수 공식 |
 | `Euler.lean` | 오일러 부등식, 부분 그래프 |
 | `Smoothing.lean` | 세분 되돌리기 |

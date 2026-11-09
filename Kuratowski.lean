@@ -3,8 +3,10 @@ import Kuratowski.Basic
 import Kuratowski.CommonNeighbors
 import Kuratowski.Components
 import Kuratowski.Connected
+import Kuratowski.ConnectedContraction
 import Kuratowski.ConnectedExamples
 import Kuratowski.Contract
+import Kuratowski.Contractible
 import Kuratowski.Cyclic
 import Kuratowski.CyclicArcs
 import Kuratowski.CyclicWalk

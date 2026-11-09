@@ -35,19 +35,28 @@
 \begin{lemma}[한 점에서 붙이기]
 \label{lem:sum1}
 \uses{def:IsPlanar}
-\planned{IsPlanar.sup\_of\_inter\_eq\_singleton}
-\(G_1\), \(G_2\)가 평면이고 지지 집합이 꼭짓점 하나에서만 만나면(\(S_{G_1} \cap S_{G_2} = \{v\}\))
+\lean{Kuratowski.IsPlanar.sup_of_inter_eq_singleton, Kuratowski.RotationSystem.glue,
+  Kuratowski.RotationSystem.orbitCount_glue_facePerm,
+  Kuratowski.card_connectedComponent_sup_of_inter_eq_singleton,
+  Kuratowski.ncard_isolated_sup_of_inter_eq_singleton}
+\leanok
+유한한 꼭짓점 타입 \(V\) 위의 \(G_1\), \(G_2\)가 평면이고 지지 집합이 꼭짓점 하나에서만 만나면(\(S_{G_1} \cap S_{G_2} = \{v\}\))
 \(G_1 \sqcup G_2\)는 평면이다. 이때 공유하는 변은 없다 (공유하는 변의 두 끝점은 서로 다르고 둘 다
 \(S_{G_1} \cap S_{G_2}\)에 있어야 한다).
 \end{lemma}
 
 \begin{proof}
-\uses{lem:swap}
+\uses{lem:swap, lem:map_iff}
+\leanok
 \(v\)에서 두 회전 순환을 이어 붙인다. \(G_1\)의 \(v\) 다트 \(p\)와 \(G_2\)의 \(v\) 다트 \(q\)에 대해 회전에
 호환 \((p\ q)\)를 곱하면 서로 다른 두 순환이 하나가 된다. 면 순열에는 호환 \((\bar p\ \bar q)\)가 곱해지고
 (\(\bar p\)는 \(p\)의 반대 다트), \(\bar p\)와 \(\bar q\)는 서로 다른 그래프의 면에 있으므로 두 면이 하나로
 합쳐진다. 따라서 \(O = O_1 + O_2 - 1\)이다. 또 \(E = E_1 + E_2\), \(I = I_1 + I_2 - n + 1\)이므로
-\(F = F_1 + F_2 - n\)이고, \(v\)를 지나는 두 성분이 하나가 되어 \(c = c_1 + c_2 - n\)이다. 그러므로
+\(F = F_1 + F_2 - n\)이고, \(v\)를 지나는 두 성분이 하나가 되어 \(c = c_1 + c_2 - n\)이다.
+이 성분 수 등식은 합집합의 성분을 (i) \(G_1\)의 지지 집합에서의 성분, (ii) \(G_2\)의 지지 집합에서
+\(v\)의 성분을 뺀 나머지 성분, (iii) 두 그래프의 공통 고립점으로 분류하는 일대일 대응으로 증명한다.
+고정 타입과 지지 집합 사이의 성분 수는 보조정리~\ref{lem:map_iff}에서 얻는다. Lean에서는 자연수 뺄셈 대신
+\(O + 1 = O_1 + O_2\), \(I + n = I_1 + I_2 + 1\), \(c + n = c_1 + c_2\)를 쓴다. 그러므로
 \(\chi = \chi_1 + \chi_2 - 2n = 2c\)다.
 \end{proof}
 

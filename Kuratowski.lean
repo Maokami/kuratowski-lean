@@ -11,6 +11,7 @@ import Kuratowski.CyclicWalk
 import Kuratowski.CyclicWord
 import Kuratowski.Deletion
 import Kuratowski.Euler
+import Kuratowski.GlueOne
 import Kuratowski.Iso
 import Kuratowski.Map
 import Kuratowski.NonPlanar

@@ -15,7 +15,7 @@
 내부 서로소성(`CyclicWalk.lean`), 유한 그래프에서 두 세분 표현의 동치(`PathsSubdivision.lean`,
 `SubdivisionOfPaths.lean`), 순환 단어 분류(`CyclicWord.lean`), 서로소 합의 평면성(`Sum.lean`),
 공통 이웃 셋에서 `K₅` 세분 구성(`CommonNeighbors.lean`), 교대 배치에서 `K₃,₃` 세분 구성
-(`AlternatingNeighbors.lean`)도 증명했다.
+(`AlternatingNeighbors.lean`), 한 점 붙이기의 평면성(`GlueOne.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -41,6 +41,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `IsPlanar.of_iso` | `Iso.lean` | 평면성은 그래프 동형에 대해 불변 |
 | `isPlanar_map_iff` | `Map.lean` | 유한한 `W`, `V`와 단사 `f : W ↪ V`에 대해 `K.map f`가 평면 ⇔ `K`가 평면 (고립점 허용) |
 | `containsSubdivision_K33_of_alternating` | `AlternatingNeighbors.lean` | 사이클 위 교대 배치와 바깥의 인접한 두 점에서 K₃,₃ 세분 구성 (V 유한성 불필요) |
+| `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
 | `IsPlanar.sup_of_disjoint` | `Sum.lean` | 유한한 V에서 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면 |
 | `containsSubdivision_K5_of_three_common` | `CommonNeighbors.lean` | 인접한 두 점이 사이클 밖에 있고 사이클 위 공통 이웃이 셋이면 K₅ 세분 포함 (V 유한성 불필요) |
 | `isPlanar_of_ncard_support_le_four` | `Small.lean` | 유한 그래프의 비고립 꼭짓점이 네 개 이하면 평면 (고립점 수는 제한 없음) |
@@ -233,6 +234,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `CommonNeighbors.lean` | 인접한 두 점과 사이클 위의 공통 이웃 셋에서 K₅ 세분 구성 |
 | `AlternatingNeighbors.lean` | 교대하는 사이클 위 네 점과 바깥 허브 둘에서 K₃,₃ 세분 구성 |
 | `Sum.lean` | 서로소 타입 합의 회전·면·성분 수, 지지 집합이 서로소인 합집합의 평면성 |
+| `GlueOne.lean` | 공통 꼭짓점에서 회전을 잇기, 면·성분·고립점 수, 한 점 붙이기의 평면성 |
 | `PathsExamples.lean` | 실제 내부 꼭짓점을 갖는 경로 체계와 조건 위반 후보 예제 |
 
 | 그 밖의 파일 | 내용 |

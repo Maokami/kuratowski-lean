@@ -207,6 +207,8 @@ def sum2_surgery_ok(n, edges1, edges2, r1, r2, variant=None):
         good &= euler_ok(adj,list(adj),result)
     return good
 
+# 배정에서 어느 쪽에 놓였어도 실제 변이 없는 점은 공통 고립점이다. 서로 다른 배정이
+# 같은 (n, E1, E2)를 만들 수 있으므로 seen으로 중복을 뺀다. 작은 쌍은 n별 1, 7, 81, 1527개다.
 sum2_seen, sum2_count, sum2_mutations = set(), 0, {'x':0,'y':0}
 sum2_cache = {}
 sum2_bad = []

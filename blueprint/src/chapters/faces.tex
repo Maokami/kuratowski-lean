@@ -390,7 +390,7 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
 \end{lemma}
 
 \begin{proof}
-\uses{lem:swap, lem:contract_counts}
+\uses{lem:swap, lem:contract_counts, lem:J2}
 \leanok
 \begin{itemize}
   \item \textbf{다트 대응.} \((x,y)\), \((y,x)\)가 아닌 \(G\)의 다트는 끝점의 \(y\)를 \(x\)로 바꿔 \(G/xy\)의 다트로
@@ -453,8 +453,10 @@ Lean의 \texttt{AddEdgeData}는 위 가정만 묶고, \texttt{oldEquiv}가 옛 �
 \begin{lemma}[구간 조건이면 나눠도 평면]
 \label{lem:S}
 \uses{def:contract, def:IsPlanar, def:rotation}
-\notready
-\planned{IsPlanar.of\_contractEdge\_of\_interval}
+\lean{Kuratowski.IsPlanar.of_contractEdge_of_interval, Kuratowski.IntervalWord,
+  Kuratowski.isPlanar_of_contractEdge_of_isolated, Kuratowski.dropCommon,
+  Kuratowski.dropCommon_no_common, Kuratowski.contractEdge_dropCommon}
+\leanok
 \(x \sim y\)이고 \(R'\)이 \(G/xy\)의 종수 0 회전 체계라 하자. \(x\) 둘레의 \(R'\) 순서로 이웃에 다음 글자를
 붙인다.
 \begin{itemize}
@@ -483,7 +485,8 @@ Lean의 \texttt{AddEdgeData}는 위 가정만 묶고, \texttt{oldEquiv}가 옛 �
 \end{lemma}
 
 \begin{proof}
-\uses{lem:uncontract, lem:add_edge, lem:sum0, lem:small, lem:J2}
+\uses{lem:uncontract, lem:add_edge, lem:sum0, lem:small, lem:J2, thm:mono}
+\leanok
 \begin{itemize}
   \item \textbf{빈 단어} (\(N = 0\)). \(x\), \(y\)의 \(G\) 이웃은 서로뿐이므로 \(G = (G/xy) \sqcup \{xy\}\)이고 두 지지
         집합은 서로소다 (\(G/xy\)는 \(G\)에서 변 \(xy\)만 뺀 그래프다). \(G/xy\)는 \(R'\)으로 평면이고 변 하나짜리
@@ -523,9 +526,12 @@ Lean의 \texttt{AddEdgeData}는 위 가정만 묶고, \texttt{oldEquiv}가 옛 �
 \texttt{[S-분할]}: 빈 단어를 뺀 16,690개 경우에서 되돌리기와 변 넣기의 합성이 위 회전과 정확히 같다.
 \(B\)가 하나뿐이고 \(b_1 = b_2\)인 경우 2,982개를 포함한다.}
 
-\textbf{아직 형식화할 것.} 위 두 수술을 합치는 일반 증명: 빈 단어의 서로소 합,
-공통 이웃의 자리, \(G_0\)과 그래프 등식 \(G_0/xy = G/xy\), 변을 넣은 뒤 \(G\)와의 그래프 등식. 주 정리에서
-보조정리~\ref{lem:cyclic}의 (a)를 이 구간 조건으로 바꾸는 다리는 후속으로 형식화한다.
+Lean의 \texttt{VertexSplit.lean}이 이 조립을 형식화한다. \(G_0\)의 수축과 같은 임의의 그래프 \(K\)로
+진술을 일반화한 뒤 그래프 등식을 대입해 \(R'\)을 옮긴다. 중간 그래프 \(H_1\), \(H_2\)의 회전 식을 유지하며,
+마지막에는 \(G \le H_2\)와 단조성으로 충분하다. \(k=1\)의 같은 공통 이웃은 한 번만 추가한다.
+최종 정리는 진술에 적은 수학적 가정 외에 \(V\)의 유한성만 요구하며 \texttt{DecidableEq V}는 증명 안에서 고른다.
+주 정리에서 보조정리~\ref{lem:cyclic}의 (a)를 이 구간 조건으로 바꾸는 연결은
+보조정리~\ref{lem:neighbor_word}에서 형식화한다.
 \end{proof}
 
 \section{경우 나누기}
@@ -569,5 +575,41 @@ Lean에서는 양의 길이 \(m\)의 위치를 \texttt{ZMod m}으로 나타내�
 \texttt{sbtw}가 나타내는 열린 호는 앞의 실제 경로 내부와 같다는 것도 증명했다.
 \end{proof}
 
-이웃만 남긴 단어에서 (a)는 보조정리~\ref{lem:S}의 정규식 구간 조건과 같다. 이 정규식과의 동치
-자체는 아직 Lean으로 형식화하지 않았고, 위 \texttt{[cyclic}\(\equiv\)\texttt{S]} 검사로만 확인했다.
+\begin{lemma}[순환 단어와 실제 이웃 순서의 연결]
+\label{lem:neighbor_word}
+\uses{def:rotation, def:contract, def:cycseq, lem:cyclic, lem:S}
+\lean{Kuratowski.CyclicWord.clustered_interval, Kuratowski.CyclicWord.sbtw_cast_positions,
+  Kuratowski.RotationSystem.neighborWord, Kuratowski.RotationSystem.mem_xPositions_neighborWord,
+  Kuratowski.RotationSystem.mem_yPositions_neighborWord, Kuratowski.RotationSystem.neighborWord_cover,
+  Kuratowski.RotationSystem.intervalWord_of_clustered, Kuratowski.CyclicSequence.mono,
+  Kuratowski.RotationSystem.exists_zmod_rot_inv_pow_snd,
+  Kuratowski.RotationSystem.eq_of_zmod_rot_inv_pow_snd_eq,
+  Kuratowski.RotationSystem.two_le_card_of_two_adj}
+\leanok
+\(V\)는 유한하고, \(R'\)은 \(G/xy\)의 회전 체계이며, \(d_0\)는 \(x\)에서 나가는 다트라 하자.
+\(N=|N_{G/xy}(x)|>0\)이고 \(u_j=(\rho'^{-j}d_0)\)의 끝점이라 두면,
+\(j\in\mathbb Z/N\)를 \(u_j\)로 보내는 사상은 \(x\)의 이웃으로의 전단사다.
+따라서 성질 \(P\)를 가진 서로 다른 이웃이 둘이면 \(P\) 위치도 둘 이상이다.
+원래 \(G\)에서 \(x,y\)의 인접 여부로 읽은 단어는 모든 위치가 \(X/B\) 또는 \(Y/B\)이다.
+이 단어가 (a)의 \texttt{Clustered} 조건을 만족하면 보조정리~\ref{lem:S}의
+\texttt{IntervalWord G x y R'} 조건을 만족한다.
+또 \(p_0<\cdots<p_{N-1}<m\)인 자연수 위치 열은 \(\mathbb Z/N\)의 열린 순환 순서를
+\(\mathbb Z/m\)에서 보존한다.
+부분 그래프의 순환 꼭짓점 수열은 큰 그래프의 순환 꼭짓점 수열로 옮길 수 있다.
+\end{lemma}
+
+\begin{proof}
+\uses{lem:cyclic, lem:J2, lem:S}
+\leanok
+\(\rho'^{-1}\)의 \(d_0\)에서의 최소 주기는 \(N\)이다. 따라서 역순 반복의 끝점은 이웃을 정확히 한 번씩
+열거한다. 수축의 인접 관계에서 각 이웃은 원래 \(x\)나 \(y\)에 인접하므로 단어에 빈 글자가 없다.
+\texttt{Clustered}인 두 연속 \(X/B\) 위치를 \(a,b\)라 하고 \(b\)를 새 시작점으로 고른다.
+\(k=(a-b).\mathrm{val}+1\)로 두면 \(0\le j<k\)는 \(X/B\), \(k\le j<N\)는 \(X/B\)가 아니며,
+\(0<j\), \(j+1<k\)이면 \(Y/B\)가 아니다. 이것이 \texttt{IntervalWord}의 세 구간 조건이다.
+정규식 \texttt{B? X* B? Y*}는 이 조건의 설명이고, Lean에서는 정규식 객체 대신 위 구간 조건을 쓴다.
+
+열린 순환 순서는 정수 대표의 세 가지 순서 경우로 쓸 수 있다.
+증가하는 \(p\)는 이 세 경우를 각각 보존하고 \(p_j<m\)이라 모듈러로 줄일 때 값이 변하지 않는다.
+이로써 보조정리~\ref{lem:J2}의 위치 열로 교대 배치를 실제 사이클에 옮길 수 있다.
+부분 그래프의 순환 수열은 단사 꼭짓점 배치를 그대로 두고 인접 관계만 단조성으로 옮긴다.
+\end{proof}

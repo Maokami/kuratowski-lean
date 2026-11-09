@@ -21,9 +21,11 @@ import Kuratowski.FaceBoundary
 import Kuratowski.FaceCycle
 import Kuratowski.GlueEdge
 import Kuratowski.GlueOne
+import Kuratowski.Hard
 import Kuratowski.Iso
 import Kuratowski.Lift
 import Kuratowski.Map
+import Kuratowski.NeighborWord
 import Kuratowski.NonPlanar
 import Kuratowski.PathReplacement
 import Kuratowski.Paths
@@ -42,4 +44,5 @@ import Kuratowski.SubdivisionOfPaths
 import Kuratowski.Sum
 import Kuratowski.Uncontract
 import Kuratowski.VertexDeletion
+import Kuratowski.VertexSplit
 import Kuratowski.WalkLift

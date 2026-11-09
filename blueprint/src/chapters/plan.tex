@@ -22,46 +22,26 @@
 
 \section{형식화 순서}
 
-서로 의존하지 않는 묶음은 병렬로 진행할 수 있다. 의존 그래프에서 파란 항목은 의존하는 항목이 모두
-형식화된 것이다. 아래 묶음은 그 순서를 따르되, 같은 묶음 안의 항목끼리는 서로 의존할 수 있다
-(예: 정리~\ref{thm:paths_iff}는 정의~\ref{def:paths}를 쓴다).
+아래의 모든 묶음을 형식화했다. 뒤의 묶음은 앞에서 만든 정의와 보조정리를 사용한다.
 \begin{enumerate}
-  \item \textbf{바로 시작 가능}
-    \begin{itemize}
-      \item 회전 체계와 무관한 것: 보조정리~\ref{lem:cyclic}(완료), 정의~\ref{def:conn3}(완료),
-            정의~\ref{def:contract}(완료), 정리~\ref{thm:contractible}(완료), 정의~\ref{def:cycseq}(완료)
-      \item 정의만 있으면 되는 것: 정의~\ref{def:paths}(완료), 정리~\ref{thm:paths_iff}(완료),
-            보조정리~\ref{lem:map_iff}(완료), 보조정리~\ref{lem:small}(완료)
-      \item 완료: 정의~\ref{def:conn3}(\texttt{Connected.lean}),
-            정의~\ref{def:contract}(\texttt{Contract.lean}),
-            정리~\ref{thm:contractible}(\texttt{ConnectedContraction.lean}, \texttt{Contractible.lean}),
-            보조정리~\ref{lem:map_iff}(\texttt{Map.lean}),
-            보조정리~\ref{lem:small}(\texttt{Small.lean}),
-            정의~\ref{def:cycseq}(\texttt{Cyclic.lean}, \texttt{CyclicWalk.lean}; 사이클과 두 호까지 완료),
-            정의~\ref{def:paths}와 정리~\ref{thm:paths_iff}(\texttt{Paths.lean},
-            \texttt{PathsSubdivision.lean}, \texttt{SubdivisionOfPaths.lean}; 유한한 \(V\)에서 동치 완료),
-            보조정리~\ref{lem:cyclic}(\texttt{CyclicWord.lean}; 정규식 구간 조건과의 동치는 후속)
-    \end{itemize}
-  \item \textbf{1번 위에서}
-    \begin{itemize}
-      \item 회전 체계 수술: 보조정리~\ref{lem:sum0}(완료), \ref{lem:sum1}(완료),
-            \ref{lem:sum2}(완료), 정의~\ref{def:delVertex}(완료)
-      \item 완료: 보조정리~\ref{lem:sum0}(\texttt{Sum.lean}),
-            보조정리~\ref{lem:sum1}(\texttt{GlueOne.lean}),
-            보조정리~\ref{lem:sum2}(\texttt{GlueEdge.lean}),
-            정의~\ref{def:delVertex}(\texttt{VertexDeletion.lean}),
-            보조정리~\ref{lem:TK5_of_common}(\texttt{CommonNeighbors.lean}),
-            유한 원래 꼭짓점 타입의 세분 구성(\texttt{PathsBuild.lean}),
-            위치 구간이 겹치지 않는 호의 내부 분리(\texttt{CyclicArcs.lean})
-      \item 완료: 보조정리~\ref{lem:TK33_of_alt}(\texttt{AlternatingNeighbors.lean})
-      \item 완료: 보조정리~\ref{lem:lift}(\texttt{WalkLift.lean}, \texttt{Lift.lean})
-    \end{itemize}
-  \item \textbf{면 수술}: 보조정리~\ref{lem:split2}, \ref{lem:J1}, \ref{lem:face_cycle}, \ref{lem:J2}는 완료했다.
-        지운 꼭짓점 둘레의 면과 이웃 위치는 \texttt{DelVertexFace.lean}에 있다.
-        보조정리~\ref{lem:uncontract}(\texttt{Uncontract.lean}), \ref{lem:add_edge}(\texttt{AddEdge.lean})도 완료했다.
-        남은 형식화는 두 수술을 합치는 보조정리~\ref{lem:S}다.
-  \item \textbf{축약}: 정리~\ref{thm:reduce}(\texttt{Reduction.lean})는 완료했다.
-  \item \textbf{마무리}: 정리~\ref{thm:hard}, 정리~\ref{thm:kuratowski}
+  \item \textbf{기본 도구와 경로}: 연결성, 변 수축, 순환 수열, 세분 경로 체계,
+        작은 그래프와 꼭짓점 집합 넓히기, 세분과 경로 체계의 동치,
+        순환 단어 분류(보조정리~\ref{lem:cyclic}).
+  \item \textbf{붙이기와 세분}: 서로소·한 점·공통 변 붙이기(보조정리~\ref{lem:sum0},
+        \ref{lem:sum1}, \ref{lem:sum2}), 공통 이웃과 교대 배치에서 금지 세분 구성
+        (보조정리~\ref{lem:TK5_of_common}, \ref{lem:TK33_of_alt}),
+        수축에서 세분 들어 올리기(보조정리~\ref{lem:lift}).
+  \item \textbf{연결성과 축약}: 수축 가능한 변의 존재(정리~\ref{thm:contractible})와
+        최소 반례의 3-연결성(정리~\ref{thm:reduce}).
+  \item \textbf{면 수술}: 꼭짓점 삭제, 쪼개기, 면 경계 사이클과 이웃 순서
+        (정의~\ref{def:delVertex}, 보조정리~\ref{lem:split2}, \ref{lem:J1},
+        \ref{lem:face_cycle}, \ref{lem:J2}), 공통 이웃 없는 수축 되돌리기와 같은 면 변 넣기
+        (보조정리~\ref{lem:uncontract}, \ref{lem:add_edge}), 이를 합친 꼭짓점 나누기
+        (보조정리~\ref{lem:S}, \texttt{VertexSplit.lean}).
+  \item \textbf{마무리}: 순환 단어를 실제 회전의 구간 조건과 사이클 위치로 옮기는 연결
+        (보조정리~\ref{lem:neighbor_word}, \texttt{NeighborWord.lean}),
+        변 수의 강한 귀납으로 어려운 방향과 필요충분조건
+        (정리~\ref{thm:hard}, \ref{thm:kuratowski}, \texttt{Hard.lean}).
 \end{enumerate}
 
 \section{검사 실행}

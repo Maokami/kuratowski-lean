@@ -4,17 +4,20 @@
 \begin{theorem}[쿠라토프스키 정리, 어려운 방향]
 \label{thm:hard}
 \uses{def:IsPlanar, def:subdiv, def:K5K33}
-\planned{isPlanar\_of\_kuratowskiFree}
+\lean{Kuratowski.isPlanar_of_kuratowskiFree, Kuratowski.isPlanar_of_kuratowskiFree_of_lt,
+  Kuratowski.isPlanar_of_contractible}
+\leanok
 \(K_5\)의 세분도 \(K_{3,3}\)의 세분도 부분 그래프로 갖지 않는 (KF) 유한 그래프는 평면 그래프다.
 \begin{verbatim}
-theorem isPlanar_of_kuratowskiFree {G : SimpleGraph V} [Finite V] [DecidableEq V]
+theorem isPlanar_of_kuratowskiFree {G : SimpleGraph V} [Finite V]
     (h5 : ¬ ContainsSubdivision G K5) (h33 : ¬ ContainsSubdivision G K33) :
     IsPlanar G
 \end{verbatim}
 \end{theorem}
 
 \begin{proof}
-\uses{thm:reduce, lem:small, thm:contractible, lem:lift, lem:J2, lem:cyclic, lem:S, lem:TK5_of_common, lem:TK33_of_alt}
+\uses{thm:reduce, lem:small, thm:contractible, lem:lift, lem:contract_counts, lem:connectivity_tools, lem:J2, lem:cyclic, lem:neighbor_word, lem:S, lem:TK5_of_common, lem:TK33_of_alt}
+\leanok
 변의 수에 대한 강한 귀납법. KF인 \(G\)를 생각한다.
 \begin{enumerate}
   \item 정리~\ref{thm:reduce}에 의해 \(G\)는 평면이거나 3-연결이다. 지지 집합이 4개 이하이면
@@ -24,27 +27,36 @@ theorem isPlanar_of_kuratowskiFree {G : SimpleGraph V} [Finite V] [DecidableEq V
         \(G/xy\)도 KF이고 변이 더 적으므로, 귀납 가정으로 종수 0인 \(R'\)이 있다.
   \item \(G/xy\)가 3-연결이므로 \(S_{G/xy} \setminus \{x\}\)는 \(G/xy - x\)에서 2-연결이다 (정의~\ref{def:conn3}에서
         지우는 집합이 \(\{x, z\}\)인 경우). 이것이 보조정리~\ref{lem:J2}의 가정이고, \(x\)의 이웃은 3개 이상이다.
-        \(G/xy - x\)는 \(G - x - y\)와 같은 그래프다. 보조정리~\ref{lem:J2}를 \(R'\)에 쓰면 \(x\)의 이웃을 둘레
-        순서대로 지나는 사이클 \(C\)를 얻는다.
-  \item \(G\)가 3-연결이므로 \(x\), \(y\)는 각각 \(C\) 위에 이웃이 2개 이상 있다. 보조정리~\ref{lem:cyclic}을
-        적용한다.
+        \(G/xy - x\)는 \(G - x - y\)와 같은 그래프다. 보조정리~\ref{lem:J2}를 \(R'\)에 쓰면
+        \(\rho'^{-j}d_0\)의 끝점 \(u_j\)를 증가하는 위치 \(p_j\)에서 지나는 사이클 \(C\)를 얻는다.
+        이 사이클을 \(G\)의 사이클로 옮겨도 \(x,y\)는 사이클 밖에 있다.
+  \item \(N=|N_{G/xy}(x)|\)개의 이웃 열 \(u_j\)에서 원래 \(x,y\)의 인접 여부로 순환 단어를 만든다.
+        \(G\)의 3-연결성에 의해 \(x,y\)의 이웃은 각각 셋 이상이고, 서로를 빼도 둘씩 남으므로
+        이 단어의 \(X/B\), \(Y/B\) 위치가 각각 둘 이상이다. 이 단어에 보조정리~\ref{lem:cyclic}을 적용한다.
     \begin{itemize}
-      \item (a)이면 보조정리~\ref{lem:S}로 \(G\)는 평면이다.
-      \item (b)이면 보조정리~\ref{lem:TK5_of_common}에 의해 KF에 모순이다.
-      \item (c)이면 보조정리~\ref{lem:TK33_of_alt}에 의해 KF에 모순이다.
+      \item (a)이면 보조정리~\ref{lem:neighbor_word}로 실제 회전의 구간 조건을 얻고,
+            보조정리~\ref{lem:S}로 \(G\)는 평면이다.
+      \item (b)이면 서로 다른 세 공통 이웃의 위치를 \(p\)로 옮겨,
+            보조정리~\ref{lem:TK5_of_common}에 의해 KF에 모순이다.
+      \item (c)이면 증가하는 \(p\)가 열린 순환 순서를 보존하므로,
+            보조정리~\ref{lem:TK33_of_alt}에 의해 KF에 모순이다.
     \end{itemize}
 \end{enumerate}
+\texttt{Hard.lean}은 고정된 \(V\) 위에서 변 수에 대한 강한 귀납을 수행한다.
+공개 정리는 \texttt{[Finite V]}만 요구하고, 필요한 같음 판정은 증명 안에서 고른다.
 \end{proof}
 
 \begin{theorem}[쿠라토프스키 정리]
 \label{thm:kuratowski}
 \uses{def:IsPlanar, def:subdiv, def:K5K33}
-\planned{isPlanar\_iff\_kuratowskiFree}
+\lean{Kuratowski.isPlanar_iff_kuratowskiFree}
+\leanok
 유한 그래프 \(G\)가 평면 그래프일 필요충분조건은 \(G\)가 \(K_5\)나 \(K_{3,3}\)의 세분을 부분 그래프로 갖지
 않는 것이다.
 \end{theorem}
 
 \begin{proof}
 \uses{thm:easy, thm:hard}
+\leanok
 정리~\ref{thm:easy}와 정리~\ref{thm:hard}.
 \end{proof}

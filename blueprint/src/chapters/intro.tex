@@ -10,25 +10,11 @@
 \begin{itemize}
   \item \textbf{쉬운 방향}(세분을 포함하면 평면이 아니다, 정리~\ref{thm:easy})은 형식화를 마쳤다.
         \ref{chap:easy}장의 항목이 모두 여기에 해당한다.
-  \item \textbf{어려운 방향}(세분이 없으면 평면이다, 정리~\ref{thm:hard})은 형식화 진행 중이다.
-        꼭짓점 집합 넓히기(보조정리~\ref{lem:map_iff}), 작은 지지 집합의 평면성(보조정리~\ref{lem:small}),
-        연결성의 정의(정의~\ref{def:conn3}), 변 수축의 정의(정의~\ref{def:contract}),
-        순환 꼭짓점 수열의 정의(정의~\ref{def:cycseq}), 경로 체계의 정의(정의~\ref{def:paths})를 형식화했다.
-        순환 수열에서 사이클·호 경로로 가는 변환(보조정리~\ref{lem:cycseq_walks})과 세분에서 경로
-        체계로 가는 방향(보조정리~\ref{lem:subdivision_paths_forward}), 유한 그래프에서 두 세분 표현의 동치
-        (정리~\ref{thm:paths_iff}), 순환 단어 분류(보조정리~\ref{lem:cyclic}), 서로소 합의 평면성
-        및 한 점·공통 변 붙이기의 평면성(보조정리~\ref{lem:sum0}, \ref{lem:sum1}, \ref{lem:sum2}),
-        공통 이웃 셋에서 \(TK_5\) 구성(보조정리~\ref{lem:TK5_of_common}),
-        교대 배치에서 \(TK_{3,3}\) 구성(보조정리~\ref{lem:TK33_of_alt}),
-        수축에서 세분 들어 올리기(보조정리~\ref{lem:lift}), 수축 가능한 변의 존재
-        (정리~\ref{thm:contractible}), 꼭짓점 삭제의 회전 체계(정의~\ref{def:delVertex}),
-        같은 면의 꼭짓점 쪼개기와 면 경계 단사성(보조정리~\ref{lem:split2}, \ref{lem:J1}),
-        면 경계의 사이클 수열 구성(보조정리~\ref{lem:face_cycle}), 지운 꼭짓점 둘레 면에서 이웃의
-        역순과 위치 구성(보조정리~\ref{lem:J2}), 최소 반례의 3-연결성 축약
-        (정리~\ref{thm:reduce}), 공통 이웃 없는 수축 되돌리기와 같은 면 변 넣기
-        (보조정리~\ref{lem:uncontract}, \ref{lem:add_edge})도 완료했다.
-        경로를 고른 근거는 \ref{chap:routes}장, 형식화 단위는
-        \ref{chap:tools}--\ref{chap:main}장, 남은 설계 결정과 진행 순서는 \ref{chap:plan}장에 있다.
+  \item \textbf{어려운 방향}(세분이 없으면 평면이다, 정리~\ref{thm:hard})과 최종 필요충분조건
+        (정리~\ref{thm:kuratowski})도 형식화를 마쳤다. \texttt{Hard.lean}이 변 수 귀납, 3-연결성 축약,
+        수축 가능한 변, J2의 이웃 순서, 순환 단어 분류와 꼭짓점 나누기 수술을 연결한다.
+        \ref{chap:tools}--\ref{chap:main}장의 모든 항목에 Lean 선언과 완료 표시가 있다.
+        경로를 고른 근거는 \ref{chap:routes}장, 설계 결정과 의존 순서는 \ref{chap:plan}장에 있다.
 \end{itemize}
 
 평면성은 위상적 정의 대신 조합적 정의(종수 0인 회전 체계, 정의~\ref{def:IsPlanar})를 쓴다. Mathlib에
@@ -60,7 +46,8 @@
 
 \begin{itemize}
   \item \textbf{공통 가정}: 꼭짓점 타입 \(V\)는 유한하고 같음을 판정할 수 있다
-        (\texttt{[Finite V] [DecidableEq V]}). 그래프는 \texttt{SimpleGraph V}라서 변은 방향이 없고
+        (\texttt{[Finite V] [DecidableEq V]}). 최종 정리는 \texttt{[Finite V]}만 요구하며,
+        같음 판정은 증명 안에서 고른다. 그래프는 \texttt{SimpleGraph V}라서 변은 방향이 없고
         (\texttt{Sym2 V}의 원소) 고리가 없다. 따라서 \(x \sim y\)이면 \(x \ne y\)다. \(G_1 \sqcup G_2\)는 변
         집합의 합집합이다.
   \item \textbf{지지 집합}(support) \(S_G\): 고립점이 아닌 꼭짓점의 집합. 모든 그래프를 고정된 꼭짓점 타입

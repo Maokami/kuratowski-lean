@@ -5,30 +5,20 @@
 > 유한 그래프 `G`가 평면 그래프일 필요충분조건은 `G`가 `K₅`나 `K₃,₃`의 세분(subdivision)을
 > 부분 그래프로 갖지 않는 것이다.
 
-이 저장소는 **쉬운 방향**(`K₅`나 `K₃,₃`의 세분을 포함하면 평면 그래프가 아니다)을 완전히
-증명한다. 어려운 방향(세분이 없으면 평면 그래프다)은 아직 하지 않았다. 어려운 방향에 쓸 도구 가운데
-변 수축 `contractEdge`(`Contract.lean`), 꼭짓점 집합 넓히기 `isPlanar_map_iff`(`Map.lean`),
-비고립 꼭짓점이 네 개 이하인 그래프의 평면성(`Small.lean`),
-지지 집합 기준의 연결성 정의(`Connected.lean`),
-사이클의 순환 꼭짓점 수열 표현(`Cyclic.lean`),
-세분의 경로 체계 정의(`Paths.lean`)를 형식화했다. 순환 수열에서 사이클·경로를 만드는 변환과 두 호의
-내부 서로소성(`CyclicWalk.lean`), 유한 그래프에서 두 세분 표현의 동치(`PathsSubdivision.lean`,
-`SubdivisionOfPaths.lean`), 순환 단어 분류(`CyclicWord.lean`), 서로소 합의 평면성(`Sum.lean`),
-공통 이웃 셋에서 `K₅` 세분 구성(`CommonNeighbors.lean`), 교대 배치에서 `K₃,₃` 세분 구성
-(`AlternatingNeighbors.lean`), 한 점·공통 변 붙이기의 평면성(`GlueOne.lean`, `GlueEdge.lean`), 수축에서 세분 들어 올리기
-(`WalkLift.lean`, `Lift.lean`), 3-연결 그래프의 수축 가능한 변 존재
-(`ConnectedContraction.lean`, `Contractible.lean`), 꼭짓점 삭제의 회전 체계 구성과 평면성 보존
-(`VertexDeletion.lean`), 같은 면에서 꼭짓점을 쪼개는 수술과 면 경계의 단사성
-(`SplitVertex.lean`, `FaceBoundary.lean`), 면 경계의 순서를 보존하는 사이클 구성
-(`FaceCycle.lean`), 지운 꼭짓점의 이웃을 특정 면에서 역순으로 열거하기
-(`DelVertexFace.lean`), 변 수가 최소인 비평면 KF 그래프의 3-연결성 축약
-(`Reduction.lean`), 공통 이웃 없는 수축의 되돌리기와 같은 면 변 추가
-(`Uncontract.lean`, `AddEdge.lean`)도 증명했다. 꼭짓점 나누기 S의 전체 조립은 아직 진행 중이다.
+이 저장소는 **쉬운 방향과 어려운 방향을 모두 Lean 4로 증명한다**. 평면성은 종수 0인 회전 체계의
+존재로 정의한다. 최종 필요충분조건은 꼭짓점 타입의 유한성만 요구하며, 고립점과 비연결 그래프도 포함한다.
 
 ```lean
-theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
-    (h : ContainsSubdivision G K5 ∨ ContainsSubdivision G K33) : ¬ IsPlanar G
+theorem isPlanar_of_kuratowskiFree {G : SimpleGraph V} [Finite V]
+    (h5 : ¬ ContainsSubdivision G K5) (h33 : ¬ ContainsSubdivision G K33) : IsPlanar G
+
+theorem isPlanar_iff_kuratowskiFree {G : SimpleGraph V} [Finite V] :
+    IsPlanar G ↔ ¬ ContainsSubdivision G K5 ∧ ¬ ContainsSubdivision G K33
 ```
+
+최종 증명은 `Hard.lean`에 있다. 같은 꼭짓점 타입 위에서 변 수에 대해 강하게 귀납하고,
+작은 분리 집합으로의 축약, 3-연결성을 보존하는 변 수축, 면 경계의 이웃 순서,
+순환 단어 분류와 회전 체계 수술을 연결한다.
 
 `sorry`, `native_decide`, 추가 공리는 쓰지 않았다. `lake build`가 `KuratowskiAudit.lean`으로 모든
 선언을 검사해, 쓰인 공리가 표준 공리 `propext`, `Classical.choice`, `Quot.sound`뿐임을 확인한다.
@@ -37,6 +27,8 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 
 | 정리 | 위치 | 내용 |
 |---|---|---|
+| `isPlanar_iff_kuratowskiFree` | `Hard.lean` | **쿠라토프스키 정리, 필요충분조건** |
+| `isPlanar_of_kuratowskiFree` | `Hard.lean` | **쿠라토프스키 정리, 어려운 방향** |
 | `not_isPlanar_of_containsSubdivision` | `Subdivision.lean` | **쿠라토프스키 정리, 쉬운 방향** |
 | `RotationSystem.eulerChar_le` | `Euler.lean` | 오일러 부등식: 모든 회전 체계에서 `V − E + F ≤ 2c` |
 | `IsPlanar.mono` | `Euler.lean` | 평면 그래프의 부분 그래프는 평면 그래프 |
@@ -65,6 +57,8 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `IsPlanar.sup_of_inter_eq_edge` | `GlueEdge.lean` | 유한한 V에서 지지 집합이 공통 변의 두 끝점에서만 만나는 두 평면 그래프의 합집합은 평면 |
 | `RotationSystem.exists_uncontract` | `Uncontract.lean` | 공통 이웃 없고 x/y 이웃이 각각 한 호이면 수축을 되돌려도 면 수 유지·종수 0 보존 |
 | `RotationSystem.exists_addEdge` | `AddEdge.lean` | 같은 면의 두 모서리를 새 변으로 이으면 면 수 +1·종수 0 보존 |
+| `RotationSystem.intervalWord_of_clustered`, `CyclicWord.sbtw_cast_positions` | `NeighborWord.lean` | 순환 단어 첫 경우를 실제 회전의 구간으로, 교대 순서를 사이클 위치로 옮김 |
+| `IsPlanar.of_contractEdge_of_interval` | `VertexSplit.lean` | 수축의 종수 0 회전에서 이웃이 구간 조건을 만족하면 원래 그래프도 평면 |
 | `PermutationDeletion.orbitCount_cut_pair_face` | `PermutationDeletion.lean` | 역다트 두 점 삭제 뒤 면 순환 수가 하나 줄어드는 조건 |
 | `IsPlanar.sup_of_disjoint` | `Sum.lean` | 유한한 V에서 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면 |
 | `containsSubdivision_K5_of_three_common` | `CommonNeighbors.lean` | 인접한 두 점이 사이클 밖에 있고 사이클 위 공통 이웃이 셋이면 K₅ 세분 포함 (V 유한성 불필요) |
@@ -108,7 +102,10 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 성립한다: 모든 `Y/B`가 연속한 두 `X/B` 사이의 닫힌 호에 있음, `B`가 셋 이상, 또는 두 `Y/B` 위치를
 뺀 두 열린 호 각각에 `X/B`가 있음. `classify`가 이 분류를 증명하며 길이 2도 허용한다.
 Mathlib의 `sbtw` 열린 호와 실제 사이클 경로의 내부가 같다는 연결도 증명했다.
-정규식 `B? X* B? Y*`와 첫 경우의 동치는 아직 Lean으로 형식화하지 않았다.
+`NeighborWord.lean`은 모든 위치가 `X/B` 또는 `Y/B`인 단어에서 첫 경우를 명시적인 구간 조건으로
+바꾼다. 이를 실제 회전의 역순 이웃 열에 적용한 `intervalWord_of_clustered`가 꼭짓점 나누기 S와
+연결한다. 정규식 `B? X* B? Y*`는 이 구간 조건의 설명이며, Lean에서는 정규식 객체를 사용하지 않는다.
+증가하는 위치 열이 열린 순환 순서를 보존하는 `sbtw_cast_positions`는 교대 배치를 J2의 사이클로 옮긴다.
 
 ### 수축에서 세분 들어 올리기 (`WalkLift.lean`, `Lift.lean`)
 
@@ -189,11 +186,13 @@ K₃,₃의 분기점은 차수가 3이라 그 경우가 불가능하다. 최종
 python3 -I scripts/check_definition.py
 ```
 
-## 남은 일: 어려운 방향
+## 어려운 방향의 증명
 
-`K₅`, `K₃,₃`의 세분이 없는 그래프에 대해 평면 회전 체계를 실제로 만들어야 한다. Thomassen의
-변 수축 증명을 따른다. 먼저 최소 반례가 3-연결임을 보이고, 3-연결 그래프는 변을 수축해
-귀납하며, 볼록 매장 대신 회전 체계로 면을 다시 짠다.
+`K₅`, `K₃,₃`의 세분이 없는 그래프에 대해 평면 회전 체계를 구성한다. Thomassen의 변 수축 증명을
+따라, 최소 반례를 3-연결로 축약하고 3-연결성을 보존하는 변을 수축해 귀납한다.
+수축된 회전의 이웃 단어가 구간에 모이면 꼭짓점 나누기 S로 원래 회전을 복원한다.
+나머지 두 경우에는 J2의 사이클에서 금지된 세분을 구성해 모순을 얻는다.
+`Hard.lean`이 이 단계들을 연결하며, 블루프린트의 모든 정리·정의에 Lean 선언과 완료 표시가 있다.
 
 설계는 [leanblueprint](https://github.com/PatrickMassot/leanblueprint) 형식의 블루프린트
 `blueprint/src/`에 있다. 경로 비교(2장), 형식화한 쉬운 방향(3장), 어려운 방향의 형식화 단위(4–7장),
@@ -292,6 +291,9 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `GlueEdge.lean` | 공통 변의 두 끝에서 회전을 잇고 중복 변을 삭제해 합집합의 평면성 증명 |
 | `Uncontract.lean` | 공통 이웃 없는 수축의 다트 대응·조건부 호환·회전 식·면 수와 종수 0 보존 |
 | `AddEdge.lean` | 같은 면 모서리의 변 추가·옛 다트 대응·회전 식·면 수 +1과 종수 0 보존 |
+| `VertexSplit.lean` | 빈 이웃·공통 이웃 변 삭제·수축 되돌리기·같은 면 변 추가를 합친 꼭짓점 나누기 |
+| `NeighborWord.lean` | 회전의 역순 이웃 단어, Clustered→IntervalWord와 증가 위치 열의 열린 순환 순서 보존 |
+| `Hard.lean` | 변 수 강한 귀납으로 어려운 방향과 최종 필요충분조건 증명 |
 | `PermutationDeletion.lean` | 일반 순열에서 역다트 두 점 삭제의 면 순열·순환 수 공식 |
 | `WalkLift.lean` | 수축 그래프의 걸음·경로를 원래 그래프로 옮기기와 내부 제어 |
 | `Lift.lean` | 분기점 교체·2–2 분할에서 K₃,₃ 구성, KF 수축 닫힘 |

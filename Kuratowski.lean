@@ -1,3 +1,4 @@
+import Kuratowski.AlternatingNeighbors
 import Kuratowski.Basic
 import Kuratowski.CommonNeighbors
 import Kuratowski.Components

@@ -14,7 +14,8 @@
 세분의 경로 체계 정의(`Paths.lean`)를 형식화했다. 순환 수열에서 사이클·경로를 만드는 변환과 두 호의
 내부 서로소성(`CyclicWalk.lean`), 유한 그래프에서 두 세분 표현의 동치(`PathsSubdivision.lean`,
 `SubdivisionOfPaths.lean`), 순환 단어 분류(`CyclicWord.lean`), 서로소 합의 평면성(`Sum.lean`),
-공통 이웃 셋에서 `K₅` 세분 구성(`CommonNeighbors.lean`)도 증명했다.
+공통 이웃 셋에서 `K₅` 세분 구성(`CommonNeighbors.lean`), 교대 배치에서 `K₃,₃` 세분 구성
+(`AlternatingNeighbors.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -39,6 +40,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `K4_isPlanar` | `Planar.lean` | `K₄`는 평면 그래프 (정의가 공허하지 않다는 확인) |
 | `IsPlanar.of_iso` | `Iso.lean` | 평면성은 그래프 동형에 대해 불변 |
 | `isPlanar_map_iff` | `Map.lean` | 유한한 `W`, `V`와 단사 `f : W ↪ V`에 대해 `K.map f`가 평면 ⇔ `K`가 평면 (고립점 허용) |
+| `containsSubdivision_K33_of_alternating` | `AlternatingNeighbors.lean` | 사이클 위 교대 배치와 바깥의 인접한 두 점에서 K₃,₃ 세분 구성 (V 유한성 불필요) |
 | `IsPlanar.sup_of_disjoint` | `Sum.lean` | 유한한 V에서 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면 |
 | `containsSubdivision_K5_of_three_common` | `CommonNeighbors.lean` | 인접한 두 점이 사이클 밖에 있고 사이클 위 공통 이웃이 셋이면 K₅ 세분 포함 (V 유한성 불필요) |
 | `isPlanar_of_ncard_support_le_four` | `Small.lean` | 유한 그래프의 비고립 꼭짓점이 네 개 이하면 평면 (고립점 수는 제한 없음) |
@@ -69,7 +71,9 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 `CyclicWalk.lean`의 `toWalk`는 길이 `m`인 `IsCycle`이고, `arc a b`는 정방향의 `IsPath`다.
 호의 길이는 `(b - a).val`이며 `a = b`이면 길이 0이다. 서로 반대 방향의 두 호는 양 끝점을 뺀
 내부가 서로소다. `CyclicArcs.lean`은 정수 대표의 위치 구간이 겹치지 않는 두 호의 내부 분리와
-사이클 밖 점·구간 밖 위치의 회피를 증명한다. 네 위치의 순환 순서 관계는 아직 남아 있다.
+사이클 밖 점·구간 밖 위치의 회피를 증명한다. `AlternatingNeighbors.lean`에서는 두 `sbtw` 조건으로
+네 위치의 순환 순서를 표현하고, 네 호로 `K₃,₃`의 경로 체계를 구성한다. 면 경계에서 이 수열과 순서를
+얻는 J2 보조정리는 아직 미형식화다.
 
 ### 순환 단어 분류 (`CyclicWord.lean`)
 
@@ -227,6 +231,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `CyclicArcs.lean` | 위치 구간이 겹치지 않는 호의 내부 분리, 사이클·구간 밖 점의 회피 |
 | `PathsBuild.lean` | 원래 꼭짓점 타입이 유한할 때 세분 구성, 한 방향 경로에서 체계 생성 |
 | `CommonNeighbors.lean` | 인접한 두 점과 사이클 위의 공통 이웃 셋에서 K₅ 세분 구성 |
+| `AlternatingNeighbors.lean` | 교대하는 사이클 위 네 점과 바깥 허브 둘에서 K₃,₃ 세분 구성 |
 | `Sum.lean` | 서로소 타입 합의 회전·면·성분 수, 지지 집합이 서로소인 합집합의 평면성 |
 | `PathsExamples.lean` | 실제 내부 꼭짓점을 갖는 경로 체계와 조건 위반 후보 예제 |
 

@@ -186,6 +186,12 @@
 
 \begin{lemma}[순환 단어]
 \label{lem:cyclic}
+\lean{Kuratowski.CyclicWord.Letter, Kuratowski.CyclicWord.xPositions,
+  Kuratowski.CyclicWord.yPositions, Kuratowski.CyclicWord.bothPositions,
+  Kuratowski.CyclicWord.Consecutive, Kuratowski.CyclicWord.Clustered,
+  Kuratowski.CyclicWord.Alternating, Kuratowski.CyclicWord.classify,
+  Kuratowski.CyclicWord.sbtw_iff_val, Kuratowski.CyclicWord.mem_walkInterior_arc_iff}
+\leanok
 순환 단어의 글자는 \(X\), \(Y\), \(B\), \(-\)이고, \(X/B\)인 글자와 \(Y/B\)인 글자가 각각 2개 이상이라
 하자. 그러면 다음 중 하나가 성립한다.
 \begin{enumerate}
@@ -193,13 +199,13 @@
   \item[(b)] \(B\)가 3개 이상이다.
   \item[(c)] \(Y/B\)인 \(u\), \(w\)가 있어, \(u\)와 \(w\)를 뺀 두 열린 호 각각에 \(X/B\) 글자가 있다.
 \end{enumerate}
-이웃만 남긴 단어에서 (a)는 보조정리~\ref{lem:S}의 구간 조건과 같다.
 (c)의 호는 끝점 \(u\), \(w\)를 뺀 열린 호다. 닫힌 호로 읽으면 \(u\)나 \(w\)가 \(B\)일 때 끝점만으로 (c)가
 성립해 버려, \(K_{3,3}\)을 만드는 데 필요한 내용이 사라진다.
 \bfcheck{\texttt{[cyclic]}: 길이 2 이상 9 이하 단어 331,476개. \texttt{[cyclic}\(\equiv\)\texttt{S]}: 29,330개}
 \end{lemma}
 
 \begin{proof}
+\leanok
 \(X/B\) 글자들은 단어를 구간들로 나눈다. 연속한 두 \(X/B\) 글자 \(a\), \(a'\) 사이의 열린 구간을 \((a, a')\),
 닫힌 구간을 \([a, a']\)라 하자. (a)와 (b)가 모두 성립하지 않는다고 하고 (c)를 보인다.
 \begin{itemize}
@@ -210,5 +216,12 @@
         하자. (a)가 거짓이므로 \(u\)와 \(w\)는 연속한 \(X/B\) 글자가 아니고, 따라서 둘 사이의 두 열린 호에 모두
         \(X/B\) 글자가 있다.
 \end{itemize}
-Lean에서는 \texttt{ZMod m} 위의 조합으로 증명할 예정이다.
+Lean에서는 양의 길이 \(m\)의 위치를 \texttt{ZMod m}으로 나타내고 Mathlib의 순환 순서
+\texttt{btw}, \texttt{sbtw}로 닫힌 호와 열린 호를 표현했다. \(X/B\), \(Y/B\) 위치를 두 유한 집합으로
+두면 그 교집합이 \(B\) 위치다. \texttt{classify}는 네 글자 단어에 이 분류를 적용한다.
+길이 2도 허용하며, 두 글자 집합이 각각 두 점 이상이라는 가정은 그대로다.
+\texttt{sbtw}가 나타내는 열린 호는 앞의 실제 경로 내부와 같다는 것도 증명했다.
 \end{proof}
+
+이웃만 남긴 단어에서 (a)는 보조정리~\ref{lem:S}의 정규식 구간 조건과 같다. 이 정규식과의 동치
+자체는 아직 Lean으로 형식화하지 않았고, 위 \texttt{[cyclic}\(\equiv\)\texttt{S]} 검사로만 확인했다.

@@ -639,7 +639,82 @@ def surgery_ok(adj, cadj2, r, x, y, nb, parse, word, variant=None):
     want = len(faces(cadj2, r)) + word.count("B") + (0 if word else 1)
     return R is not None and euler_ok(adj, list(adj), R) and len(faces(adj, R)) == want
 
+# [S-분할] 위 수술을 두 일반 수술로 나눈다 (블루프린트 lem:uncontract, lem:add_edge).
+#  (1) 되돌리기: G0 = G에서 변 y-b(b는 B 글자)를 뺀 그래프. G0/xy = G/xy이고 G0에서 x, y의 공통 이웃은 없다.
+#      R0: x 둘레 (b1, X..., b2, y), y 둘레 (Y..., x), Y 글자 이웃 둘레는 x 자리를 y로, 나머지는 R'.
+#      R0은 G0의 종수 0 회전 체계이고 O(R0) = O(R')이다.
+#  (2) 같은 면 변 넣기: b1이면 y 둘레에서 x 바로 앞에 b1, b1 둘레에서 x 바로 뒤에 y를 넣는다.
+#      b2이면 y 둘레에서 x 바로 뒤에 b2, b2 둘레에서 x 바로 앞에 y를 넣는다. 넣는 두 모서리
+#      (a 뒤, c 뒤)는 같은 면이고(ā, c̄가 같은 면 순환) O가 1 늘며 종수 0이 유지된다.
+#      B가 하나뿐이면 b1 쪽으로 한 번 넣는다.
+#  두 단계를 합치면 위 [S-수술]의 R과 같다. 빈 단어는 수술 없이 xy 성분 K2를 서로소 합으로 붙인다.
+def s_valid_rot(adj, R):
+    for z in adj:
+        if sorted(R[z]) != sorted(adj[z]): return False
+        if adj[z]:
+            start, cur, seen = adj[z][0], R[z][adj[z][0]], 1
+            while cur != start: cur = R[z][cur]; seen += 1
+            if seen != len(adj[z]): return False
+    return True
+
+def s_to_rot(lists):
+    return {z: (from_list(l) if l else {}) for z, l in lists.items()}
+
+def s_split_ok(n, es, adj, cadj, cadj2, r, x, y, nb, parse, variant=None):
+    # variant: None = 증명의 분할, "b1after" = b1을 y 둘레에서 x 뒤에, "yrev" = y 둘레의 Y를 역순으로
+    b1, xs, b2, ys = parse
+    B1 = nb[b1] if b1 is not None else None
+    B2 = nb[b2] if b2 is not None else None
+    X = [nb[i] for i in xs]; Y = [nb[i] for i in ys]
+    Bs = [b for b in (B1, B2) if b is not None]
+    es0 = [e for e in es if set(e) not in [{y, b} for b in Bs]]
+    adj0 = adjacency(n, es0)
+    if any(u in adj0[x] and u in adj0[y] for u in adj0): return False
+    if contract(n, es0, x, y) != cadj: return False
+    L = {}
+    for z in adj0:
+        if z == x:
+            L[z] = ([B1] if B1 is not None else []) + X + ([B2] if B2 is not None else []) + [y]
+        elif z == y: L[z] = (list(reversed(Y)) if variant == "yrev" else Y) + [x]
+        elif not adj0[z]: L[z] = []
+        else: L[z] = [(y if (w == x and z in Y) else w) for w in cyc(r[z], next(iter(r[z])))]
+    O = len(faces(cadj2, r))
+    R0 = s_to_rot(L)
+    if not (s_valid_rot(adj0, R0) and euler_ok(adj0, list(adj0), R0) and len(faces(adj0, R0)) == O):
+        return False
+    cur_adj = adj0
+    for b, kind in ((B1, 1), (B2, 2)):
+        if b is None: continue
+        R = s_to_rot(L)
+        face_of = {d: i for i, f in enumerate(faces(cur_adj, R)) for d in f}
+        new = dict(L)
+        if kind == 1:
+            a = (y, [w for w in L[y] if R[y][w] == x][0])
+            c = (b, x)
+            i = L[y].index(x) + (1 if variant == "b1after" else 0)
+            new[y] = L[y][:i] + [b] + L[y][i:]
+            new[b] = L[b][:L[b].index(x) + 1] + [y] + L[b][L[b].index(x) + 1:]
+        else:
+            a = (y, x)
+            c = (b, [w for w in L[b] if R[b][w] == x][0])
+            new[y] = L[y][:L[y].index(x) + 1] + [b] + L[y][L[y].index(x) + 1:]
+            new[b] = L[b][:L[b].index(x)] + [y] + L[b][L[b].index(x):]
+        if face_of[(a[1], a[0])] != face_of[(c[1], c[0])]: return False
+        cur_adj = {z: list(cur_adj[z]) + ([b] if z == y else [y] if z == b else [])
+                   for z in cur_adj}
+        L = new
+        R1 = s_to_rot(L)
+        if not (s_valid_rot(cur_adj, R1) and euler_ok(cur_adj, list(cur_adj), R1)
+                and len(faces(cur_adj, R1)) == O + 1):
+            return False
+        O += 1
+    final = split_rotation(adj, r, x, y, nb, parse)
+    return final is not None and all(sorted(cur_adj[z]) == sorted(adj[z]) for z in adj) \
+        and s_to_rot(L) == final
+
 cnt = 0; empty = 0; bad = []; mut_fail = {"b1swap": 0, "yswap": 0}
+split_cnt = 0; split_bad = []; split_mut = {"b1after": 0, "yrev": 0}
+split_edge = {"X/B 호 빔": 0, "Y 호 빔": 0, "N = 1": 0, "B 하나(b1 = b2)": 0}
 for n, es in graphs:
     adj = adjacency(n, es)
     for x, y in es + [(b, a) for a, b in es]:
@@ -660,12 +735,55 @@ for n, es in graphs:
                 bad.append((n, es, x, y, word))
             for v in mut_fail:
                 if not surgery_ok(adj, cadj2, r, x, y, nb, parse, word, v): mut_fail[v] += 1
+            if word:
+                split_cnt += 1
+                if not s_split_ok(n, es, adj, cadj, cadj2, r, x, y, nb, parse):
+                    split_bad.append((n, es, x, y, word))
+                for v in split_mut:
+                    if not s_split_ok(n, es, adj, cadj, cadj2, r, x, y, nb, parse, v):
+                        split_mut[v] += 1
+                pb1, pxs, pb2, pys = parse
+                split_edge["X/B 호 빔"] += pb1 is None and pb2 is None and not pxs
+                split_edge["Y 호 빔"] += not pys
+                split_edge["N = 1"] += len(word) == 1
+                split_edge["B 하나(b1 = b2)"] += not pxs and ((pb1 is None) != (pb2 is None))
 report("[S-수술] 증명의 수술이 종수 0 회전 체계를 만들고 면 순환이 |B|개(빈 단어는 1개) 는다", not bad,
        f"({cnt}개 경우, 그중 빈 단어 {empty}개, 반례 {bad[:2]})")
 
 # [S-수술-음성] 수술의 방향을 바꾸면 반례가 나온다 (위 검사가 방향을 실제로 가린다).
 report("[S-수술-음성] b1 순서나 y 둘레의 b1, b2를 바꾸면 반례", all(v > 0 for v in mut_fail.values()),
        f"(b1 순서 변이 반례 {mut_fail['b1swap']}개, y 둘레 변이 반례 {mut_fail['yswap']}개)")
+
+report("[S-분할] 되돌리기(O 유지)와 같은 면 변 넣기(O+1)의 합성이 [S-수술]의 R과 같다",
+       not split_bad and all(v > 0 for v in split_edge.values()),
+       f"({split_cnt}개 경우, 경계 {split_edge}, 반례 {split_bad[:1]})")
+report("[S-분할-음성] b1을 x 뒤에 넣거나 y 둘레 Y를 뒤집으면 반례", all(v > 0 for v in split_mut.values()),
+       f"(b1 위치 변이 반례 {split_mut['b1after']}개, Y 역순 변이 반례 {split_mut['yrev']}개)")
+
+# [S-구간식] Lean 진술의 구간 조건 IntervalWord. 단어를 x 둘레 회전의 역순(ρ'⁻¹)으로 읽어, 어떤 시작
+# 글자와 0 ≤ k ≤ N에 대해 j < k이면 X/B, k ≤ j이면 Y, 0 < j < k - 1이면 X인 것이 정규식 B? X* B? Y*와 같다.
+# 정규식 조건은 회전과 역순에 대해 닫혀 있으므로 ρ' 순서 대신 ρ'⁻¹ 순서로 읽어도 된다.
+def interval_word_inv(word):
+    n = len(word)
+    if n == 0: return True
+    for s in range(n):
+        u = [word[(s - j) % n] for j in range(n)]
+        for k in range(n + 1):
+            if (all(u[j] in "XB" for j in range(k)) and all(u[j] == "Y" for j in range(k, n))
+                    and all(u[j] == "X" for j in range(1, k - 1))):
+                return True
+    return False
+
+iw_cnt = 0; iw_bad = []
+for n in range(0, 9):
+    for t in itertools.product("XYB", repeat=n):
+        w = "".join(t); iw_cnt += 1
+        rot_rev = {w[i:] + w[:i] for i in range(max(n, 1))} | {w[::-1]}
+        if (interval_word_inv(w) != interval_ok(w)
+                or any(interval_ok(v) != interval_ok(w) for v in rot_rev)):
+            iw_bad.append(w)
+report("[S-구간식] ρ'⁻¹ 지수의 구간 조건 = 정규식 B? X* B? Y* (회전·역순 불변)", not iw_bad,
+       f"({iw_cnt}개 단어, 반례 {iw_bad[:3]})")
 
 # [cyclic≡S] 이웃만 남긴 순환 단어에서 [cyclic]의 (a)와 [S]의 구간 조건은 같은 조건이다.
 cnt = 0; bad = []

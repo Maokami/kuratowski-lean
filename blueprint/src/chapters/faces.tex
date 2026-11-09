@@ -358,8 +358,15 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
 \begin{lemma}[공통 이웃이 없는 변의 수축 되돌리기]
 \label{lem:uncontract}
 \uses{def:contract, def:rotation, def:eulerChar}
-\notready
-\planned{RotationSystem.exists\_uncontract}
+\lean{Kuratowski.RotationSystem.exists_uncontract, Kuratowski.uncontractDartEquiv,
+  Kuratowski.UncontractData, Kuratowski.UncontractData.rotationSystem,
+  Kuratowski.UncontractData.orbitCount_facePerm, Kuratowski.UncontractData.eulerChar_eq,
+  Kuratowski.UncontractData.rotationSystem_rot_xy, Kuratowski.UncontractData.rotationSystem_rot_to_xy,
+  Kuratowski.UncontractData.rotationSystem_rot_yx, Kuratowski.UncontractData.rotationSystem_rot_to_yx,
+  Kuratowski.UncontractData.rotationSystem_rot_xy_of_eq_zero,
+  Kuratowski.UncontractData.rotationSystem_rot_yx_of_eq,
+  Kuratowski.UncontractData.rotationSystem_rot_lift, Kuratowski.UncontractData.equiv_rotationSystem_rot}
+\leanok
 유한하고 같음을 판정할 수 있는 \(V\) 위의 그래프 \(G\)에서 \(x \sim y\)이고 \(x\), \(y\)의 공통 이웃이 없다고 하자.
 \(R'\)을 \(G/xy\)의 회전 체계(회전 \(\rho'\))라 하고 \(N\)을 \(G/xy\)에서 \(x\)의 이웃 수라 하자.
 \(x\)에서 나가는 \(G/xy\)의 다트 \(d_0\)와 \(0 \le k \le N\)이 있어, \(u_j = (\rho'^{-j} d_0)\)의 끝점
@@ -384,6 +391,7 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
 
 \begin{proof}
 \uses{lem:swap, lem:contract_counts}
+\leanok
 \begin{itemize}
   \item \textbf{다트 대응.} \((x,y)\), \((y,x)\)가 아닌 \(G\)의 다트는 끝점의 \(y\)를 \(x\)로 바꿔 \(G/xy\)의 다트로
         보낸다. \(G/xy\)에서 \(y\)는 고립점이고, 공통 이웃이 없으므로 \((x,z)\)와 \((y,z)\)가 같은 다트로 가지 않아
@@ -404,15 +412,20 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
   \item \textbf{세기.} \(d_0\)가 있으므로 \(x\)는 \(G/xy\)와 \(G\)에서 모두 고립점이 아니고, \(y\)는 \(G/xy\)에서만 고립점이다.
         변은 대응에서 \(xy\) 하나가 더 있다. \(G/xy\)의 성분은 \(G\)의 성분에서 \(y\)를 떼어 낸 것과 \(\{y\}\)다.
 \end{itemize}
-\textbf{아직 형식화할 것.} 다트 대응과 \(\tau\), 세 경우의 회전 식과 한 순환 조건, 면 순열 식과 순환 수 계산,
-\texttt{contractEdge}의 변·고립점·성분 수 세기.
+Lean의 \texttt{UncontractData}는 위 가정만 묶고, \texttt{rotationSystem}이 명시적인 증인이다.
+면 순환 수 식은 종수 0 가정 없이 성립한다. 같은 증인의 회전 공식과 오일러 지표 식을 각각 증명한 뒤
+존재형 정리를 얻는다. \(k=0\), \(k=N\)은 조건부 호환이 항등이 되는 같은 정의 안에서 처리한다.
 \end{proof}
 
 \begin{lemma}[같은 면의 두 모서리를 잇는 변 넣기]
 \label{lem:add_edge}
 \uses{def:rotation, def:eulerChar}
-\notready
-\planned{RotationSystem.exists\_addEdge}
+\lean{Kuratowski.RotationSystem.exists_addEdge, Kuratowski.AddEdgeData,
+  Kuratowski.AddEdgeData.oldEquiv, Kuratowski.AddEdgeData.rotationSystem,
+  Kuratowski.AddEdgeData.orbitCount_facePerm, Kuratowski.AddEdgeData.eulerChar_rotationSystem,
+  Kuratowski.AddEdgeData.eulerChar_eq, Kuratowski.AddEdgeData.rot_uv, Kuratowski.AddEdgeData.rot_vu,
+  Kuratowski.AddEdgeData.rotationSystem_rot_toProd_of_ne}
+\leanok
 유한하고 같음을 판정할 수 있는 \(V\) 위의 그래프 \(G\)와 회전 체계 \(R\)(회전 \(\rho\), 면 순열 \(\varphi\))에서 다트 \(a\),
 \(c\)의 시작점 \(u\), \(v\)가 서로 다르고 인접하지 않으며, \(\bar a\)와 \(\bar c\)가 \(\varphi\)의 같은 순환에 있다고 하자.
 곧 \(u\)에서 \(a\) 바로 뒤의 모서리와 \(v\)에서 \(c\) 바로 뒤의 모서리가 같은 면에 있다. 그러면 \(G + uv\)
@@ -427,12 +440,14 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
 
 \begin{proof}
 \uses{lem:swap, lem:edge_add_counts}
+\leanok
 \(G + uv\)의 다트는 \(G\)의 다트와 \((u, v)\), \((v, u)\)다. \(\tau\)를 \(\rho\)에 두 새 다트를 고정점으로 붙인 순열이라
 하면 \(\rho_1 = \tau\,(a\ uv)\,(c\ vu)\)이고 \(\varphi_1 = \tau\sigma\,(\bar a\ vu)\,(\bar c\ uv)\)다. \(\tau\sigma\)의 순환 수는
 \(O(R) + 1\)이다(2-순환 \((uv\ vu)\)). 첫 호환은 \(\bar a\)의 순환과 2-순환을 합치고(\(-1\)), 합친 순환에는 \(\bar c\)와
 \(uv\)가 모두 있으므로 둘째 호환은 나눈다(\(+1\)). 따라서 \(O(R_1) = O(R) + 1\)이다.
-\textbf{아직 형식화할 것.} 다트 대응(합집합 다트의 두 다트 제외 전단사), 회전 식과 한 순환 조건, 면 순열 식,
-변·고립점·성분 수 세기.
+Lean의 \texttt{AddEdgeData}는 위 가정만 묶고, \texttt{oldEquiv}가 옛 다트의 대응을,
+\texttt{rotationSystem}이 회전 공식을 만족하는 증인을 준다. 면 순환 수와 오일러 지표 등식은 종수 0 가정 없이
+성립하며, 같은 면의 걸음에서 두 시작점의 도달 가능성을 얻어 성분 수 불변을 적용한다.
 \end{proof}
 
 \begin{lemma}[구간 조건이면 나눠도 평면]
@@ -508,7 +523,7 @@ Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, �
 \texttt{[S-분할]}: 빈 단어를 뺀 16,690개 경우에서 되돌리기와 변 넣기의 합성이 위 회전과 정확히 같다.
 \(B\)가 하나뿐이고 \(b_1 = b_2\)인 경우 2,982개를 포함한다.}
 
-\textbf{아직 형식화할 것.} 보조정리~\ref{lem:uncontract}, \ref{lem:add_edge}, 빈 단어의 서로소 합,
+\textbf{아직 형식화할 것.} 위 두 수술을 합치는 일반 증명: 빈 단어의 서로소 합,
 공통 이웃의 자리, \(G_0\)과 그래프 등식 \(G_0/xy = G/xy\), 변을 넣은 뒤 \(G\)와의 그래프 등식. 주 정리에서
 보조정리~\ref{lem:cyclic}의 (a)를 이 구간 조건으로 바꾸는 다리는 후속으로 형식화한다.
 \end{proof}

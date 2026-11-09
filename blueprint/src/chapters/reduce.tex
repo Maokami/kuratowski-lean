@@ -156,20 +156,37 @@ Diestel, \emph{Graph Theory}, 보조정리 3.2.1.
 \begin{lemma}[들어 올리기]
 \label{lem:lift}
 \uses{def:contract, def:subdiv, def:K5K33}
-\planned{kuratowskiFree\_contractEdge}
+\lean{Kuratowski.kuratowskiFree_contractEdge, Kuratowski.KuratowskiFree,
+  Kuratowski.KuratowskiFree.contractEdge,
+  Kuratowski.containsSubdivision_K5_or_K33_of_contractEdge,
+  Kuratowski.containsSubdivision_K33_of_contractEdge,
+  Kuratowski.SubdivisionPaths.containsSubdivision_K33_of_split}
+\leanok
 \(x \sim y\)이고 \(G\)가 \(K_5\)와 \(K_{3,3}\)의 세분을 포함하지 않으면 (KF) \(G/xy\)도 KF다.
+Lean의 \texttt{KuratowskiFree G}는 이 두 세분이 없다는 조건의 논리곱이다. 이 보조정리에는 \(V\)의
+유한성이나 별도의 결정 가능성 가정을 요구하지 않는다.
 \end{lemma}
 
 \begin{proof}
-\uses{thm:paths_iff}
-대우를 보인다. \(G/xy\) 안의 \(TK\)에서 합친 점 \(v\)의 역할로 경우를 나눈다.
+\uses{lem:subdivision_paths_forward, lem:paths_finite_source}
+\leanok
+대우를 보인다. 수축 그래프 \(G/xy\)에서 \(x\)를 남기고 \(y\)는 고립점으로 둔다. 그 안의 세분에서 경로
+체계를 얻는다. \(K_5\), \(K_{3,3}\)에는 고립점이 없으므로 \(y\)는 분기점이 아니고 어느 경로에도 없다.
 \begin{itemize}
-  \item 쓰이지 않거나 경로 내부에 있으면 그대로 옮기거나, \(v\)를 \(x\), \(y\), \(x\)--\(y\)로 바꾼다.
-  \item \(K_{3,3}\)의 분기점(차수 3)이면 \(x\)와 \(y\) 가운데 경로를 2개 이상 받는 쪽을 분기점으로 하고,
-        나머지는 변 \(xy\)로 잇는다. \(TK_{3,3}\)이 나온다.
-  \item \(K_5\)의 분기점(차수 4)이면 경로 4개가 \(x\)와 \(y\)에 나뉘는 방식으로 나눈다.
-        4--0 또는 3--1이면 \(TK_5\), 2--2이면 \(TK_{3,3}\)이 나온다.
+  \item \(x\)가 분기점이 아니면 각 변을 원래 변 또는 \(y\)를 거치는 두 변으로 들어 올리고, 반복점이 있으면
+        \texttt{bypass}로 경로로 줄인다. 새 내부는 원래 내부와 \(y\)에 포함된다. \(x\)를 지나던 무방향 변의
+        경로는 많아야 하나이므로 \(y\)도 많아야 한 경로에만 추가된다. \(x\)가 쓰이지 않는 경우도 포함한다.
+  \item \(x\)가 분기점이면 그 점에서 나가는 경로들의 첫 변을 본다. \(t \in \{x,y\}\)에 첫 변이 닿지 않는
+        경로가 많아야 하나인 쪽을 새 분기점으로 고른다. 그 경로에만 다른 점을 끼우면 되므로 내부 서로소성이
+        유지된다. 이는 4--0, 3--1 배치와 차수 3에서의 다수 쪽 선택을 포함한다.
+  \item 어느 쪽을 골라도 나쁜 경로가 둘 이상이면, 첫 변이 \(x\)에만 닿는 두 경로 \(a_1,a_2\)와 \(y\)에만
+        닿는 두 경로 \(b_1,b_2\)가 서로 다르다. 차수 3인 \(K_{3,3}\)에서는 불가능하다. \(K_5\)에서는 2--2
+        분할이다. 분기점을 \(\{x,f(b_1),f(b_2)\}\), \(\{y,f(a_1),f(a_2)\}\)로 놓고 변 \(xy\), 두 경로
+        \(x \to f(a_j)\), 두 경로 \(f(b_i) \to y\), 원래 경로 \(b_i\)--\(a_j\) 넷으로 \(K_{3,3}\)의
+        경로 체계를 만든다. 원래 교차 경로들은 \(x\)를 피하므로 새 점이 추가되지 않는다.
 \end{itemize}
+마지막에는 \(K_5\) 또는 \(K_{3,3}\) 쪽 꼭짓점 타입이 유한한 경로 체계에서 세분을 구성한다. 따라서 \(K_{3,3}\)의 세분은 그대로
+들어 올려지고, \(K_5\)의 세분은 \(K_5\)나 \(K_{3,3}\)의 세분으로 들어 올려진다. 둘 다 없다는 가정에 모순이다.
 \end{proof}
 
 \begin{theorem}[최소 반례는 3-연결]

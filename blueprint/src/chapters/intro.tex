@@ -18,7 +18,8 @@
         체계로 가는 방향(보조정리~\ref{lem:subdivision_paths_forward}), 유한 그래프에서 두 세분 표현의 동치
         (정리~\ref{thm:paths_iff}), 순환 단어 분류(보조정리~\ref{lem:cyclic}), 서로소 합의 평면성
         및 한 점 붙이기의 평면성(보조정리~\ref{lem:sum0}, \ref{lem:sum1}), 공통 이웃 셋에서 \(TK_5\) 구성(보조정리~\ref{lem:TK5_of_common}),
-        교대 배치에서 \(TK_{3,3}\) 구성(보조정리~\ref{lem:TK33_of_alt})도 완료했다.
+        교대 배치에서 \(TK_{3,3}\) 구성(보조정리~\ref{lem:TK33_of_alt}),
+        수축에서 세분 들어 올리기(보조정리~\ref{lem:lift})도 완료했다.
         경로를 고른 근거는 \ref{chap:routes}장, 형식화 단위는
         \ref{chap:tools}--\ref{chap:main}장, 남은 설계 결정과 진행 순서는 \ref{chap:plan}장에 있다.
 \end{itemize}
@@ -67,6 +68,7 @@
   \item \textbf{KF}(쿠라토프스키 부분 그래프가 없음): \(K_5\)의 세분도 \(K_{3,3}\)의 세분도 부분 그래프로
         갖지 않는 것. Lean으로는
         \(\neg\)\,\texttt{ContainsSubdivision G K5} \(\wedge\) \(\neg\)\,\texttt{ContainsSubdivision G K33}이다.
+        이 논리곱을 \texttt{KuratowskiFree G}로 쓴다.
   \item \(G/xy\): 변 \(xy\)를 수축한 그래프 (정의~\ref{def:contract}).
   \item \(TK_5\), \(TK_{3,3}\): \(K_5\), \(K_{3,3}\)의 세분.
 \end{itemize}

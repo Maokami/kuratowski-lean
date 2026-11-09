@@ -401,7 +401,64 @@ def j2_concl(adj, r, v):
         if seq[k:] + seq[:k] == want: return True
     return False
 
+# [J2-위치] Lean 진술 RotationSystem.exists_cyclicSequence_delVertex_neighbors의 모양.
+#   v에서 나가는 다트 d0 = (v, s)마다 e = φ(d0) = (s, r[s][v])로 면을 고정한다. e는 지운 그래프의
+#   다트이고, C는 지운 회전(v로 가는 다트를 건너뛴 회전)의 면 순열로 e에서 시작한 꼭짓점 열이다.
+#   C의 꼭짓점이 겹치지 않고, u_j = (ρ⁻¹)^j d0의 끝점(j < N)의 위치 p_j가 p_0 = 0에서 엄격히
+#   증가하면 통과한다.
+# [J2-위치-음성] 같은 고정 면에 역순 대신 정순 u_j = ρ^j d0의 끝점을 넣으면 N ≥ 3에서 실패해야 한다.
+#   면을 고정하지 않고 "이웃을 모두 지나는 어떤 면"으로 두면 H - v가 사이클일 때 반대쪽 면이 정순으로
+#   통과하므로, 방향을 구별하려면 면을 e로 고정해야 한다.
+def j2_del_rot(adj, r, v):
+    """v로 가는 다트를 건너뛴 회전 (j2_concl의 rsub와 같다)."""
+    rsub = {}
+    for u in set(adj) - {v}:
+        if not adj[u]: rsub[u] = {}; continue
+        order, w = [], adj[u][0]
+        for _ in range(len(adj[u])): order.append(w); w = r[u][w]
+        order = [w for w in order if w != v]
+        rsub[u] = {order[i]: order[(i + 1) % len(order)] for i in range(len(order))}
+    return rsub
+
+def j2_face_from(rsub, e):
+    """지운 회전에서 다트 e로 시작하는 면의 꼭짓점 열 (faces와 같은 φ 규약)."""
+    vs, d = [], e
+    while True:
+        vs.append(d[0]); d = (d[1], rsub[d[1]][d[0]])
+        if d == e: return vs
+
+def j2_positions_ok(C, nbr_seq):
+    """C 안에서 nbr_seq의 위치가 0에서 엄격히 증가하는가 (C는 꼭짓점이 겹치지 않아야 한다)."""
+    if len(set(C)) != len(C) or not set(nbr_seq) <= set(C): return False
+    p = [C.index(u) for u in nbr_seq]
+    return p[0] == 0 and all(p[j] < p[j + 1] for j in range(len(p) - 1))
+
+# [J2-구간] 증명의 구간 분해를 같은 열거에서 확인한다. d_j = (ρ⁻¹)^j d0, u_j = d_j의 끝점,
+#   L_j = H에서 d_j 면의 길이. (a) L_j ≥ 3이고 φ^{L_j - 1} d_j = (u_{j+1}, v).
+#   (b) 1 ≤ i ≤ L_j - 2인 φ^i d_j는 v에 닿지 않는다 (P_j는 H - v의 걸음).
+#   (c) j ≠ j'이면 d_j, d_j'은 H의 서로 다른 면에 있다.
+#   (d) 고정 면 C는 P_0, ..., P_{N-1}의 시작점을 이어 붙인 것이고 길이는 Σ (L_j - 2),
+#       u_j의 위치는 Σ_{t<j} (L_t - 2)다.
+def j2_sectors_ok(r, v, us, C):
+    N, faces_j, P = len(us), [], []
+    for j, u in enumerate(us):
+        d = (v, u); face = [d]
+        while True:
+            x = (face[-1][1], r[face[-1][1]][face[-1][0]])
+            if x == d: break
+            face.append(x)
+        L = len(face)
+        if L < 3 or face[-1] != (us[(j + 1) % N], v): return False
+        if any(v in x for x in face[1:L - 1]): return False
+        faces_j.append(set(face)); P.append([x[0] for x in face[1:L - 1]])
+    if any(faces_j[a] & faces_j[b] for a in range(N) for b in range(a + 1, N)): return False
+    lens = [len(p) for p in P]
+    return (C == [x for p in P for x in p] and len(C) == sum(lens)
+            and all(C.index(us[j]) == sum(lens[:j]) for j in range(N)))
+
 cnt = 0; bad = []
+pos_cnt = 0; pos_bad = []; neg_cnt = 0; neg_fail = 0
+sec_bad = []
 for n, es in graphs:
     adj = adjacency(n, es)
     if n < 4: continue
@@ -413,7 +470,30 @@ for n, es in graphs:
             if not j2_hyp(adj, v): continue
             cnt += 1
             if not j2_concl(adj, r, v): bad.append((n, es, v))
+            rsub = j2_del_rot(adj, r, v)
+            rinv = {x: y for y, x in r[v].items()}
+            N = len(adj[v])
+            for s in adj[v]:
+                e = (s, r[s][v])
+                if e[1] == v:
+                    pos_bad.append(("e가 v로 감", n, es, v, s)); continue
+                C = j2_face_from(rsub, e)
+                rev, fwd = [s], [s]
+                for _ in range(N - 1):
+                    rev.append(rinv[rev[-1]]); fwd.append(r[v][fwd[-1]])
+                pos_cnt += 1
+                if not j2_positions_ok(C, rev): pos_bad.append((n, es, v, s))
+                if not j2_sectors_ok(r, v, rev, C): sec_bad.append((n, es, v, s))
+                if N >= 3:
+                    neg_cnt += 1
+                    neg_fail += not j2_positions_ok(C, fwd)
 report("[J2] 꼭짓점을 지우면 이웃을 순서대로 지나는 면 사이클", not bad, f"({cnt}개 경우)")
+report("[J2-위치] 면을 e = φ(v, s)로 고정하면 역회전 이웃의 위치가 0에서 엄격히 증가",
+       not pos_bad, f"({pos_cnt}개 시작점, 반례 {pos_bad[:1]})")
+report("[J2-위치-음성] 정순 이웃 열을 넣으면 N ≥ 3에서 실패", neg_cnt > 0 and neg_fail == neg_cnt,
+       f"({neg_cnt}개 중 실패 {neg_fail}개)")
+report("[J2-구간] 면 조각 길이 L_j - 2 ≥ 1, 서로 다른 원래 면, m = Σ(L_j - 2), p_j = 앞 조각 길이의 합",
+       not sec_bad, f"({pos_cnt}개 시작점, 반례 {sec_bad[:1]})")
 
 # [J2-반례] 가정을 "H - v의 지지 집합을 다시 계산해 2-연결"로 약하게 하면 거짓이다 (Codex 검토).
 # H: 삼각형 012, 3을 0과 1에 잇고 잎 4를 3에 잇는다. v = 3. H - v는 삼각형 + 고립점 3, 4라서 지지 집합
@@ -424,6 +504,7 @@ fails = [r for r in (rotations(H, list(H)) or []) if euler_ok(H, list(H), r) and
 report("[J2-반례] 약한 가정의 반례를 지금 가정이 배제한다",
        planar(H) is True and weak and not j2_hyp(H, 3) and len(fails) > 0,
        f"(H 평면 {planar(H)}, 약한 가정 {weak}, 지금 가정 {j2_hyp(H, 3)}, 결론이 틀린 회전 체계 {len(fails)}개)")
+
 
 # [conn] 연결도 정의 (def:conn3): 지운 뒤 지지 집합을 다시 계산하지 않는다.
 star = adjacency(4, [(0, 1), (0, 2), (0, 3)])

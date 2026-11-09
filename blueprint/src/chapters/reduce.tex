@@ -357,21 +357,36 @@ KF 그래프 \(G\), 부분 그래프 \(H \le G\), 서로 다른 \(x,z\)를 잇�
 \begin{theorem}[최소 반례는 3-연결]
 \label{thm:reduce}
 \uses{def:conn3, def:IsPlanar, def:subdiv, def:K5K33}
-\planned{isPlanar\_or\_threeConnected}
-\(G\)가 KF이고 변이 더 적은 모든 KF 그래프가 평면이면, \(G\)는 평면이거나 3-연결이다.
+\lean{Kuratowski.isPlanar_or_threeConnected, Kuratowski.isPlanar_or_twoConnected,
+  Kuratowski.separation_sup, Kuratowski.separation_support_inter_subset,
+  Kuratowski.exists_path_in_sepComponent, Kuratowski.ncard_sup_edge_lt_of_two_missing}
+\leanok
+유한한 꼭짓점 타입 \(V\) 위에서 \(G\)가 KF이고, 같은 \(V\) 위의 변이 더 적은 모든 KF 그래프가 평면이면,
+\(G\)는 평면이거나 3-연결이다.
 \end{theorem}
 
 \begin{proof}
 \uses{lem:small, lem:sum0, lem:sum1, lem:sum2, lem:path_replacement, lem:connectivity_tools, thm:mono}
+\leanok
 \begin{enumerate}
   \item 지지 집합이 4개 이하이면 보조정리~\ref{lem:small}로 끝난다.
-  \item 끊어져 있으면 보조정리~\ref{lem:sum0}, 절단점이 있으면 보조정리~\ref{lem:sum1}로 처리한다.
-  \item 2-분리 \(\{x, y\}\)가 있으면 양쪽에 \(xy\)를 더한 \(G_1 + xy\), \(G_2 + xy\)를 본다.
+  \item 연결도가 부족하면 삭제 집합을 지지 집합과 교차시켜 \(T \subseteq S_G\)인 작은 분리 집합을 얻는다.
+        \(G-T\)의 지지 성분 하나를 \(C\)라 하고, \(C\cup T\)를 남긴 그래프 \(G_1\)과 \(C\)를 지운
+        그래프 \(G_2\)로 나눈다. 둘의 합집합은 \(G\)이고 지지 교집합은 \(T\)에 포함된다.
+        \(|T| \le 1\)이면 각 쪽은 반대쪽 비고립점의 변을 하나 이상 놓친다. 따라서 변이 더 적고 부분 그래프라
+        KF이므로 귀납 가정으로 평면이다. 보조정리~\ref{lem:sum0}, \ref{lem:sum1}로 합집합이 평면이다.
+        이로써 비평면인 경우 2-연결이다.
+  \item 3-연결이 아니면 \(|T|<3\)인 분리 집합이 있고, 2-연결성에서 \(|T|=2\)다. \(T=\{x,y\}\)라 하자.
+        양쪽에 \(xy\)를 더한 \(G_1+xy\), \(G_2+xy\)를 본다.
     \begin{itemize}
-      \item 둘 다 변이 더 적다 (2-연결이므로 각 쪽에 변이 2개 이상 있다).
-      \item 둘 다 KF다. 그 안의 \(TK\)가 \(xy\)를 쓰면, \(xy\)를 다른 쪽의 \(x\)--\(y\) 경로로 바꾸면 되기
-            때문이다.
+      \item 보조정리~\ref{lem:connectivity_tools}에서 \(x\), \(y\)는 반대쪽 각 지지 성분에 이웃을 갖는다.
+            그 성분 안의 걸음에 양 끝 변을 붙이고 \texttt{bypass}로 줄이면 \(x\)--\(y\) 경로를 얻는다.
+            그 내부는 해당 쪽 그래프에서 고립점들이므로 보조정리~\ref{lem:path_replacement}로 추가 변 뒤에도 KF다.
+      \item 각 쪽은 반대 성분으로 가는 서로 다른 두 원래 변을 놓치며 \(xy\) 하나만 더한다. 따라서 변 수는
+            원래보다 엄밀히 적다. 두 변이 서로 다름은 반대 성분의 점이 \(\{x,y\}\) 밖에 있다는 데서 따른다.
     \end{itemize}
-  \item 따라서 둘 다 평면이고, 보조정리~\ref{lem:sum2}와 정리~\ref{thm:mono}로 \(G\)도 평면이다.
+  \item 귀납 가정으로 두 추가 그래프는 평면이다. 지지 교집합은 정확히 \(\{x,y\}\)이고 \(xy\)가 양쪽에
+        있으므로 보조정리~\ref{lem:sum2}를 적용한다. 원래 \(G\)는 그 합집합의 부분 그래프이므로
+        정리~\ref{thm:mono}로 평면이다.
 \end{enumerate}
 \end{proof}

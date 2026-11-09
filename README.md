@@ -21,7 +21,8 @@
 (`VertexDeletion.lean`), 같은 면에서 꼭짓점을 쪼개는 수술과 면 경계의 단사성
 (`SplitVertex.lean`, `FaceBoundary.lean`), 면 경계의 순서를 보존하는 사이클 구성
 (`FaceCycle.lean`), 지운 꼭짓점의 이웃을 특정 면에서 역순으로 열거하기
-(`DelVertexFace.lean`)도 증명했다.
+(`DelVertexFace.lean`), 변 수가 최소인 비평면 KF 그래프의 3-연결성 축약
+(`Reduction.lean`)도 증명했다.
 
 ```lean
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [DecidableEq V]
@@ -56,6 +57,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `ThreeConnected.exists_contractible` | `Contractible.lean` | 유한한 V에서 비고립 꼭짓점이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재 |
 | `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
 | `KuratowskiFree.sup_edge_of_path` | `PathReplacement.lean` | 내부가 부분 그래프의 고립점인 바깥 경로를 한 변으로 더해도 KF 유지 (V 유한성 불필요) |
+| `isPlanar_or_threeConnected` | `Reduction.lean` | 같은 V에서 변이 적은 KF 그래프의 평면성을 가정하면 평면 또는 3-연결 |
 | `ncard_edgeSet_contractEdge_lt`, `card_connectedComponent_contractEdge` | `ContractCounts.lean` | 실제 변 수축은 변 수를 줄이고, 고립점으로 남긴 점 때문에 성분 수는 하나 증가 |
 | `ConnectedOn.deleteVertex`, `ConnectedOn.ncard_neighborSet_ge` | `ConnectivityTools.lean` | 한 점 삭제 뒤 연결도 하한과 기준 집합 점의 이웃 수 하한 |
 | `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
@@ -253,6 +255,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `ContractCounts.lean` | 수축의 변 수 감소·성분 수·고립점 수, 두 다트 제외 전단사와 변 추가의 세기 |
 | `ConnectivityTools.lean` | 연결도 단조성·한 점 삭제·이웃 수 하한·임의 크기 최소 분리 집합의 이웃 |
 | `PathReplacement.lean` | 지지 집합 바깥 경로를 한 변으로 바꿀 때의 KF 보존 |
+| `Reduction.lean` | 작은 분리 집합으로 나누고 공통 변을 더해 최소 비평면 KF 반례의 3-연결성 증명 |
 | `ConnectedContraction.lean` | 수축의 지지 집합·걸음 사영·세 점 분리 집합과 각 성분의 이웃 |
 | `Contractible.lean` | 최소 지지 성분 논증으로 3-연결성을 보존하는 변의 존재 |
 | `Deletion.lean` | 변 지우기 수술과 면 수 공식 |

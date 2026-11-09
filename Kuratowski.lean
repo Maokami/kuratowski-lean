@@ -4,6 +4,7 @@ import Kuratowski.Connected
 import Kuratowski.ConnectedExamples
 import Kuratowski.Contract
 import Kuratowski.Cyclic
+import Kuratowski.CyclicWalk
 import Kuratowski.Deletion
 import Kuratowski.Euler
 import Kuratowski.Iso
@@ -11,6 +12,7 @@ import Kuratowski.Map
 import Kuratowski.NonPlanar
 import Kuratowski.Paths
 import Kuratowski.PathsExamples
+import Kuratowski.PathsSubdivision
 import Kuratowski.Perm
 import Kuratowski.Planar
 import Kuratowski.Small

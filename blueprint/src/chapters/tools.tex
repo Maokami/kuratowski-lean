@@ -4,7 +4,8 @@
 여기서부터 어려운 방향이다. \ref{chap:tools}--\ref{chap:main}장의 항목은 꼭짓점 집합 넓히기
 (보조정리~\ref{lem:map_iff}), 작은 지지 집합의 평면성(보조정리~\ref{lem:small}),
 연결성의 정의(정의~\ref{def:conn3}), 변 수축의 정의(정의~\ref{def:contract}),
-순환 꼭짓점 수열의 정의(정의~\ref{def:cycseq}), 경로 체계의 정의(정의~\ref{def:paths})를 빼고
+순환 꼭짓점 수열의 정의(정의~\ref{def:cycseq})와 사이클·호 변환(보조정리~\ref{lem:cycseq_walks}),
+경로 체계의 정의(정의~\ref{def:paths})와 세분에서의 변환(보조정리~\ref{lem:subdivision_paths_forward})을 빼고
 아직 형식화하지 않았다.
 예정된 Lean 이름은 \texttt{\textbackslash lean} 대신 ``예정 Lean 이름''으로 적는다.
 
@@ -102,6 +103,7 @@ map의 방향에 주의한다. 사상은 \(S\)에서 \(\mathrm{Fin}\,4\)와 \(V\
 \label{thm:paths_iff}
 \uses{def:subdiv, def:paths}
 \planned{containsSubdivision\_iff\_paths}
+유한한 꼭짓점 타입 \(V\) 위의 그래프 \(G\)와 임의의 꼭짓점 타입 \(W\) 위의 그래프 \(K\)에 대해,
 \(G\)가 \(K\)의 세분을 포함하는 것은 \(K\)의 \(G\) 안 경로 체계가 있는 것과 같다.
 \end{theorem}
 
@@ -112,9 +114,37 @@ map의 방향에 주의한다. 사상은 \(S\)에서 \(\mathrm{Fin}\,4\)와 \(V\
 (\(\Leftarrow\)) 경로 내부 꼭짓점의 총수에 대한 귀납법. 내부 꼭짓점을 하나씩 \texttt{subdivideEdge}로
 넣는다. 넣는 순간 그 꼭짓점은 아직 고립점이다.
 
-이 동치는 아직 형식화하지 않았다. 귀납적인 세분 정의(정의~\ref{def:subdiv})가 이 경로 표현, 즉 표준적인
+정방향은 아래 보조정리로 형식화했다. 역방향은 아직 형식화하지 않았다. 귀납적인 세분 정의
+(정의~\ref{def:subdiv})가 이 경로 표현, 즉 표준적인
 위상 소수 정의와 같다는 것은 쉬운 방향의 두 번째 리뷰에서 수학적으로 따로 확인했다.
 \end{proof}
+
+\begin{lemma}[세분에서 경로 체계로]
+\label{lem:subdivision_paths_forward}
+\uses{def:subdiv, def:paths}
+\lean{Kuratowski.IsSubdivision.exists_subdivisionPaths,
+  Kuratowski.ContainsSubdivision.nonempty_subdivisionPaths,
+  Kuratowski.SubdivisionPaths.mono, Kuratowski.SubdivisionPaths.subdivide,
+  Kuratowski.SubdivisionPaths.sym2_eq_of_mem_edges}
+\leanok
+\(\mathrm{IsSubdivision}\ K\ f\ H\)이면 \(H\) 안에 분기점 배치가 정확히 \(f\)인 \(K\)의 경로 체계가 있다.
+따라서 \(G\)가 \(K\)의 세분을 포함하면 \(G\) 안에 \(K\)의 경로 체계가 있다. 이 방향에는 유한성이 필요 없다.
+\end{lemma}
+
+\begin{proof}
+\leanok
+귀납적인 세분 정의를 따른다. 기저는 각 변을 한 변짜리 경로로 두는 체계다. 변 \(xy\)를 고립점 \(w\)로
+나눌 때 각 경로에서 그 변을 \(xwy\)로 바꾼다. 서로 다른 원래 변의 두 경로는 같은 변을 지나지 않으므로
+새 점 \(w\)는 한 경로의 내부에만 추가된다. 분기점 배치는 바뀌지 않는다. 마지막에 부분 그래프 포함을 따라
+경로를 옮긴다.
+\end{proof}
+
+동치 정리의 역방향에서는 유한성이 필요하다. 예를 들어 무한 완전 그래프 \(K_{\mathbb{N}}\)의 모든 변을
+한 번씩 나눈 그래프에는 원래 꼭짓점을 분기점으로 하는 경로 체계가 있다. 그러나 유한 번만 세분한
+\(K_{\mathbb{N}}\)은 어느 분기점 배치로도 그 안에 들어가지 않는다. 각 분기점의 차수는 무한이므로
+차수가 2인 새 점에는 놓을 수 없고, 유한 번의 세분 뒤에는 원래 분기점 사이에 무한히 많은 변이 남는데
+목표 그래프에는 그런 변이 없기 때문이다. 이 무한 반례 자체는 Lean으로 형식화하지 않았다.
+\(V\)가 유한하면 분기점의 단사성에 따라 \(W\)도 유한하다.
 
 \begin{lemma}[공통 이웃 셋이면 \(TK_5\)]
 \label{lem:TK5_of_common}

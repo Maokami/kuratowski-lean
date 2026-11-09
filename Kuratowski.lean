@@ -29,4 +29,5 @@ import Kuratowski.Smoothing
 import Kuratowski.Subdivision
 import Kuratowski.SubdivisionOfPaths
 import Kuratowski.Sum
+import Kuratowski.VertexDeletion
 import Kuratowski.WalkLift

@@ -15,6 +15,7 @@ import Kuratowski.Deletion
 import Kuratowski.Euler
 import Kuratowski.FaceBoundary
 import Kuratowski.FaceCycle
+import Kuratowski.GlueEdge
 import Kuratowski.GlueOne
 import Kuratowski.Iso
 import Kuratowski.Lift

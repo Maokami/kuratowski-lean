@@ -15,7 +15,7 @@
 내부 서로소성(`CyclicWalk.lean`), 유한 그래프에서 두 세분 표현의 동치(`PathsSubdivision.lean`,
 `SubdivisionOfPaths.lean`), 순환 단어 분류(`CyclicWord.lean`), 서로소 합의 평면성(`Sum.lean`),
 공통 이웃 셋에서 `K₅` 세분 구성(`CommonNeighbors.lean`), 교대 배치에서 `K₃,₃` 세분 구성
-(`AlternatingNeighbors.lean`), 한 점 붙이기의 평면성(`GlueOne.lean`), 수축에서 세분 들어 올리기
+(`AlternatingNeighbors.lean`), 한 점·공통 변 붙이기의 평면성(`GlueOne.lean`, `GlueEdge.lean`), 수축에서 세분 들어 올리기
 (`WalkLift.lean`, `Lift.lean`), 3-연결 그래프의 수축 가능한 변 존재
 (`ConnectedContraction.lean`, `Contractible.lean`), 꼭짓점 삭제의 회전 체계 구성과 평면성 보존
 (`VertexDeletion.lean`), 같은 면에서 꼭짓점을 쪼개는 수술과 면 경계의 단사성
@@ -54,6 +54,7 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V} [Finite V] [Deci
 | `ThreeConnected.exists_contractible` | `Contractible.lean` | 유한한 V에서 비고립 꼭짓점이 5개 이상인 3-연결 그래프의 수축 가능한 변 존재 |
 | `kuratowskiFree_contractEdge` | `Lift.lean` | x ∼ y이고 K₅·K₃,₃ 세분이 없으면 수축 뒤에도 없음 (V 유한성 불필요) |
 | `IsPlanar.sup_of_inter_eq_singleton` | `GlueOne.lean` | 유한한 V에서 지지 집합이 한 점에서 만나는 두 평면 그래프의 합집합은 평면 |
+| `IsPlanar.sup_of_inter_eq_edge` | `GlueEdge.lean` | 유한한 V에서 지지 집합이 공통 변의 두 끝점에서만 만나는 두 평면 그래프의 합집합은 평면 |
 | `PermutationDeletion.orbitCount_cut_pair_face` | `PermutationDeletion.lean` | 역다트 두 점 삭제 뒤 면 순환 수가 하나 줄어드는 조건 |
 | `IsPlanar.sup_of_disjoint` | `Sum.lean` | 유한한 V에서 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면 |
 | `containsSubdivision_K5_of_three_common` | `CommonNeighbors.lean` | 인접한 두 점이 사이클 밖에 있고 사이클 위 공통 이웃이 셋이면 K₅ 세분 포함 (V 유한성 불필요) |
@@ -185,8 +186,9 @@ python3 -I scripts/check_definition.py
 기하를 조합적으로 다시 진술한 보조정리는 형식화하기 전에 `scripts/check_blueprint.py`로 작은
 그래프에서 먼저 검사했다.
 
-공통 변 붙이기(`lem:sum2`)에 필요한 일반 순열의 두 점 삭제 공식과, 교집합이 양쪽의 한 성분에
-놓일 때의 성분 수 공식을 형식화했다. 실제 합집합의 회전 체계까지 연결하는 일반 평면성 증명은 진행 중이다.
+공통 변 붙이기(`lem:sum2`)는 `GlueEdge.lean`에서 형식화했다. 출처를 붙인 다트 합에서 회전을 잇고,
+중복 변의 다트 둘을 지운 뒤 실제 합집합의 회전 체계로 옮긴다. 일반 순열의 삭제 공식과
+고립점·성분 수 등식으로 평면성을 얻으며, 공통 변의 양 끝 차수가 모두 1인 경우도 포함한다.
 
 ## 블루프린트 빌드
 
@@ -266,6 +268,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `AlternatingNeighbors.lean` | 교대하는 사이클 위 네 점과 바깥 허브 둘에서 K₃,₃ 세분 구성 |
 | `Sum.lean` | 서로소 타입 합의 회전·면·성분 수, 지지 집합이 서로소인 합집합의 평면성 |
 | `GlueOne.lean` | 공통 꼭짓점에서 회전을 잇기, 면·성분·고립점 수, 공통 성분 교집합의 세기와 한 점 붙이기의 평면성 |
+| `GlueEdge.lean` | 공통 변의 두 끝에서 회전을 잇고 중복 변을 삭제해 합집합의 평면성 증명 |
 | `PermutationDeletion.lean` | 일반 순열에서 역다트 두 점 삭제의 면 순열·순환 수 공식 |
 | `WalkLift.lean` | 수축 그래프의 걸음·경로를 원래 그래프로 옮기기와 내부 제어 |
 | `Lift.lean` | 분기점 교체·2–2 분할에서 K₃,₃ 구성, KF 수축 닫힘 |

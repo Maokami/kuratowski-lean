@@ -183,6 +183,14 @@ Conventional Commit은 `type(scope): 한국어 설명` 형식을 사용한다. �
 유지하며, 설정은 `.github/continuous-ai/lean.json`에 있다. 소스·정책·패키지 SHA가 digest에 들어가므로
 첫 이관은 새 조사 주기를 시작하지만 이전 후보 ID는 중복 게시하지 않는다. PR 리뷰·머지 정책은 그대로다.
 
+이 설명은 고정한 kit `d17b8cf`의
+[configure/source/posted_ids/publish 구현](https://github.com/Maokami/continuous-ai-kit/blob/d17b8cf395a9bc6fc48799850f4d80c72386e767/cai/scan.py)과
+[기본 브랜치 가드·실행 시도 artifact·always 실패 기록](https://github.com/Maokami/continuous-ai-kit/blob/d17b8cf395a9bc6fc48799850f4d80c72386e767/.github/workflows/scan-report.yml)을
+Root와 Claude가 독립적으로 대조한 결과다. 패키지 PR #1의 원격 CI는 88개 시험을 통과했다.
+caller에도 main ref 제한을 두어 이 저장소의 diff에서 확인할 수 있게 했다.
+50파일·13묶음은 릴리스 `138e567`의 추적된 `Kuratowski/*.lean` 목록을 직접 세어 확인했다.
+이는 소스 검토와 시험 근거이며, 재사용 workflow의 실제 실행 검증은 머지 후 별도로 기록한다.
+
 CLI restricted mode로 프로젝트 설정을 자동 로드하지 않으므로 프롬프트에서 AGENTS.md를 명시적으로 읽는다.
 모델은 `claude-sonnet-5-5`, 32턴, 10분이고 job은 15분이다. 취소 기록과 실행 시도별 artifact를 제공한다.
 재시도는 부분 job 재실행 대신 batch 번호와 retry_failed를 지정한 새 수동 실행을 쓴다.

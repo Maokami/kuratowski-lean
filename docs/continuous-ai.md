@@ -200,6 +200,21 @@ CLI restricted mode로 프로젝트 설정을 자동 로드하지 않으므로 �
 재시도는 부분 job 재실행 대신 batch 번호와 retry_failed를 지정한 새 수동 실행을 쓴다.
 기존 `scripts/lean_improvement.py`와 시험은 롤백용으로 남기며, 예전 workflow와 동시에 실행하지 않는다.
 
+### 실제 이관 검증 (2026-11-10)
+
+첫 Lean 실행과 명시적 재시도는 검토 소스 목록에 대한 프롬프트의 모호함 때문에 검증에서 거부됐다.
+PR43은 정책 파일을 목록에서 제외하고 모든 인용 소스를 포함하도록 명시했다. PR44는 한정 이름 선언을
+인식하는 kit `55a5329`로 갱신했다(패키지 PR3의 90개 시험·독립 리뷰 통과).
+[새 실행 42823811257](https://github.com/Maokami/kuratowski-lean/actions/runs/42823811257)은
+소스 `b05f96e`의 묶음 0에서 준비·분석·검증·게시를 모두 통과했다. 후보 0건이라 보고서는 만들지 않고
+원장에 새 digest의 첫 시도를 성공으로 기록했다. 검토 파일 목록은 자기 보고이며, 성공이 개선점 부재나
+완전한 탐색을 뜻하지 않는다. 독립 검토에서는 검증 대상이 아닌 요약의 가정 사용처 설명 오류도 확인했다.
+
+비-Lean 예제는 의도한 문서 모순 1건을 찾아 보고서 #42를 게시했다. 이는 한 가지 인위적 사례의
+운영 경로 검사다. 실패한 두 실행, 요약 오류, 탐색 누락, 모델 추정 비용과 실제 청구액의 구분까지
+[패키지의 실측 기록](https://github.com/Maokami/continuous-ai-kit/blob/main/docs/adoption-evidence.md)에
+남겼다. gh-aw는 같은 첫 실행 입력으로 비교할 준비만 했으며 아직 API 추론을 실행하지 않았다.
+
 `continuous-ai-docs-demo.yml`은 비-Lean text adapter의 수동 시험이다. 별도 원장·concurrency를 사용하며
 고의로 모순을 넣은 `.github/continuous-ai/fixtures/cache-guide.md`만 조사한다. 이 fixture는 실제 사용
 설명이나 품질 벤치마크가 아니다. 한 번의 검증 후 정기 실행하지 않는다.

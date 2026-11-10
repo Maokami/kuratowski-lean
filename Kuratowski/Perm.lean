@@ -3,17 +3,17 @@ import Mathlib.SetTheory.Cardinal.Finite
 import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
-# 순열의 순환 수
+# Counting permutation cycles
 
-면의 개수는 면 순열의 순환(궤도) 수다. 변을 지우거나 차수 2인 꼭짓점을 펴는 수술은
-면 순열에 호환(transposition)을 몇 번 곱하는 것으로 쓸 수 있으므로, 순환 수가 어떻게
-바뀌는지만 알면 된다. 핵심은 다음 사실이다.
+Graph surgeries can be expressed using transpositions of a face permutation.
+The key counting rules are:
 
-* `a`, `b`가 `f`의 서로 다른 순환에 있으면 `f * swap a b`에서 두 순환이 합쳐진다 (`-1`).
-* `a ≠ b`가 같은 순환에 있으면 그 순환이 둘로 갈라진다 (`+1`).
+* If `a` and `b` lie in different cycles of `f`, then `f * swap a b` joins them (`-1`).
+* If distinct `a` and `b` lie in one cycle, it splits into two (`+1`).
 
-갈라지는 쪽은 합쳐지는 쪽에 `f = (f * swap a b) * swap a b`를 적용해 얻는다. 이때
-`f * swap a b`에서 `a`, `b`가 다른 순환에 있다는 것은 부호(sign)로 보인다.
+The splitting formula follows from the joining formula and
+`f = (f * swap a b) * swap a b`. The sign of a permutation shows that `a` and `b`
+lie in different cycles after the split.
 -/
 
 namespace Kuratowski
@@ -22,14 +22,14 @@ open Equiv Equiv.Perm
 
 variable {α : Type*} [DecidableEq α]
 
-/-- 순열의 순환 수 (고정점도 순환 하나로 센다). -/
+/-- The number of permutation cycles, including fixed points. -/
 noncomputable def orbitCount (f : Perm α) : ℕ := Nat.card (Quotient (SameCycle.setoid f))
 
-/-! ## 구역 보조정리 -/
+/-! ## Equivalence classes affected by a transposition -/
 
 omit [DecidableEq α] in
-/-- 한 걸음마다 `s`-동치이거나 두 끝이 모두 "`a` 또는 `b`와 `s`-동치인 구역"에 있으면,
-여러 걸음 뒤에도 그렇다. -/
+/-- If each step stays within an `s`-class or within the union of the classes of
+`a` and `b`, then every finite sequence of steps does too. -/
 lemma reflTransGen_zone {r s : α → α → Prop} (hs : Equivalence s) (a b : α)
     (h : ∀ x z, r x z → s x z ∨ ((s x a ∨ s x b) ∧ (s z a ∨ s z b))) {x y : α}
     (hxy : Relation.ReflTransGen r x y) :
@@ -54,7 +54,7 @@ lemma reflTransGen_of_sameCycle [Finite α] {f : Perm α} {x y : α} (h : SameCy
   | zero => exact .refl
   | succ n ih => exact ih.tail (by rw [pow_succ', Perm.mul_apply])
 
-/-- `f * swap a b`의 순환은 `f`의 순환이거나, `a`·`b`의 `f`-순환에 걸쳐 있다. -/
+/-- A cycle of `f * swap a b` stays in an `f`-cycle or in the union of those of `a` and `b`. -/
 lemma sameCycle_mul_swap_zone [Finite α] {f : Perm α} {a b x y : α}
     (h : SameCycle (f * swap a b) x y) :
     SameCycle f x y ∨ ((SameCycle f x a ∨ SameCycle f x b) ∧ (SameCycle f y a ∨ SameCycle f y b)) := by
@@ -75,10 +75,10 @@ lemma sameCycle_mul_swap_zone [Finite α] {f : Perm α} {a b x y : α}
   rw [swap_apply_of_ne_of_ne hpa hpb]
   exact Or.inl (sameCycle_apply_right.2 (SameCycle.refl _ _))
 
-/-! ## 합쳐지는 경우 -/
+/-! ## Joining cycles -/
 
-/-- `f * swap a b`에서 `a`, `b`가 같은 순환에 있으면 `f`의 순환은 `f * swap a b`의
-순환 안에 들어간다. -/
+/-- If `a` and `b` share a cycle after the transposition, each original cycle
+lies in a cycle of `f * swap a b`. -/
 lemma _root_.Equiv.Perm.SameCycle.mul_swap_of_sameCycle [Finite α] {f : Perm α} {a b : α}
     (hab : SameCycle (f * swap a b) a b) {x y : α} (h : SameCycle f x y) :
     SameCycle (f * swap a b) x y := by
@@ -103,7 +103,7 @@ lemma _root_.Equiv.Perm.SameCycle.mul_swap_of_sameCycle [Finite α] {f : Perm α
   | zero => exact SameCycle.refl _ _
   | succ n ih => rw [pow_succ', Perm.mul_apply]; exact ih.trans (step _)
 
-/-- `a`, `b`가 `f`의 서로 다른 순환에 있으면 `f * swap a b`에서는 같은 순환에 있다. -/
+/-- A transposition joins the distinct cycles containing its two endpoints. -/
 lemma sameCycle_mul_swap_of_not [Finite α] {f : Perm α} {a b : α} (hab : ¬ SameCycle f a b) :
     SameCycle (f * swap a b) a b := by
   classical
@@ -148,7 +148,7 @@ lemma sameCycle_iff_of_mul_swap_not [Finite α] {f : Perm α} {a b : α}
     · exact (hψ.mul_swap_of_sameCycle hx).trans
         (hψ.symm.trans (hψ.mul_swap_of_sameCycle hy).symm)
 
-/-- **합쳐짐**: `a`, `b`가 `f`의 서로 다른 순환에 있으면 순환 수가 하나 준다. -/
+/-- Joining two distinct cycles decreases the orbit count by one. -/
 theorem orbitCount_mul_swap_of_not_sameCycle [Finite α] {f : Perm α} {a b : α}
     (hab : ¬ SameCycle f a b) : orbitCount (f * swap a b) + 1 = orbitCount f := by
   classical
@@ -194,7 +194,7 @@ theorem orbitCount_mul_swap_of_not_sameCycle [Finite α] {f : Perm α} {a b : α
   unfold orbitCount
   rw [this, Finite.card_option]
 
-/-! ## 갈라지는 경우 -/
+/-! ## Splitting a cycle -/
 
 lemma not_sameCycle_mul_swap_of_sameCycle [Finite α] {f : Perm α} {a b : α} (hne : a ≠ b)
     (hab : SameCycle f a b) : ¬ SameCycle (f * swap a b) a b := by
@@ -203,7 +203,7 @@ lemma not_sameCycle_mul_swap_of_sameCycle [Finite α] {f : Perm α} {a b : α} (
   intro hψ
   set ψ := f * swap a b with hψdef
   have hf : f = ψ * swap a b := by rw [hψdef, mul_swap_mul_self]
-  -- 두 순열의 "같은 순환" 관계가 같다.
+  -- The two permutations have the same cycle equivalence relation.
   have iff : ∀ x y, SameCycle f x y ↔ SameCycle ψ x y := by
     intro x y
     constructor
@@ -239,17 +239,17 @@ lemma not_sameCycle_mul_swap_of_sameCycle [Finite α] {f : Perm α} {a b : α} (
   rcases Int.units_eq_one_or (sign (f.cycleOf a)) with h | h <;> rw [h] at h1 <;> revert h1 <;>
     decide
 
-/-- **갈라짐**: `a ≠ b`가 `f`의 같은 순환에 있으면 순환 수가 하나 는다. -/
+/-- Transposing distinct elements of one cycle increases the orbit count by one. -/
 theorem orbitCount_mul_swap_of_sameCycle [Finite α] {f : Perm α} {a b : α} (hne : a ≠ b)
     (hab : SameCycle f a b) : orbitCount (f * swap a b) = orbitCount f + 1 := by
   have h := orbitCount_mul_swap_of_not_sameCycle (not_sameCycle_mul_swap_of_sameCycle hne hab)
   rw [mul_swap_mul_self] at h
   exact h.symm
 
-/-! ## 점 하나를 순환에서 잘라 내기 -/
+/-! ## Removing an element from its cycle -/
 
-/-- `a`를 그 순환에서 잘라 내어 고정점으로 만든다: `… → p → a → q → …`를
-`… → p → q → …`와 `a → a`로 바꾼다. -/
+/-- Make `a` a fixed point by replacing `… → p → a → q → …` with
+`… → p → q → …` and `a → a`. -/
 def cut (f : Perm α) (a : α) : Perm α := f * swap (f⁻¹ a) a
 
 @[simp] lemma cut_apply_self (f : Perm α) (a : α) : cut f a a = a := by
@@ -265,7 +265,7 @@ lemma cut_apply_of_ne (f : Perm α) {a x : α} (hx : x ≠ a) :
   · have : x ≠ f⁻¹ a := by rintro rfl; exact h (by simp)
     rw [swap_apply_of_ne_of_ne this hx]
 
-/-- 함수 `g`의 값을 보존하는 순열을 잘라도 `g`의 값은 보존된다. -/
+/-- Cutting a cycle preserves any function that was invariant under the permutation. -/
 lemma cut_preserves {β : Type*} (f : Perm α) (a : α) (g : α → β) (hg : ∀ x, g (f x) = g x)
     (x : α) : g (cut f a x) = g x := by
   by_cases hx : x = a
@@ -284,7 +284,7 @@ lemma orbitCount_cut [Finite α] (f : Perm α) (a : α) :
     exact orbitCount_mul_swap_of_sameCycle hne
       (sameCycle_apply_left.1 (by rw [show f (f⁻¹ a) = a by simp]))
 
-/-- `a`가 아닌 두 점이 `f`의 같은 순환에 있으면 `cut f a`에서도 같은 순환에 있다. -/
+/-- Cutting out `a` preserves cycle membership between elements different from `a`. -/
 lemma sameCycle_cut [Finite α] {f : Perm α} {a x y : α} (hx : x ≠ a) (hy : y ≠ a)
     (h : SameCycle f x y) : SameCycle (cut f a) x y := by
   by_cases hfa : f a = a
@@ -299,11 +299,11 @@ lemma sameCycle_cut [Finite α] {f : Perm α} {a x y : α} (hx : x ≠ a) (hy : 
   · exact absurd (hx'.eq_of_right (cut_apply_self f a)) hx
   · exact absurd (hx'.eq_of_right (cut_apply_self f a)) hx
 
-/-! ## 고정점 떼어 내기와 옮기기 -/
+/-! ## Removing fixed points and transporting permutations -/
 
 omit [DecidableEq α] in
-/-- `p`를 만족하지 않는 점은 모두 고정점이면, 순환 수는 `p` 위로 제한한 순열의 순환 수에
-고정점 수를 더한 것이다. -/
+/-- If every point outside `p` is fixed, the orbit count is the orbit count
+of the restriction to `p` plus the number of points outside `p`. -/
 lemma orbitCount_eq_subtypePerm_add [Finite α] (f : Perm α) (p : α → Prop)
     (hp : ∀ x, p (f x) ↔ p x) (hfix : ∀ x, ¬ p x → f x = x) :
     orbitCount f = orbitCount (f.subtypePerm hp) + Nat.card {x // ¬ p x} := by
@@ -344,7 +344,7 @@ lemma orbitCount_eq_subtypePerm_add [Finite α] (f : Perm α) (p : α → Prop)
   rw [← Nat.card_eq_of_bijective F hF, Nat.card_sum]
 
 omit [DecidableEq α] in
-/-- 순열을 일대일 대응으로 옮겨도 "같은 순환" 관계는 그대로다. -/
+/-- Conjugation by an equivalence preserves the same-cycle relation. -/
 lemma sameCycle_permCongr_iff {β : Type*} [Finite α] (e : α ≃ β) (σ : Perm α)
     (a b : α) : (e.permCongr σ).SameCycle (e a) (e b) ↔ σ.SameCycle a b := by
   have hpow : ∀ (n : ℕ) x, ((e.permCongr σ) ^ n) x = e ((σ ^ n) (e.symm x)) := by

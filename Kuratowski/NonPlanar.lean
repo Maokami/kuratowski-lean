@@ -2,19 +2,21 @@ import Kuratowski.Basic
 import Kuratowski.Components
 
 /-!
-# 변 개수 상한과 `K₅`, `K₃,₃`의 비평면성
+# Edge bounds and non-planarity of `K₅` and `K₃,₃`
 
-차수 1인 꼭짓점이 없으면 면의 길이가 3 이상이므로 (이분 그래프면 4 이상) 면 수를 변 수로
-위에서 누를 수 있다. (차수 1인 꼭짓점이 있으면 길이 2인 면이 생긴다. 예: `K₂`.)
-오일러 공식 `V - E + F = 2c`와 "고립점은 각각 성분 하나이고, 변이 있으면 성분이 하나 더 있다"
-(`c ≥ I + 1`)를 합치면, 변이 하나 이상 있고 차수 1인 꼭짓점이 없는 평면 그래프에 대해
+Without vertices of degree 1, every face cycle has length at least 3 (at least 4 for bipartite
+graphs), so the number of face cycles is bounded above by the number of edges. (Such a vertex can
+give a face of length 2, as in `K₂`.) Combining Euler's formula `V - E + F = 2c` with "each
+isolated vertex is a component, and an edge gives one more component" (`c ≥ I + 1`), a planar
+graph with at least one edge and no vertex of degree 1 satisfies
 
 * `E + 6 + 3I ≤ 3V`
-* 이분 그래프이면 `E + 4 + 2I ≤ 2V`
+* `E + 4 + 2I ≤ 2V` if it is bipartite
 
-를 얻는다 (`I`는 고립점 수). 고립점을 허용하는 것은 `K₅`, `K₃,₃`를 더 큰 꼭짓점 집합 안에
-넣은 그래프(`K.map f`)에도 바로 쓰기 위해서다. `K₅`는 `V - I = 5`, `E = 10`이라 첫 부등식을,
-`K₃,₃`는 `V - I = 6`, `E = 9`라 둘째 부등식을 어긴다.
+where `I` is the number of isolated vertices. Isolated vertices are allowed so that the bounds
+apply directly to `K₅` and `K₃,₃` placed in a larger vertex set (`K.map f`). `K₅` has
+`V - I = 5` and `E = 10`, violating the first bound; `K₃,₃` has `V - I = 6` and `E = 9`, violating
+the second.
 -/
 
 namespace Kuratowski
@@ -23,14 +25,15 @@ open SimpleGraph
 
 variable {V : Type*} {G : SimpleGraph V}
 
-/-- 차수 1인 꼭짓점이 없다: 변 `uv`의 끝 `v`에는 `u` 말고 다른 이웃이 있다. -/
+/-- No vertex of degree 1: for each edge `uv`, the end `v` has a neighbor other than `u`. -/
 def NoLeaf (G : SimpleGraph V) : Prop := ∀ u v, G.Adj u v → ∃ z, G.Adj v z ∧ z ≠ u
 
 namespace RotationSystem
 
 variable (R : RotationSystem G)
 
-/-- 차수 1인 꼭짓점이 없으면 모든 면의 길이가 3 이상이므로 `3F ≤ 2E`. -/
+/-- Without vertices of degree 1 every face cycle has length at least 3, so `3O ≤ 2E`, where
+`O = orbitCount R.facePerm` counts face cycles (faces at isolated vertices are not included). -/
 lemma three_mul_orbitCount_le [Finite V] (h : NoLeaf G) :
     3 * orbitCount R.facePerm ≤ 2 * G.edgeSet.ncard := by
   rw [← card_dart_eq]
@@ -43,7 +46,7 @@ lemma three_mul_orbitCount_le [Finite V] (h : NoLeaf G) :
 
 private lemma fin_two_triangle : ∀ a b c : Fin 2, a ≠ b → b ≠ c → c ≠ a → False := by decide
 
-/-- 이분 그래프에서는 면을 따라 걸을 때 두 색이 번갈아 나오므로 길이 3인 면도 없다. -/
+/-- In a bipartite graph the two colors alternate along a face, so no face has length 3. -/
 lemma facePerm_pow_three_ne_self (hbip : G.IsBipartite) (d : G.Dart) :
     (R.facePerm ^ 3) d ≠ d := by
   obtain ⟨C⟩ := hbip
@@ -58,7 +61,8 @@ lemma facePerm_pow_three_ne_self (hbip : G.IsBipartite) (d : G.Dart) :
   rw [h3] at e3
   exact fin_two_triangle _ _ _ e1 e2 e3
 
-/-- 차수 1인 꼭짓점이 없는 이분 그래프에서는 모든 면의 길이가 4 이상이므로 `4F ≤ 2E`. -/
+/-- In a bipartite graph without vertices of degree 1 every face cycle has length at least 4,
+so `4O ≤ 2E`, where `O = orbitCount R.facePerm` (faces at isolated vertices are not included). -/
 lemma four_mul_orbitCount_le [Finite V] (h : NoLeaf G) (hbip : G.IsBipartite) :
     4 * orbitCount R.facePerm ≤ 2 * G.edgeSet.ncard := by
   rw [← card_dart_eq]
@@ -74,8 +78,9 @@ end RotationSystem
 
 variable [Finite V]
 
-/-- 변이 있고 차수 1인 꼭짓점이 없는 평면 그래프는 `E + 6 + 3I ≤ 3V`를 만족한다
-(`I`는 고립점 수). 고립점이 없으면 익숙한 `E ≤ 3V - 6`이다. -/
+/-- A planar graph with an edge and no vertex of degree 1 satisfies `E + 6 + 3I ≤ 3V`, where `I`
+is the number of isolated vertices. Without isolated vertices this is the familiar
+`E ≤ 3V - 6`. -/
 theorem IsPlanar.edge_bound (hP : IsPlanar G) (h : NoLeaf G) {u v : V} (huv : G.Adj u v) :
     G.edgeSet.ncard + 6 + 3 * {w | G.IsIsolated w}.ncard ≤ 3 * Nat.card V := by
   obtain ⟨R, hR⟩ := hP
@@ -85,8 +90,8 @@ theorem IsPlanar.edge_bound (hP : IsPlanar G) (h : NoLeaf G) {u v : V} (huv : G.
   push_cast at hR
   omega
 
-/-- 변이 있고 차수 1인 꼭짓점이 없는 이분 평면 그래프는 `E + 4 + 2I ≤ 2V`를 만족한다.
-고립점이 없으면 익숙한 `E ≤ 2V - 4`이다. -/
+/-- A bipartite planar graph with an edge and no vertex of degree 1 satisfies
+`E + 4 + 2I ≤ 2V`. Without isolated vertices this is the familiar `E ≤ 2V - 4`. -/
 theorem IsPlanar.edge_bound_of_isBipartite (hP : IsPlanar G) (h : NoLeaf G)
     (hbip : G.IsBipartite) {u v : V} (huv : G.Adj u v) :
     G.edgeSet.ncard + 4 + 2 * {w | G.IsIsolated w}.ncard ≤ 2 * Nat.card V := by
@@ -97,7 +102,7 @@ theorem IsPlanar.edge_bound_of_isBipartite (hP : IsPlanar G) (h : NoLeaf G)
   push_cast at hR
   omega
 
-/-! ## 꼭짓점 집합을 넓힌 그래프 `K.map f` -/
+/-! ## The graph `K.map f` on a larger vertex set -/
 
 section Map
 
@@ -126,7 +131,7 @@ lemma IsBipartite.map [Nonempty W] (h : K.IsBipartite) : (K.map f).IsBipartite :
         simpa [hg] using hab }
   exact Colorable.of_hom φ h
 
-/-- `K`에 고립점도 차수 1인 꼭짓점도 없으면, `K.map f`가 평면 그래프일 때
+/-- If `K` has neither isolated vertices nor vertices of degree 1 and `K.map f` is planar, then
 `|E(K)| + 6 ≤ 3 |W|`. -/
 lemma edge_bound_map (h : NoLeaf K) (hK : ∀ a, ¬ K.IsIsolated a) {a b : W} (hab : K.Adj a b)
     (hP : IsPlanar (K.map f)) : K.edgeSet.ncard + 6 ≤ 3 * Nat.card W := by
@@ -148,16 +153,16 @@ end Map
 
 end Kuratowski
 
-/-! ## `K₅`와 `K₃,₃` -/
+/-! ## `K₅` and `K₃,₃` -/
 
 namespace Kuratowski
 
 open SimpleGraph
 
-/-- 완전 그래프 `K₅`. -/
+/-- The complete graph `K₅`. -/
 abbrev K5 : SimpleGraph (Fin 5) := ⊤
 
-/-- 완전 이분 그래프 `K₃,₃`. -/
+/-- The complete bipartite graph `K₃,₃`. -/
 abbrev K33 : SimpleGraph (Fin 3 ⊕ Fin 3) := completeBipartiteGraph (Fin 3) (Fin 3)
 
 instance : DecidableRel K33.Adj := fun v w =>
@@ -189,14 +194,14 @@ lemma K33_ncard_edgeSet : K33.edgeSet.ncard = 9 := by
   rw [← coe_edgeFinset, Set.ncard_coe_finset]
   decide +kernel
 
-/-- `K₅`를 어떤 꼭짓점 집합에 넣어도 평면 그래프가 아니다. -/
+/-- `K₅` placed in any finite vertex set is not planar. -/
 theorem K5_map_not_isPlanar {V : Type*} [Finite V] (f : Fin 5 ↪ V) : ¬ IsPlanar (K5.map f) := by
   intro h
   have := edge_bound_map f K5_noLeaf K5_not_isolated (a := 0) (b := 1) (by decide) h
   rw [K5_ncard_edgeSet, Nat.card_eq_fintype_card, Fintype.card_fin] at this
   omega
 
-/-- `K₃,₃`를 어떤 꼭짓점 집합에 넣어도 평면 그래프가 아니다. -/
+/-- `K₃,₃` placed in any finite vertex set is not planar. -/
 theorem K33_map_not_isPlanar {V : Type*} [Finite V] (f : Fin 3 ⊕ Fin 3 ↪ V) :
     ¬ IsPlanar (K33.map f) := by
   intro h
@@ -205,7 +210,7 @@ theorem K33_map_not_isPlanar {V : Type*} [Finite V] (f : Fin 3 ⊕ Fin 3 ↪ V) 
   rw [K33_ncard_edgeSet, Nat.card_eq_fintype_card, Fintype.card_sum, Fintype.card_fin] at this
   omega
 
-/-- **`K₅`는 평면 그래프가 아니다.** -/
+/-- **`K₅` is not planar.** -/
 theorem K5_not_isPlanar : ¬ IsPlanar K5 := by
   intro h
   have := h.edge_bound K5_noLeaf (u := 0) (v := 1) (by decide)
@@ -215,7 +220,7 @@ theorem K5_not_isPlanar : ¬ IsPlanar K5 := by
   rw [K5_ncard_edgeSet, hI, Nat.card_eq_fintype_card, Fintype.card_fin] at this
   omega
 
-/-- **`K₃,₃`는 평면 그래프가 아니다.** -/
+/-- **`K₃,₃` is not planar.** -/
 theorem K33_not_isPlanar : ¬ IsPlanar K33 := by
   intro h
   have := h.edge_bound_of_isBipartite K33_noLeaf (IsBipartite.completeBipartiteGraph _ _)

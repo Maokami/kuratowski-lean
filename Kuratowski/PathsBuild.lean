@@ -1,14 +1,16 @@
 import Kuratowski.SubdivisionOfPaths
 
 /-!
-# 경로 체계를 만드는 도구
+# Tools for building path systems
 
-* `walkInterior_copy`: 끝점 표기를 바꿔도 걸음의 내부는 같다.
-* `SubdivisionPaths.containsSubdivision_of_finite`: `K`의 꼭짓점 타입 `W`가 유한하면 경로 체계에서 세분
-  포함을 얻는다. `containsSubdivision_iff_paths`의 역방향은 `V`의 유한성을 가정하지만, 실제로는 처리할
-  변 집합이 유한하면 충분하다. `K₅`, `K₃,₃`처럼 `W`가 유한할 때 `G` 쪽 가정 없이 쓴다.
-* `SubdivisionPaths.ofLT`: `W`에 선형 순서가 있을 때 `a < b`인 변에만 경로를 주어 경로 체계를 만든다.
-  반대 방향은 뒤집은 경로로 정의하므로 `path_symm`은 자동으로 성립한다.
+* `walkInterior_copy`: changing the endpoint notation does not change the interior of a walk.
+* `SubdivisionPaths.containsSubdivision_of_finite`: if the vertex type `W` of `K` is finite, a path
+  system gives a contained subdivision. The reverse direction of `containsSubdivision_iff_paths`
+  assumes `V` finite, but it suffices that the set of edges to process is finite. We use this for
+  finite `W` such as `K₅` and `K₃,₃`, with no assumption on `G`.
+* `SubdivisionPaths.ofLT`: for a linear order on `W`, build a path system from paths given only for
+  edges with `a < b`. The opposite direction is the reversed path, so `path_symm` holds
+  automatically.
 -/
 
 namespace Kuratowski
@@ -35,7 +37,8 @@ section OfLT
 
 variable [LinearOrder W] (f : W ↪ V) (p : ∀ a b, a < b → K.Adj a b → G.Walk (f a) (f b))
 
-/-- `ofLT`의 경로: `a < b`이면 주어진 경로, 아니면 반대 방향 경로를 뒤집은 것. -/
+/-- The path of `ofLT`: the given path if `a < b`, otherwise the reverse of the path in the
+opposite direction. -/
 def ofLTPath (a b : W) (h : K.Adj a b) : G.Walk (f a) (f b) :=
   if hab : a < b then p a b hab h
   else (p b a (lt_of_le_of_ne (not_lt.1 hab) h.ne.symm) h.symm).reverse
@@ -52,7 +55,8 @@ theorem exists_ofLTPath (a b : W) (h : K.Adj a b) :
       by simp only [ofLTPath, hab, ↓reduceDIte, walkInterior_reverse],
       by simp only [ofLTPath, hab, ↓reduceDIte, Walk.isPath_reverse_iff]⟩
 
-/-- `a < b`인 변에만 경로를 주어 경로 체계를 만든다. 반대 방향은 뒤집은 경로다. -/
+/-- Build a path system from paths given only for edges with `a < b`. The opposite direction is
+the reversed path. -/
 def ofLT (hp : ∀ a b (hab : a < b) (h : K.Adj a b), (p a b hab h).IsPath)
     (hint : ∀ a b (hab : a < b) (h : K.Adj a b),
       ∀ z ∈ walkInterior (p a b hab h), z ∉ Set.range f)

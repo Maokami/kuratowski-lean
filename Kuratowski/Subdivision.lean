@@ -3,29 +3,31 @@ import Kuratowski.Smoothing
 import Kuratowski.NonPlanar
 
 /-!
-# 쿠라토프스키 정리: 쉬운 방향
+# Kuratowski's theorem: the easy direction
 
-> 유한 그래프가 `K₅`나 `K₃,₃`의 세분을 부분 그래프로 가지면 평면 그래프가 아니다.
+> A finite graph containing a subdivision of `K₅` or `K₃,₃` as a subgraph is not planar.
 
-평면성은 `Kuratowski/Basic.lean`의 조합적 정의(종수 0인 회전 체계)를 쓴다.
+Planarity is the combinatorial definition of `Kuratowski/Basic.lean` (a rotation system of
+genus 0).
 
-## 세분의 정의
+## Subdivisions
 
-그래프 `K`(꼭짓점 `W`)의 **세분**(subdivision)은 `K`의 변을 하나씩 새 꼭짓점으로 나누어 얻는
-그래프다 (Diestel, *Graph Theory*, 1.7절의 `TX`). 큰 그래프 `G`(꼭짓점 `V`) 안에서 생각하므로
-`K`의 꼭짓점을 `f : W ↪ V`로 `V`에 놓고 시작한다 (`K.map f`, 나머지 꼭짓점은 고립점).
-한 단계에서는 지금 그래프 `H`의 변 `xy`를 아직 쓰이지 않은 꼭짓점 `w`로 나눈다.
-`w`는 `K`의 꼭짓점 자리가 아니고 (`w ∉ Set.range f`) `H`의 어느 변에도 닿지 않는다
-(`H.IsIsolated w`).
+A **subdivision** of a graph `K` (vertices `W`) is obtained by repeatedly splitting an edge of `K`
+with a new vertex (`TX` in Diestel, *Graph Theory*, Section 1.7). Since we work inside a larger
+graph `G` (vertices `V`), we start by placing the vertices of `K` in `V` via `f : W ↪ V`
+(`K.map f`; the other vertices are isolated). One step splits an edge `xy` of the current graph `H`
+with an unused vertex `w`: `w` is not a vertex position of `K` (`w ∉ Set.range f`) and meets no
+edge of `H` (`H.IsIsolated w`).
 
-`G`가 `K`의 세분을 포함한다는 것은 그런 세분 `H`가 `G`의 부분 그래프라는 것이다 (`H ≤ G`).
-이는 `K`가 `G`의 위상 소수(topological minor)라는 것과 같다.
+`G` contains a subdivision of `K` if some such subdivision `H` is a subgraph of `G` (`H ≤ G`).
+For finite graphs this agrees with the usual notion of `K` being a topological minor of `G`.
 
-## 증명
+## Proof
 
-* `G`가 평면이면 부분 그래프 `H`도 평면이다 (`IsPlanar.mono`, 오일러 부등식 사용).
-* 세분 한 단계를 되돌려도 평면성이 유지되므로 (`IsPlanar.of_subdivideEdge`), `K.map f`도 평면이다.
-* 그런데 `K₅.map f`, `K₃,₃.map f`는 면 수 세기로 평면이 아니다.
+* If `G` is planar, so is its subgraph `H` (`IsPlanar.mono`, via Euler's inequality).
+* Undoing one subdivision step preserves planarity (`IsPlanar.of_subdivideEdge`), so `K.map f` is
+  planar.
+* But `K₅.map f` and `K₃,₃.map f` are not planar by face counting.
 -/
 
 namespace Kuratowski
@@ -34,36 +36,38 @@ open SimpleGraph
 
 variable {V W : Type*}
 
-/-- `H`는 `K`의 세분이고, `K`의 꼭짓점은 `f`의 자리에 놓여 있다. -/
+/-- `H` is a subdivision of `K` whose vertices are placed at the positions given by `f`. -/
 inductive IsSubdivision (K : SimpleGraph W) : (W ↪ V) → SimpleGraph V → Prop
-  /-- `K` 자체 (꼭짓점을 `f`로 옮긴 것). -/
+  /-- `K` itself (with vertices transported by `f`). -/
   | map (f : W ↪ V) : IsSubdivision K f (K.map f)
-  /-- 변 `xy`를 아직 쓰이지 않은 꼭짓점 `w`로 나눈다. -/
+  /-- Split an edge `xy` with an unused vertex `w`. -/
   | subdivide {f : W ↪ V} {H : SimpleGraph V} {x y w : V} :
       IsSubdivision K f H → H.Adj x y → w ∉ Set.range f → H.IsIsolated w →
       IsSubdivision K f (subdivideEdge H x y w)
 
-/-- `G`는 `K`의 세분을 부분 그래프로 갖는다 (`K`는 `G`의 위상 소수다). -/
+/-- `G` contains a subdivision of `K` as a subgraph. For finite graphs this means that `K` is a
+topological minor of `G`. -/
 def ContainsSubdivision (G : SimpleGraph V) (K : SimpleGraph W) : Prop :=
   ∃ (f : W ↪ V) (H : SimpleGraph V), IsSubdivision K f H ∧ H ≤ G
 
 variable [Finite V] [DecidableEq V]
 
-/-- 평면 그래프인 세분을 되돌리면 평면 그래프다. -/
+/-- Undoing a planar subdivision gives a planar graph. -/
 theorem IsSubdivision.isPlanar_map {K : SimpleGraph W} {f : W ↪ V} {H : SimpleGraph V}
     (hS : IsSubdivision K f H) (hH : IsPlanar H) : IsPlanar (K.map f) := by
   induction hS with
   | map => exact hH
   | subdivide _ hxy _ hw ih => exact ih (hH.of_subdivideEdge hxy hw)
 
-/-- 평면 그래프가 `K`의 세분을 포함하면, 어떤 `f`에 대해 `K.map f`도 평면이다. -/
+/-- If a planar graph contains a subdivision of `K`, then `K.map f` is planar for some `f`. -/
 theorem IsPlanar.isPlanar_map_of_containsSubdivision {G : SimpleGraph V} {K : SimpleGraph W}
     (hG : IsPlanar G) (h : ContainsSubdivision G K) : ∃ f : W ↪ V, IsPlanar (K.map f) := by
   obtain ⟨f, H, hS, hle⟩ := h
   exact ⟨f, hS.isPlanar_map (hG.mono hle)⟩
 
-/-- **쿠라토프스키 정리 (쉬운 방향)**: `K₅`나 `K₃,₃`의 세분을 포함하는 유한 그래프는 평면 그래프가
-아니다. 평면성은 `Kuratowski/Basic.lean`의 조합적 정의(종수 0인 회전 체계)다. -/
+/-- **Kuratowski's theorem (easy direction)**: a finite graph containing a subdivision of `K₅` or
+`K₃,₃` is not planar. Planarity is the combinatorial definition of `Kuratowski/Basic.lean`
+(a rotation system of genus 0). -/
 theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V}
     (h : ContainsSubdivision G K5 ∨ ContainsSubdivision G K33) : ¬ IsPlanar G := by
   intro hG
@@ -73,7 +77,8 @@ theorem not_isPlanar_of_containsSubdivision {G : SimpleGraph V}
   · obtain ⟨f, hf⟩ := hG.isPlanar_map_of_containsSubdivision h
     exact K33_map_not_isPlanar f hf
 
-/-- 같은 내용의 대우: 평면 그래프는 `K₅`의 세분도 `K₃,₃`의 세분도 포함하지 않는다. -/
+/-- The contrapositive: a planar graph contains no subdivision of `K₅` and no subdivision of
+`K₃,₃`. -/
 theorem IsPlanar.not_containsSubdivision {G : SimpleGraph V} (hG : IsPlanar G) :
     ¬ ContainsSubdivision G K5 ∧ ¬ ContainsSubdivision G K33 :=
   ⟨fun h => not_isPlanar_of_containsSubdivision (Or.inl h) hG,

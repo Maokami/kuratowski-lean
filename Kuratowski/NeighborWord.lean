@@ -4,17 +4,19 @@ import Kuratowski.DelVertexFace
 import Mathlib.Tactic.Abel
 
 /-!
-# 순환 단어 분류와 실제 회전의 구간 조건
+# Cyclic word classification and the interval condition for actual rotations
 
-`Clustered`인 단어가 모든 위치를 `X` 또는 `Y`로 덮으면 시작점과 절단 위치를 고를 수 있다.
-수축 회전의 역순 이웃 열에서 읽은 단어에 이를 적용하면 꼭짓점 나누기의 `IntervalWord`를 얻는다.
-또 증가하는 자연수 위치 열이 열린 순환 순서를 보존함을 증명한다. J2의 위치 열로 교대 배치를 실제
-사이클에 옮길 때 쓴다. 정규식 라이브러리를 쓰는 대신 유한 순환 위치의 명시적 구간 조건을 다룬다.
+If a `Clustered` word covers every position by `X` or `Y`, we can choose a starting point and a cut
+position. Applied to the word read from the reversed neighbor sequence of a contracted rotation,
+this gives the `IntervalWord` needed for vertex splitting. We also prove that an increasing
+sequence of natural-number positions preserves the open cyclic order; this transfers an
+alternating pattern to an actual cycle through the position sequence of J2. Instead of a regular
+expression library, we work with explicit interval conditions on finite cyclic positions.
 -/
 
 namespace Kuratowski.CyclicWord
 
-/-- 서로 다른 끝점의 닫힌 호는 끝점과 열린 호의 합이다. -/
+/-- A closed arc with distinct endpoints is its two endpoints together with the open arc. -/
 lemma btw_iff_eq_or_sbtw {n : ℕ} [NeZero n] {a t b : ZMod n} (hab : a ≠ b) :
     btw a t b ↔ t = a ∨ t = b ∨ sbtw a t b := by
   cases n with
@@ -38,7 +40,7 @@ lemma btw_iff_eq_or_sbtw {n : ℕ} [NeZero n] {a t b : ZMod n} (hab : a ≠ b) :
     have habval : a.val ≠ b.val := fun h ↦ hab (ZMod.val_injective _ h)
     omega
 
-/-- 닫힌 호의 모듈러 거리 판정. 두 끝점이 다르다는 조건이 필요하다. -/
+/-- Modular distance criterion for a closed arc. The endpoints must be distinct. -/
 lemma btw_iff_val_le {n : ℕ} [NeZero n] {a t b : ZMod n} (hab : a ≠ b) :
     btw a t b ↔ (t - a).val ≤ (b - a).val := by
   rw [btw_iff_eq_or_sbtw hab, sbtw_iff_val]
@@ -51,7 +53,8 @@ lemma btw_iff_val_le {n : ℕ} [NeZero n] {a t b : ZMod n} (hab : a ≠ b) :
   rw [← ht, ← htb]
   omega
 
-/-- `X`와 `Y`가 모든 위치를 덮으면, Clustered인 단어는 시작점과 한 절단 위치로 표현된다. -/
+/-- If `X` and `Y` cover every position, a `Clustered` word is described by a starting point and
+one cut position. -/
 theorem clustered_interval {n : ℕ} [NeZero n] (X Y : Finset (ZMod n))
     (hcover : ∀ i, i ∈ X ∨ i ∈ Y) (h : Clustered X Y) :
     ∃ b : ZMod n, ∃ k ≤ n,
@@ -91,7 +94,7 @@ theorem clustered_interval {n : ℕ} [NeZero n] (X Y : Finset (ZMod n))
 end Kuratowski.CyclicWord
 namespace Kuratowski.CyclicWord
 
-/-- 증가하는 위치 열은 열린 순환 순서를 보존한다. -/
+/-- An increasing position sequence preserves the open cyclic order. -/
 theorem sbtw_cast_positions {N m : ℕ} [NeZero N] [NeZero m]
     (p : ℕ → ℕ) (hp : ∀ j, j < N → p j < m)
     (hinc : ∀ j, j + 1 < N → p j < p (j + 1)) {a t b : ZMod N}
@@ -141,7 +144,8 @@ variable {V : Type*} {G : SimpleGraph V} {x y : V}
 
 namespace RotationSystem
 
-/-- 수축 회전의 역순 이웃 열에서 원래 두 점의 인접 여부를 읽은 단어. -/
+/-- The word recording adjacency to the two original vertices along the reversed neighbor
+sequence of a contracted rotation. -/
 noncomputable def neighborWord (R : RotationSystem (contractEdge G x y))
     (d₀ : (contractEdge G x y).Dart) :
     ZMod ((contractEdge G x y).neighborSet x).ncard → CyclicWord.Letter := by
@@ -179,7 +183,8 @@ lemma neighborWord_cover (R : RotationSystem (contractEdge G x y))
   · exact Or.inl (R.mem_xPositions_neighborWord d₀ |>.2 hx)
   · exact Or.inr (R.mem_yPositions_neighborWord d₀ |>.2 hy)
 
-/-- 순환 단어 분류의 첫 경우는 실제 회전의 구간 조건을 준다. -/
+/-- The first case of the cyclic word classification gives the interval condition for the
+actual rotation. -/
 theorem intervalWord_of_clustered [Finite V] (R : RotationSystem (contractEdge G x y))
     (d₀ : (contractEdge G x y).Dart) (hd₀ : d₀.fst = x)
     (hc : CyclicWord.Clustered (CyclicWord.xPositions (R.neighborWord d₀))

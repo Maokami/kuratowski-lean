@@ -4,15 +4,18 @@ import Kuratowski.Sum
 import Kuratowski.Uncontract
 
 /-!
-# 구간 조건이면 꼭짓점을 나눠도 평면 (블루프린트 `lem:S`)
+# Splitting a vertex under the interval condition preserves planarity (blueprint `lem:S`)
 
-`x ∼ y`이고 `G/xy`의 종수 0 회전 체계 `R'`에서 `x` 둘레의 이웃 단어가 `B? X* B? Y*` 꼴이면 `G`는 평면이다.
-Lean 진술의 구간 조건 `IntervalWord`는 보조정리 `lem:J2`와 같은 역회전(`ρ'⁻¹`) 순서로 읽는다.
+If `x ∼ y` and, for a genus-0 rotation system `R'` of `G/xy`, the neighbor word around `x` has the
+form `B? X* B? Y*`, then `G` is planar. The interval condition `IntervalWord` of the Lean statement
+is read in the same inverse-rotation (`ρ'⁻¹`) order as lemma `lem:J2`.
 
-* 빈 단어: `x`, `y`의 이웃은 서로뿐이라 `G = G/xy ⊔ edge x y`이고 두 지지 집합이 서로소다.
-* 비지 않은 단어: 공통 이웃은 `x`쪽 호의 양 끝 `b₂ = u_0`, `b₁ = u_{k-1}`에만 있다.
-  공통 이웃 변 `yb`를 모두 지운 `G₀ = dropCommon G x y`는 `G₀/xy = G/xy`이고 공통 이웃이 없다.
-  `lem:uncontract`로 `G₀`의 종수 0 회전 체계를 얻고, `lem:add_edge`로 `yb₁`, `yb₂`를 차례로 넣는다.
+* Empty word: `x` and `y` are adjacent only to each other, so `G = G/xy ⊔ edge x y` and the two
+  supports are disjoint.
+* Nonempty word: common neighbors occur only at the two ends `b₂ = u_0`, `b₁ = u_{k-1}` of the
+  `x`-arc. Deleting all common-neighbor edges `yb` gives `G₀ = dropCommon G x y` with
+  `G₀/xy = G/xy` and no common neighbors. `lem:uncontract` gives a genus-0 rotation system of `G₀`,
+  and `lem:add_edge` adds `yb₁` and `yb₂` in turn.
 -/
 
 namespace Kuratowski
@@ -21,9 +24,10 @@ open SimpleGraph Equiv Equiv.Perm Function
 
 variable {V : Type*} [DecidableEq V] {G : SimpleGraph V} {x y : V}
 
-/-- 블루프린트 `lem:S`의 구간 조건. 빈 단어이거나, `x`에서 나가는 `G/xy`의 다트 `d₀`와 `k ≤ N`이 있어
-`u_j = (ρ'⁻¹^j d₀).snd`가 `j < k`이면 `G`에서 `x`의 이웃(`X`/`B`), `k ≤ j < N`이면 `x`의 이웃이 아니며(`Y`),
-`0 < j`, `j + 1 < k`이면 `y`의 이웃이 아니다(`B`는 `x`쪽 호의 양 끝에만). -/
+/-- The interval condition of blueprint `lem:S`. Either the word is empty, or there are a dart
+`d₀` of `G/xy` leaving `x` and `k ≤ N` such that, with `u_j = (ρ'⁻¹^j d₀).snd`, `u_j` is a neighbor
+of `x` in `G` for `j < k` (`X`/`B`), is not a neighbor of `x` for `k ≤ j < N` (`Y`), and is not a
+neighbor of `y` for `0 < j` and `j + 1 < k` (`B` occurs only at the two ends of the `x`-arc). -/
 def IntervalWord (G : SimpleGraph V) (x y : V) (R' : RotationSystem (contractEdge G x y)) : Prop :=
   (contractEdge G x y).neighborSet x = ∅ ∨
     ∃ d₀ : (contractEdge G x y).Dart, d₀.fst = x ∧
@@ -33,9 +37,10 @@ def IntervalWord (G : SimpleGraph V) (x y : V) (R' : RotationSystem (contractEdg
           ¬ G.Adj x ((R'.rot⁻¹ ^ j) d₀).snd) ∧
         (∀ j, 0 < j → j + 1 < k → ¬ G.Adj y ((R'.rot⁻¹ ^ j) d₀).snd)
 
-/-! ### 빈 단어 -/
+/-! ### The empty word -/
 
-/-- 빈 단어: `G/xy`에서 `x`가 고립이면 `G = G/xy ⊔ edge x y`이고 두 지지 집합은 서로소다. -/
+/-- The empty word: if `x` is isolated in `G/xy`, then `G = G/xy ⊔ edge x y` and the two supports
+are disjoint. -/
 theorem isPlanar_of_contractEdge_of_isolated [Finite V] (hxy : G.Adj x y)
     (hP : IsPlanar (contractEdge G x y)) (h0 : (contractEdge G x y).neighborSet x = ∅) :
     IsPlanar G := by
@@ -85,9 +90,9 @@ theorem isPlanar_of_contractEdge_of_isolated [Finite V] (hxy : G.Adj x y)
     omega)
   exact (hP.sup_of_disjoint hE hd).mono hle
 
-/-! ### 공통 이웃 변 지우기 -/
+/-! ### Deleting common-neighbor edges -/
 
-/-- `x`, `y`의 공통 이웃 `z`마다 변 `yz`를 지운 그래프. -/
+/-- The graph with the edge `yz` deleted for each common neighbor `z` of `x` and `y`. -/
 def dropCommon (G : SimpleGraph V) (x y : V) : SimpleGraph V :=
   G.deleteEdges {e | ∃ z, G.Adj x z ∧ G.Adj y z ∧ e = s(y, z)}
 
@@ -152,7 +157,7 @@ theorem dropCommon_no_common (hxy : x ≠ y) (z : V) :
   exact (dropCommon_adj_y.1 h2).2 ((dropCommon_adj_x hxy).1 h1)
 
 omit [DecidableEq V] in
-/-- 공통 이웃 변을 지워도 수축은 같다. -/
+/-- Deleting the common-neighbor edges does not change the contraction. -/
 theorem contractEdge_dropCommon :
     contractEdge (dropCommon G x y) x y = contractEdge G x y := by
   ext p q
@@ -171,9 +176,10 @@ theorem contractEdge_dropCommon :
       · exact ⟨hpq, hp, hq, Or.inl ((dropCommon_adj_of_ne hp hq).2 (by rw [hqx]; exact hxp.symm))⟩
       · exact ⟨hpq, hp, hq, Or.inr (Or.inr ⟨hqx, dropCommon_adj_y.2 ⟨h, hxp⟩⟩)⟩
 
-/-! ### 비지 않은 단어 -/
+/-! ### Nonempty words -/
 
-/-- 핵심: `G₀ = dropCommon G x y`의 수축 위에서 진술한 구간 조건. -/
+/-- Core statement: the interval condition stated on the contraction of
+`G₀ = dropCommon G x y`. -/
 theorem isPlanar_of_interval_core [Finite V] (hxy : G.Adj x y)
     (R' : RotationSystem (contractEdge (dropCommon G x y) x y))
     (hR' : R'.eulerChar = 2 * Nat.card (contractEdge (dropCommon G x y) x y).ConnectedComponent)
@@ -204,7 +210,7 @@ theorem isPlanar_of_interval_core [Finite V] (hxy : G.Adj x y)
   have hperiod : minimalPeriod ⇑(R'.rot⁻¹) d₀ =
       ((contractEdge (dropCommon G x y) x y).neighborSet x).ncard := by
     rw [RotationSystem.minimalPeriod_rot_inv, hd₀]
-  -- 공통 이웃의 자리: `x`쪽 호의 양 끝
+  -- positions of the common neighbors: the two ends of the `x`-arc
   have hloc : ∀ z, G.Adj x z → G.Adj y z →
       0 < k ∧ (z = ((R'.rot⁻¹ ^ (k - 1)) d₀).snd ∨ z = ((R'.rot⁻¹ ^ 0) d₀).snd) := by
     intro z hxz hyz
@@ -229,7 +235,7 @@ theorem isPlanar_of_interval_core [Finite V] (hxy : G.Adj x y)
   have hb₁x : b₁ ≠ x := ((contractEdge_adj_left hxy.ne).1 (hKu (k - 1))).1
   have hb₂y : b₂ ≠ y := ((contractEdge_adj_left hxy.ne).1 (hKu 0)).2.1
   have hb₂x : b₂ ≠ x := ((contractEdge_adj_left hxy.ne).1 (hKu 0)).1
-  -- `b₁` 넣기
+  -- add `b₁`
   obtain ⟨H₁, R₁, hR₁, hG₀H₁, hH₁up, hH₁b₁, hP₁⟩ : ∃ (H₁ : SimpleGraph V) (R₁ : RotationSystem H₁),
       R₁.eulerChar = 2 * Nat.card H₁.ConnectedComponent ∧ dropCommon G x y ≤ H₁ ∧
       H₁ ≤ dropCommon G x y ⊔ edge y b₁ ∧ (0 < k ∧ G.Adj y b₁ → H₁.Adj y b₁) ∧
@@ -274,7 +280,7 @@ theorem isPlanar_of_interval_core [Finite V] (hxy : G.Adj x y)
       intro hk0 d hd
       rw [D.rotationSystem_rot_to_xy hk0 d hd]
       rfl
-  -- `b₂` 넣기
+  -- add `b₂`
   obtain ⟨H₂, hH₂, hH₁H₂, hH₂b₂⟩ : ∃ H₂ : SimpleGraph V, IsPlanar H₂ ∧ H₁ ≤ H₂ ∧
       (2 ≤ k ∧ G.Adj y b₂ → H₂.Adj y b₂) := by
     by_cases hB₂ : 2 ≤ k ∧ G.Adj y b₂
@@ -312,7 +318,7 @@ theorem isPlanar_of_interval_core [Finite V] (hxy : G.Adj x y)
       rw [hcfst]
       exact Or.inr ((edge_adj _ _ _ _).2 ⟨Or.inl ⟨rfl, rfl⟩, hb₂y.symm⟩)
     · exact ⟨H₁, ⟨R₁, hR₁⟩, le_rfl, fun h ↦ absurd h hB₂⟩
-  -- 원래 그래프는 `H₂`에 들어간다
+  -- the original graph lies in `H₂`
   apply hH₂.mono
   intro p q h
   by_cases h₀ : (dropCommon G x y).Adj p q
@@ -320,7 +326,7 @@ theorem isPlanar_of_interval_core [Finite V] (hxy : G.Adj x y)
   have hcond : (p = y ∧ G.Adj x q ∧ G.Adj y q) ∨ (q = y ∧ G.Adj x p ∧ G.Adj y p) := by
     by_contra hc
     exact h₀ (dropCommon_adj.2 ⟨h, hc⟩)
-  -- `y`와 공통 이웃을 잇는 변은 `H₂`에 있다
+  -- the edges from `y` to common neighbors lie in `H₂`
   have hyz : ∀ z, G.Adj x z → G.Adj y z → H₂.Adj y z := by
     intro z hxz hyz'
     obtain ⟨hk0, hz | hz⟩ := hloc z hxz hyz'
@@ -339,7 +345,7 @@ theorem isPlanar_of_interval_core [Finite V] (hxy : G.Adj x y)
   · rw [hq]
     exact (hyz p hxp hyp).symm
 
-/-- 수축 그래프를 일반화한 형태: `G₀/xy = K`로 옮긴다. -/
+/-- Generalized form of the contracted graph: transport along `G₀/xy = K`. -/
 theorem isPlanar_of_interval_gen [Finite V] (hxy : G.Adj x y) (K : SimpleGraph V)
     (hK : contractEdge (dropCommon G x y) x y = K) (R' : RotationSystem K)
     (hR' : R'.eulerChar = 2 * Nat.card K.ConnectedComponent)
@@ -351,8 +357,8 @@ theorem isPlanar_of_interval_gen [Finite V] (hxy : G.Adj x y) (K : SimpleGraph V
   exact isPlanar_of_interval_core hxy R' hR' d₀ hd₀ k hk hA hX hB
 
 omit [DecidableEq V] in
-/-- 블루프린트 `lem:S`: 구간 조건이면 꼭짓점을 나눠도 평면이다. 유한성 이외의 결정 가능성 인스턴스는
-요구하지 않는다. -/
+/-- Blueprint `lem:S`: under the interval condition, splitting the vertex preserves planarity.
+Apart from finiteness, no decidability instances are required. -/
 theorem IsPlanar.of_contractEdge_of_interval [Finite V] (hxy : G.Adj x y)
     (R' : RotationSystem (contractEdge G x y))
     (hR' : R'.eulerChar = 2 * Nat.card (contractEdge G x y).ConnectedComponent)

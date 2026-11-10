@@ -2,18 +2,21 @@ import Kuratowski.Paths
 import Kuratowski.Subdivision
 
 /-!
-# 세분에서 경로 체계로 (블루프린트 `thm:paths_iff`의 정방향)
+# From subdivisions to path systems (forward direction of blueprint `thm:paths_iff`)
 
-`IsSubdivision K f H`이면 `H` 안에 분기점이 `f`인 경로 체계가 있다
-(`IsSubdivision.exists_subdivisionPaths`). 따라서 `G`가 `K`의 세분을 포함하면 `G` 안에 `K`의 경로
-체계가 있다 (`ContainsSubdivision.nonempty_subdivisionPaths`).
+If `IsSubdivision K f H`, then `H` contains a path system with branch vertices `f`
+(`IsSubdivision.exists_subdivisionPaths`). Hence if `G` contains a subdivision of `K`, then `G`
+contains a path system of `K` (`ContainsSubdivision.nonempty_subdivisionPaths`).
 
-증명은 `IsSubdivision`에 대한 귀납법이다. 기저는 `SubdivisionPaths.ofMapLE`다. 변 `xy`를 고립점
-`w`로 나누는 단계에서는 각 경로의 변 `xy`를 `x - w - y`로 바꾼다 (`subdivideWalk`). 서로 다른 두
-`K`-변의 경로는 같은 변 `xy`를 지날 수 없으므로(`SubdivisionPaths.sym2_eq_of_mem_edges`),
-새 꼭짓점 `w`는 많아야 한 변의 경로 내부에만 들어간다.
+The proof is by induction on `IsSubdivision`. The base case is `SubdivisionPaths.ofMapLE`. In the
+step that subdivides an edge `xy` by an isolated vertex `w`, the edge `xy` of each path is replaced
+by `x - w - y` (`subdivideWalk`). Paths of two distinct `K`-edges cannot use the same edge `xy`
+(`SubdivisionPaths.sym2_eq_of_mem_edges`), so the new vertex `w` enters the interior of the path
+of at most one edge.
 
-역방향(경로 체계에서 세분)과 동치는 `SubdivisionOfPaths.lean`에 있다. 그쪽은 유한한 `V`를 가정한다.
+The reverse direction (from path systems to subdivisions) and the equivalence are in
+`SubdivisionOfPaths.lean`. The equivalence assumes finite `V`; the reverse direction also has a
+version for finite `W` (`exists_isSubdivision_le_of_finite`).
 -/
 
 namespace Kuratowski
@@ -22,7 +25,7 @@ open SimpleGraph
 
 variable {V W : Type*}
 
-/-! ### 부분 그래프로 옮기기 -/
+/-! ### Transport to a supergraph -/
 
 @[simp] theorem walkInterior_mapLe {H G : SimpleGraph V} (hle : H ≤ G) {u v : V}
     (p : H.Walk u v) : walkInterior (p.mapLe hle) = walkInterior p := by
@@ -33,7 +36,7 @@ namespace SubdivisionPaths
 
 variable {K : SimpleGraph W} {H G : SimpleGraph V}
 
-/-- `H ≤ G`이면 `H` 안의 경로 체계는 그대로 `G` 안의 경로 체계다. -/
+/-- If `H ≤ G`, a path system in `H` is a path system in `G`. -/
 def mono (P : SubdivisionPaths K H) (hle : H ≤ G) : SubdivisionPaths K G where
   branch := P.branch
   path a b h := (P.path a b h).mapLe hle
@@ -47,13 +50,14 @@ def mono (P : SubdivisionPaths K H) (hle : H ≤ G) : SubdivisionPaths K G where
 @[simp] theorem mono_branch (P : SubdivisionPaths K H) (hle : H ≤ G) :
     (P.mono hle).branch = P.branch := rfl
 
-/-- 서로 다른 두 `K`-변의 경로는 같은 변을 지나지 않는다. 같은 변 `xy`를 지나면 `x`와 `y`는 두 경로의
-끝점이어야 하고, 분기점이 단사이므로 두 `K`-변이 같다. -/
+/-- Paths of two distinct `K`-edges do not use the same edge. If both use an edge `xy`, then `x`
+and `y` are endpoints of both paths, and since the branch map is injective the two `K`-edges are
+equal. -/
 theorem sym2_eq_of_mem_edges (P : SubdivisionPaths K H) {a b c d : W} (h : K.Adj a b)
     (h' : K.Adj c d) {x y : V} (hxy : x ≠ y) (h1 : s(x, y) ∈ (P.path a b h).edges)
     (h2 : s(x, y) ∈ (P.path c d h').edges) : s(a, b) = s(c, d) := by
   by_contra hne
-  -- 두 경로에 모두 있는 점은 어느 쪽의 내부에도 없으므로 두 경로의 끝점이다.
+  -- A vertex on both paths is in neither interior, so it is an endpoint of both paths.
   have key : ∀ z, z ∈ (P.path a b h).support → z ∈ (P.path c d h').support →
       (z = P.branch a ∨ z = P.branch b) ∧ (z = P.branch c ∨ z = P.branch d) := by
     intro z hz1 hz2
@@ -82,7 +86,7 @@ theorem sym2_eq_of_mem_edges (P : SubdivisionPaths K H) {a b c d : W} (h : K.Adj
     (Walk.fst_mem_support_of_mem_edges _ h2)
   obtain ⟨hyab, hycd⟩ := key y (Walk.snd_mem_support_of_mem_edges _ h1)
     (Walk.snd_mem_support_of_mem_edges _ h2)
-  -- `{x, y}`가 두 변의 분기점 쌍과 같다.
+  -- `{x, y}` equals the pair of branch vertices of both edges.
   have hab : s(x, y) = s(P.branch a, P.branch b) := by
     rcases hxab with rfl | rfl <;> rcases hyab with rfl | rfl
     · exact absurd rfl hxy
@@ -103,13 +107,13 @@ theorem sym2_eq_of_mem_edges (P : SubdivisionPaths K H) {a b c d : W} (h : K.Adj
 
 end SubdivisionPaths
 
-/-! ### 변 하나를 나눈 그래프로 걸음 옮기기 -/
+/-! ### Transporting walks to the graph with one edge subdivided -/
 
 section Subdivide
 
 variable {H : SimpleGraph V} {x y w : V}
 
-/-- 고립점 `w`는 `w`에서 시작하지 않는 걸음에 나타나지 않는다. -/
+/-- An isolated vertex `w` does not occur in a walk that does not start at `w`. -/
 theorem not_mem_support_of_isIsolated (hw : H.IsIsolated w) :
     ∀ {u v : V} (p : H.Walk u v), u ≠ w → w ∉ p.support
   | _, _, .nil, hu => by simpa using hu.symm
@@ -138,7 +142,8 @@ theorem mem_pair_of_sym2_eq {u b : V} (he : s(u, b) = s(x, y)) :
 
 variable [DecidableEq V]
 
-/-- 걸음의 변 `xy`를 (어느 방향이든) `x - w - y`로 바꿔 `subdivideEdge H x y w`의 걸음으로 옮긴다. -/
+/-- Replace each traversal of the edge `xy` (in either direction) by `x - w - y`, giving a walk
+in `subdivideEdge H x y w`. -/
 def subdivideWalk (hxy : H.Adj x y) (hw : H.IsIsolated w) :
     ∀ {u v : V}, H.Walk u v → (subdivideEdge H x y w).Walk u v
   | _, _, .nil => .nil
@@ -231,7 +236,8 @@ theorem subdivideWalk_reverse {u v : V} (p : H.Walk u v) :
     · have he' : s(b, u) ≠ s(x, y) := fun e ↦ he (Sym2.eq_swap.trans e)
       simp [subdivideWalk, he, he']
 
-/-- 끝점이 `w`가 아니면 내부는 원래 내부에, 변 `xy`를 지났을 때 `w`를 더한 것이다. -/
+/-- If the endpoints are not `w`, the interior is the original interior, plus `w` if the walk
+uses the edge `xy`. -/
 theorem mem_walkInterior_subdivideWalk {u v : V} (p : H.Walk u v) (hwp : w ∉ p.support) (z : V) :
     z ∈ walkInterior (subdivideWalk hxy hw p) ↔
       z ∈ walkInterior p ∨ (z = w ∧ s(x, y) ∈ p.edges) := by
@@ -248,7 +254,7 @@ theorem mem_walkInterior_subdivideWalk {u v : V} (p : H.Walk u v) (hwp : w ∉ p
 
 end Subdivide
 
-/-! ### 경로 체계의 세분 -/
+/-! ### Subdividing a path system -/
 
 namespace SubdivisionPaths
 
@@ -259,7 +265,8 @@ theorem not_mem_support_path (P : SubdivisionPaths K H) (hw : H.IsIsolated w)
     (hwf : w ∉ Set.range P.branch) {a b : W} (h : K.Adj a b) : w ∉ (P.path a b h).support :=
   not_mem_support_of_isIsolated hw _ (fun e ↦ hwf ⟨a, e⟩)
 
-/-- 변 `xy`를 분기점이 아닌 고립점 `w`로 나눈 그래프 안의 경로 체계. 분기점은 그대로다. -/
+/-- The path system in the graph obtained by subdividing `xy` with an isolated vertex `w` that is
+not a branch vertex. The branch vertices are unchanged. -/
 def subdivide (P : SubdivisionPaths K H) (hxy : H.Adj x y) (hwf : w ∉ Set.range P.branch)
     (hw : H.IsIsolated w) : SubdivisionPaths K (subdivideEdge H x y w) where
   branch := P.branch
@@ -290,9 +297,10 @@ def subdivide (P : SubdivisionPaths K H) (hxy : H.Adj x y) (hwf : w ∉ Set.rang
 
 end SubdivisionPaths
 
-/-! ### 정방향 -/
+/-! ### Forward direction -/
 
-/-- 세분 `H`(분기점 `f`) 안에는 분기점이 `f`인 `K`의 경로 체계가 있다. -/
+/-- A subdivision `H` with branch vertices `f` contains a path system of `K` with branch
+vertices `f`. -/
 theorem IsSubdivision.exists_subdivisionPaths {K : SimpleGraph W} {f : W ↪ V} {H : SimpleGraph V}
     (hS : IsSubdivision K f H) : ∃ P : SubdivisionPaths K H, P.branch = f := by
   classical
@@ -302,7 +310,8 @@ theorem IsSubdivision.exists_subdivisionPaths {K : SimpleGraph W} {f : W ↪ V} 
     obtain ⟨P, rfl⟩ := ih
     exact ⟨P.subdivide hxy hwf hw, rfl⟩
 
-/-- `G`가 `K`의 세분을 포함하면 `G` 안에 `K`의 경로 체계가 있다 (`thm:paths_iff`의 정방향). -/
+/-- If `G` contains a subdivision of `K`, then `G` contains a path system of `K` (forward
+direction of `thm:paths_iff`). -/
 theorem ContainsSubdivision.nonempty_subdivisionPaths {G : SimpleGraph V} {K : SimpleGraph W}
     (h : ContainsSubdivision G K) : Nonempty (SubdivisionPaths K G) := by
   obtain ⟨f, H, hS, hle⟩ := h

@@ -2,18 +2,20 @@ import Kuratowski.Basic
 import Kuratowski.Components
 
 /-!
-# 꼭짓점 집합 넓히기
+# Enlarging the vertex set
 
-블루프린트 보조정리 `lem:map_iff`. `W`, `V`가 유한하고 `f : W ↪ V`가 단사이면
-`K.map f`가 평면인 것과 `K`가 평면인 것은 같다 (`isPlanar_map_iff`).
+Blueprint lemma `lem:map_iff`. If `W` and `V` are finite and `f : W ↪ V` is injective, then
+`K.map f` is planar iff `K` is planar (`isPlanar_map_iff`).
 
-* 다트: `K`의 다트와 `K.map f`의 다트는 `f`로 일대일 대응한다 (`dartEquivMap`). 이 대응은 시작점을
-  `f`로 옮기고 다트 뒤집기와 교환한다.
-* 회전 체계: 그런 다트 대응을 따라 회전 체계를 양쪽으로 옮긴다 (`RotationSystem.pushDart`,
-  `RotationSystem.pullDart`). 면 순열은 켤레라서 순환 수가 같다.
-* 수 세기: `f`의 상에 없는 점은 `K.map f`의 고립점이고 혼자 한 성분을 이룬다. 그래서 고립점 수와
-  성분 수가 둘 다 `|V| - |W|`만큼 늘어난다 (`ncard_isolated_map_add`, `card_connectedComponent_map_add`).
-  `Components.lean`의 `ncard_isolated_map`은 `K`에 고립점이 없는 경우만 다루므로 여기서 일반화한다.
+* Darts: `f` gives a bijection between the darts of `K` and those of `K.map f` (`dartEquivMap`).
+  It maps start vertices along `f` and commutes with dart reversal.
+* Rotation systems: we transport rotation systems both ways along such a dart bijection
+  (`RotationSystem.pushDart`, `RotationSystem.pullDart`). The face permutations are conjugate, so
+  they have the same number of cycles.
+* Counting: a vertex outside the range of `f` is isolated in `K.map f` and forms a component by
+  itself. Hence the numbers of isolated vertices and of components both increase by `|V| - |W|`
+  (`ncard_isolated_map_add`, `card_connectedComponent_map_add`). `ncard_isolated_map` in
+  `Components.lean` covers only the case where `K` has no isolated vertices; here we generalize it.
 -/
 
 namespace Kuratowski
@@ -22,13 +24,14 @@ open SimpleGraph
 
 variable {V W : Type*}
 
-/-! ### 다트 대응을 따라 회전 체계 옮기기 -/
+/-! ### Transporting rotation systems along a dart bijection -/
 
 namespace RotationSystem
 
 variable {G : SimpleGraph V} {H : SimpleGraph W}
 
-/-- 시작점을 단사 `g`로 옮기는 다트 대응 `e`를 따라 `G`의 회전 체계를 `H`로 옮긴다. -/
+/-- Transport a rotation system of `G` to `H` along a dart bijection `e` that maps start vertices
+by the injection `g`. -/
 def pushDart [Finite V] (R : RotationSystem G) (e : G.Dart ≃ H.Dart) {g : V → W}
     (hg : Function.Injective g) (he : ∀ d, (e d).fst = g d.fst) : RotationSystem H where
   rot := e.permCongr R.rot
@@ -39,7 +42,7 @@ def pushDart [Finite V] (R : RotationSystem G) (e : G.Dart ≃ H.Dart) {g : V �
     rw [he, he] at this
     exact R.sameCycle_rot _ _ (hg this)
 
-/-- 같은 다트 대응을 거꾸로 따라 `H`의 회전 체계를 `G`로 옮긴다. -/
+/-- Transport a rotation system of `H` back to `G` along the same dart bijection. -/
 def pullDart [Finite W] (S : RotationSystem H) (e : G.Dart ≃ H.Dart) {g : V → W}
     (hg : Function.Injective g) (he : ∀ d, (e d).fst = g d.fst) : RotationSystem G where
   rot := e.symm.permCongr S.rot
@@ -79,11 +82,11 @@ lemma orbitCount_pullDart [Finite W] (S : RotationSystem H) :
 
 end RotationSystem
 
-/-! ### `K.map f`의 다트 -/
+/-! ### Darts of `K.map f` -/
 
 variable (K : SimpleGraph W) (f : W ↪ V)
 
-/-- `K`의 다트 `(a, b)`를 `K.map f`의 다트 `(f a, f b)`로 보낸다. -/
+/-- Send a dart `(a, b)` of `K` to the dart `(f a, f b)` of `K.map f`. -/
 def dartMap (d : K.Dart) : (K.map f).Dart :=
   ⟨(f d.fst, f d.snd), map_adj_apply.2 d.adj⟩
 
@@ -97,7 +100,7 @@ theorem dartMap_bijective : Function.Bijective (dartMap K f) := by
     obtain ⟨a, b, hab, ha, hb⟩ := (map_adj f K _ _).1 x.adj
     exact ⟨⟨(a, b), hab⟩, Dart.ext _ _ (Prod.ext ha hb)⟩
 
-/-- `K`의 다트와 `K.map f`의 다트의 일대일 대응. -/
+/-- The bijection between the darts of `K` and the darts of `K.map f`. -/
 noncomputable def dartEquivMap : K.Dart ≃ (K.map f).Dart :=
   Equiv.ofBijective _ (dartMap_bijective K f)
 
@@ -106,7 +109,7 @@ noncomputable def dartEquivMap : K.Dart ≃ (K.map f).Dart :=
 theorem dartEquivMap_symm (d : K.Dart) : dartEquivMap K f d.symm = (dartEquivMap K f d).symm :=
   rfl
 
-/-! ### 고립점과 연결 성분 세기 -/
+/-! ### Counting isolated vertices and connected components -/
 
 theorem isIsolated_map_apply {a : W} : (K.map f).IsIsolated (f a) ↔ K.IsIsolated a := by
   constructor
@@ -117,13 +120,14 @@ theorem isIsolated_map_apply {a : W} : (K.map f).IsIsolated (f a) ↔ K.IsIsolat
     rw [f.injective ha'] at hab
     exact h b hab
 
-/-- `f`의 상에 없는 점은 `K.map f`의 고립점이다. -/
+/-- A vertex outside the range of `f` is isolated in `K.map f`. -/
 theorem isIsolated_map_of_notMem {v : V} (hv : v ∉ Set.range f) : (K.map f).IsIsolated v := by
   intro w hw
   obtain ⟨a, -, -, rfl, -⟩ := (map_adj f K _ _).1 hw
   exact hv ⟨a, rfl⟩
 
-/-- 고립점 수: `f`의 상에 없는 `|V| - |W|`개의 점이 고립점으로 더해진다. `K`에 고립점이 있어도 된다. -/
+/-- Isolated vertices: the `|V| - |W|` vertices outside the range of `f` are added as isolated
+vertices. `K` may have isolated vertices. -/
 theorem ncard_isolated_map_add [Finite V] [Finite W] :
     {v | (K.map f).IsIsolated v}.ncard + Nat.card W =
       {a | K.IsIsolated a}.ncard + Nat.card V := by
@@ -140,12 +144,12 @@ theorem ncard_isolated_map_add [Finite V] [Finite W] :
   have h2 := Set.ncard_range_of_injective f.injective
   omega
 
-/-- `K.map f`에서 `f a`와 `f b`가 이어진 것은 `K`에서 `a`와 `b`가 이어진 것과 같다. -/
+/-- `f a` and `f b` are connected in `K.map f` iff `a` and `b` are connected in `K`. -/
 theorem reachable_map_apply {a b : W} : (K.map f).Reachable (f a) (f b) ↔ K.Reachable a b := by
   constructor
   · intro h
     have : Nonempty W := ⟨a⟩
-    -- `f`의 왼쪽 역함수는 `K.map f`에서 `K`로 가는 그래프 준동형이다.
+    -- A left inverse of `f` is a graph homomorphism from `K.map f` to `K`.
     let g : K.map f →g K :=
       { toFun := Function.invFun f
         map_rel' := fun {u v} huv ↦ by
@@ -155,7 +159,8 @@ theorem reachable_map_apply {a b : W} : (K.map f).Reachable (f a) (f b) ↔ K.Re
   · intro h
     exact h.map (Embedding.map f K).toHom
 
-/-- 연결 성분 수: `f`의 상에 없는 `|V| - |W|`개의 점이 각각 한 성분으로 더해진다. -/
+/-- Connected components: each of the `|V| - |W|` vertices outside the range of `f` adds one
+component. -/
 theorem card_connectedComponent_map_add [Finite V] [Finite W] :
     Nat.card (K.map f).ConnectedComponent + Nat.card W =
       Nat.card K.ConnectedComponent + Nat.card V := by
@@ -164,7 +169,7 @@ theorem card_connectedComponent_map_add [Finite V] [Finite W] :
   let ψ : ((Set.range f)ᶜ : Set V) → (K.map f).ConnectedComponent :=
     fun v ↦ (K.map f).connectedComponentMk v
   have hφ (a : W) : φ (K.connectedComponentMk a) = (K.map f).connectedComponentMk (f a) := rfl
-  -- 상에 없는 점은 고립점이라 자기 자신하고만 이어져 있다.
+  -- A vertex outside the range is isolated, so it is connected only to itself.
   have hout (v : ((Set.range f)ᶜ : Set V)) (w : V) (h : (K.map f).Reachable v w) : w = v :=
     eq_of_isIsolated_of_reachable (isIsolated_map_of_notMem K f v.2) h
   have hbij : Function.Bijective (Sum.elim φ ψ) := by
@@ -195,10 +200,10 @@ theorem card_connectedComponent_map_add [Finite V] [Finite W] :
   rw [Nat.card_coe_set_eq] at hcard
   omega
 
-/-! ### 평면성 -/
+/-! ### Planarity -/
 
-/-- **꼭짓점 집합 넓히기** (블루프린트 `lem:map_iff`). `W`, `V`가 유한하고 `f : W ↪ V`이면
-`K.map f`가 평면인 것과 `K`가 평면인 것은 같다. -/
+/-- **Enlarging the vertex set** (blueprint `lem:map_iff`). If `W` and `V` are finite and
+`f : W ↪ V`, then `K.map f` is planar iff `K` is planar. -/
 theorem isPlanar_map_iff [Finite V] [Finite W] : IsPlanar (K.map f) ↔ IsPlanar K := by
   have hE := ncard_edgeSet_map K f
   have hI := ncard_isolated_map_add K f

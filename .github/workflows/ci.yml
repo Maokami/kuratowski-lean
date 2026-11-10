@@ -66,6 +66,12 @@ jobs:
       - name: 공리 감사 (새로 실행)
         run: lake env lean KuratowskiAudit.lean
 
+      # Compile the documented public API examples against this exact revision.
+      - name: 공개 API 예제
+        run: |
+          lake env lean examples/LibraryUsage.lean
+          lake env lean examples/PermutationUsage.lean
+
       # TeX 없이 블루프린트의 \lean{...} 이름을 뽑아 Lean에 실제로 있는지 확인한다.
       - name: 블루프린트 Lean 이름 (checkdecls)
         run: |

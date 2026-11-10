@@ -19,7 +19,9 @@ Read/Glob/Grep만 사용한다. 셸, 편집, 외부 호출, 하위 에이전트,
 이 분류는 제안이며 자동 수정 허가가 아니다. 이 작업은 코드나 PR을 만들지 않는다.
 
 각 후보의 path는 required_files 중 하나, declaration은 그 파일의 선언 이름이다.
+declaration은 theorem·lemma·def·abbrev·structure·inductive로 선언된 이름만 쓴다.
 evidence에는 실제 소스에서 그대로 복사한 연속 문자열을 넣고 1-based 시작 line을 기록한다.
+quote는 그 line의 첫 글자부터 들여쓰기를 포함해 그대로 복사한다.
 주장에 필요한 다른 선언도 최대 3개의 evidence로 인용한다. 근거가 부족하면 후보에서 제외한다.
 reason에는 문제와 실제 영향, proposal에는 최소 변경과 검증 방법을 쓴다.
 reviewed_files에는 실제 확인한 Kuratowski/*.lean 소스 경로만 넣는다. 필수 파일뿐 아니라

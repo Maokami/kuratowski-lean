@@ -50,43 +50,6 @@ noncomputable def dartEquivSup (hd : Disjoint G H) : G.Dart ⊕ H.Dart ≃ (G �
     dartEquivSup hd (Sum.map Dart.symm Dart.symm d) = (dartEquivSup hd d).symm := by
   cases d <;> rfl
 
-/-- 서로소 합 순열 안의 왼쪽 순환을 보존한다. -/
-theorem sameCycle_sumCongr_left {α β : Type*} [Finite α] [Finite β]
-    (f : Perm α) (g : Perm β) {a b : α} (h : f.SameCycle a b) :
-    (Perm.sumCongr f g).SameCycle (.inl a) (.inl b) := by
-  obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-  have hp : ∀ n, ((Perm.sumCongr f g) ^ n) (.inl a) = .inl ((f ^ n) a) := by
-    intro n
-    induction n with
-    | zero => rfl
-    | succ n ih => simp only [pow_succ', Perm.mul_apply, ih, Perm.sumCongr_apply, Sum.map_inl]
-  exact ⟨n, by simpa only [zpow_natCast, hp] using congrArg Sum.inl hn⟩
-
-/-- 서로소 합 순열 안의 오른쪽 순환을 보존한다. -/
-theorem sameCycle_sumCongr_right {α β : Type*} [Finite α] [Finite β]
-    (f : Perm α) (g : Perm β) {a b : β} (h : g.SameCycle a b) :
-    (Perm.sumCongr f g).SameCycle (.inr a) (.inr b) := by
-  obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-  have hp : ∀ n, ((Perm.sumCongr f g) ^ n) (.inr a) = .inr ((g ^ n) a) := by
-    intro n
-    induction n with
-    | zero => rfl
-    | succ n ih => simp only [pow_succ', Perm.mul_apply, ih, Perm.sumCongr_apply, Sum.map_inr]
-  exact ⟨n, by simpa only [zpow_natCast, hp] using congrArg Sum.inr hn⟩
-
-theorem not_sameCycle_sumCongr_cross {α β : Type*} [Finite α] [Finite β]
-    (f : Perm α) (g : Perm β) (a : α) (b : β) :
-    ¬ (Perm.sumCongr f g).SameCycle (.inl a) (.inr b) := by
-  intro h
-  obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-  have hp : ∀ n, ((Perm.sumCongr f g) ^ n) (.inl a) = .inl ((f ^ n) a) := by
-    intro n
-    induction n with
-    | zero => rfl
-    | succ n ih => simp only [pow_succ', Perm.mul_apply, ih, Perm.sumCongr_apply, Sum.map_inl]
-  rw [hp] at hn
-  cases hn
-
 namespace RotationSystem
 
 /-- 두 그래프의 유일한 공통 꼭짓점에서 회전 순환들을 호환으로 잇는다. -/

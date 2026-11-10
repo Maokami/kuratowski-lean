@@ -2,39 +2,22 @@ import Kuratowski.ContractCounts
 import Kuratowski.Lift
 
 /-!
-# 지지 집합 바깥 경로를 한 변으로 바꾸기
+# Replacing an external path by an edge
 
-KF 그래프의 부분 그래프 `H`에서 `x`, `z`를 잇는 원래 그래프의 경로가 있고, 그 내부가 `H`의 고립점들로만
-이루어지면 `H ⊔ edge x z`도 KF다. 경로 길이에 대한 강한 귀납법으로 내부점을 차례로 수축한다.
-`KuratowskiFree.contractEdge`가 KF를 보존하고, 수축할 내부점이 `H`의 고립점이라 `H`의 변도 남는다.
-걸음은 남긴 점을 피하는 꼬리만 사영해 길이를 보존한 뒤 `bypass`로 단순 경로로 줄인다.
-유한성은 가정하지 않는다. 최소 반례의 두 점 분리를 처리할 때 쓴다.
+If `H ≤ G`, `G` is Kuratowski-free, `x ≠ z`, and an `x`–`z` path in `G` has interior
+outside `H.support`, then `H ⊔ edge x z` is Kuratowski-free.
+Strong induction on path length contracts an internal vertex at each step.
+`KuratowskiFree.contractEdge` preserves the excluded subdivisions, and the
+contracted vertex is isolated in `H`, so the edges of `H` survive.
+The projected tail avoids the retained vertex; `bypass` makes it a path.
+No finiteness assumption is needed.
 -/
 
 namespace Kuratowski
 open SimpleGraph
 variable {V : Type*} {G H : SimpleGraph V} {x y : V}
 
-/-- `y`를 `x`로 보내는 꼭짓점 사상. -/
-def contractVertex [DecidableEq V] (x y a : V) : V := if a = y then x else a
-
-lemma contractEdge_adj_contractVertex [DecidableEq V] (hxy : x ≠ y) {a b : V}
-    (ha : a ≠ x) (hb : b ≠ x) (hab : G.Adj a b) :
-    (contractEdge G x y).Adj (contractVertex x y a) (contractVertex x y b) := by
-  by_cases hay : a = y
-  · subst a
-    have hby : b ≠ y := hab.ne.symm
-    simp only [contractVertex, ↓reduceIte, hby]
-    exact ⟨hb.symm, hxy, hby, Or.inr (Or.inl ⟨rfl, hab⟩)⟩
-  by_cases hby : b = y
-  · subst b
-    have hay' : a ≠ y := hab.ne
-    simp only [contractVertex, hay', ↓reduceIte]
-    exact ⟨ha, hay', hxy, Or.inr (Or.inr ⟨rfl, hab.symm⟩)⟩
-  simp only [contractVertex, hay, hby, ↓reduceIte]
-  exact ⟨hab.ne, hay, hby, Or.inl hab⟩
-
-/-- `x`를 피하는 걸음을 `y ↦ x`로 옮긴다. 접히는 변이 없어 길이가 그대로다. -/
+/-- Project a walk avoiding `x` along `y ↦ x`. No edge collapses, so its length is unchanged. -/
 noncomputable def contractAvoidWalk [DecidableEq V] (hxy : x ≠ y) {a b : V}
     (q : G.Walk a b) (hx : x ∉ q.support) :
     (contractEdge G x y).Walk (contractVertex x y a) (contractVertex x y b) := by
@@ -70,7 +53,7 @@ namespace Kuratowski
 open SimpleGraph
 variable {V : Type*}
 
-/-- 부분 그래프도 KF다. -/
+/-- Subgraphs of Kuratowski-free graphs are Kuratowski-free. -/
 theorem KuratowskiFree.mono {G H : SimpleGraph V} (h : KuratowskiFree G) (hle : H ≤ G) :
     KuratowskiFree H := by
   constructor
@@ -79,7 +62,8 @@ theorem KuratowskiFree.mono {G H : SimpleGraph V} (h : KuratowskiFree G) (hle : 
   · rintro ⟨f, J, hJ, hJG⟩
     exact h.2 ⟨f, J, hJ, hJG.trans hle⟩
 
-/-- 내부가 부분 그래프의 지지 집합 밖에 있는 경로를 한 변으로 더해도 KF가 유지된다. -/
+/-- Adding an edge realized by a path whose interior avoids `H.support`
+preserves Kuratowski-freeness. -/
 theorem KuratowskiFree.sup_edge_of_path {G H : SimpleGraph V} (hKF : KuratowskiFree G)
     (hHG : H ≤ G) {x z : V} (hxz : x ≠ z) (p : G.Walk x z) (hp : p.IsPath)
     (havoid : ∀ u ∈ walkInterior p, H.IsIsolated u) : KuratowskiFree (H ⊔ edge x z) := by

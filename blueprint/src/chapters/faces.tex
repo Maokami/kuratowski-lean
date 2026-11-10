@@ -258,7 +258,8 @@ Lean 진술은 같은 면 순환에서 시작점이 같은 두 다트가 같다�
         \(p_{j+1} = p_j + \ell_j > p_j\), \(p_{N-1} < p_{N-1} + \ell_{N-1} = m\)이고
         \(C(p_j) = (\varphi d_j)\text{의 시작점} = u_j\)이다.
 \end{itemize}
-Lean의 \texttt{DelVertexFace.lean}은 위 이웃 열거, 두 2-연결 유도, 조각 반복과 최소 주기 식을
+Lean의 \texttt{RotationOrder.lean}은 위 이웃 열거를 다룬다.
+\texttt{DelVertexFace.lean}은 두 2-연결 유도, 조각 반복과 최소 주기 식을
 형식화한다. 기존 \texttt{exists\_cyclicSequence\_face}의 인터페이스는 그대로 두고, 그 수열의 길이가
 면의 최소 주기와 같다는 정리로 길이를 복원한다. 진술에 적은 수학적 가정 외에는
 꼭짓점 타입의 유한성과 \texttt{DecidableEq V}만 쓴다.

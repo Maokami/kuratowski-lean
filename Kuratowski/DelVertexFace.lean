@@ -1,3 +1,4 @@
+import Kuratowski.RotationOrder
 import Kuratowski.FaceCycle
 import Kuratowski.VertexDeletion
 
@@ -32,66 +33,7 @@ namespace RotationSystem
 
 variable (R : RotationSystem G)
 
-/-! ### `v` 둘레의 회전: 주기와 이웃 열거 -/
-
-/-- 회전의 역도 다트의 시작점을 보존한다. -/
-theorem fst_rot_inv (d : G.Dart) : (R.rot⁻¹ d).fst = d.fst := by
-  simpa using (R.fst_rot (R.rot⁻¹ d)).symm
-
-theorem fst_rot_inv_pow (d : G.Dart) (j : ℕ) : ((R.rot⁻¹ ^ j) d).fst = d.fst := by
-  induction j with
-  | zero => rfl
-  | succ j ih => rw [pow_succ', Perm.mul_apply, fst_rot_inv, ih]
-
 variable [Finite V]
-
-theorem minimalPeriod_rot_inv_pos (d : G.Dart) : 0 < minimalPeriod ⇑(R.rot⁻¹) d :=
-  IsPeriodicPt.minimalPeriod_pos (orderOf_pos R.rot⁻¹) (by
-    change (⇑R.rot⁻¹)^[orderOf R.rot⁻¹] d = d
-    rw [← coe_pow, pow_orderOf_eq_one]
-    rfl)
-
-omit [Finite V] in
-/-- 최소 주기 아래에서 `ρ⁻¹^j d`의 끝점은 서로 다르다. -/
-theorem eq_of_rot_inv_pow_snd_eq (d : G.Dart) {i j : ℕ} (hi : i < minimalPeriod ⇑(R.rot⁻¹) d)
-    (hj : j < minimalPeriod ⇑(R.rot⁻¹) d) (h : ((R.rot⁻¹ ^ i) d).snd = ((R.rot⁻¹ ^ j) d).snd) :
-    i = j := by
-  have hd : (R.rot⁻¹ ^ i) d = (R.rot⁻¹ ^ j) d :=
-    Dart.ext _ _ (Prod.ext (by rw [R.fst_rot_inv_pow, R.fst_rot_inv_pow]) h)
-  exact iterate_injOn_Iio_minimalPeriod hi hj (by simpa only [coe_pow] using hd)
-
-/-- `d`의 시작점의 이웃은 모두 최소 주기 아래의 어떤 `ρ⁻¹^j d`의 끝점이다. -/
-theorem exists_rot_inv_pow_snd (d : G.Dart) {w : V} (hw : G.Adj d.fst w) :
-    ∃ j < minimalPeriod ⇑(R.rot⁻¹) d, ((R.rot⁻¹ ^ j) d).snd = w := by
-  let y : G.Dart := ⟨(d.fst, w), hw⟩
-  obtain ⟨n, hn⟩ := (sameCycle_inv.2 (R.sameCycle_rot d y rfl)).exists_nat_pow_eq
-  refine ⟨n % minimalPeriod ⇑(R.rot⁻¹) d, Nat.mod_lt _ (R.minimalPeriod_rot_inv_pos d), ?_⟩
-  have hmod : (R.rot⁻¹ ^ (n % minimalPeriod ⇑(R.rot⁻¹) d)) d = (R.rot⁻¹ ^ n) d := by
-    rw [coe_pow, coe_pow]
-    exact iterate_mod_minimalPeriod_eq
-  rw [hmod, hn]
-
-/-- 회전의 역에서 `d`의 최소 주기는 `d`의 시작점의 이웃 수다. -/
-theorem minimalPeriod_rot_inv (d : G.Dart) :
-    minimalPeriod ⇑(R.rot⁻¹) d = (G.neighborSet d.fst).ncard := by
-  let g : Fin (minimalPeriod ⇑(R.rot⁻¹) d) → G.neighborSet d.fst := fun i ↦
-    ⟨((R.rot⁻¹ ^ (i : ℕ)) d).snd, by
-      have h := ((R.rot⁻¹ ^ (i : ℕ)) d).adj
-      rw [R.fst_rot_inv_pow] at h
-      exact h⟩
-  have hinj : Injective g := fun i j hij ↦
-    Fin.ext (R.eq_of_rot_inv_pow_snd_eq d i.isLt j.isLt (congrArg Subtype.val hij))
-  have hsurj : Surjective g := by
-    rintro ⟨w, hw⟩
-    obtain ⟨j, hj, hjw⟩ := R.exists_rot_inv_pow_snd d hw
-    exact ⟨⟨j, hj⟩, Subtype.ext hjw⟩
-  have hc := Nat.card_congr (Equiv.ofBijective g ⟨hinj, hsurj⟩)
-  rwa [Nat.card_eq_fintype_card, Fintype.card_fin, Nat.card_coe_set_eq] at hc
-
-/-- 시작점의 이웃 수만큼 회전의 역을 돌리면 제자리다. -/
-theorem rot_inv_pow_ncard (d : G.Dart) : (R.rot⁻¹ ^ (G.neighborSet d.fst).ncard) d = d := by
-  rw [← R.minimalPeriod_rot_inv d, coe_pow]
-  exact iterate_minimalPeriod
 
 /-! ### 2-연결성 -/
 

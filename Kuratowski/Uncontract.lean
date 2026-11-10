@@ -1,6 +1,5 @@
 import Kuratowski.ContractCounts
-import Kuratowski.PathReplacement
-import Kuratowski.DelVertexFace
+import Kuratowski.RotationOrder
 import Kuratowski.PermutationDeletion
 
 /-!
@@ -95,21 +94,6 @@ end CSwap
 /-! ### 다트 대응 -/
 
 variable {V : Type*} [DecidableEq V] {G : SimpleGraph V} {x y : V}
-
-theorem contractVertex_of_ne {p : V} (h : p ≠ y) : contractVertex x y p = p := by
-  simp [contractVertex, h]
-
-theorem contractVertex_self : contractVertex x y y = x := by
-  simp [contractVertex]
-
-theorem contractVertex_eq_cases {p q : V} (h : contractVertex x y p = contractVertex x y q) :
-    p = q ∨ (p = y ∧ q = x) ∨ (p = x ∧ q = y) := by
-  unfold contractVertex at h
-  by_cases hp : p = y <;> by_cases hq : q = y <;> simp only [hp, hq, ↓reduceIte] at h
-  · exact Or.inl (hp.trans hq.symm)
-  · exact Or.inr (Or.inl ⟨hp, h.symm⟩)
-  · exact Or.inr (Or.inr ⟨h, hq⟩)
-  · exact Or.inl h
 
 /-- `(x, y)`, `(y, x)`가 아닌 `G`의 다트. -/
 abbrev UncontractDart (G : SimpleGraph V) (x y : V) :=
@@ -209,12 +193,6 @@ theorem uncontractDartEquiv_symm (hxy : G.Adj x y) (hcommon : ∀ z, ¬ (G.Adj x
       simpa using congrArg Prod.swap h), fun h ↦ d.2.1 (by simpa using congrArg Prod.swap h)⟩ =
       (uncontractDartEquiv hxy hcommon d).symm := rfl
 
-
-theorem contractVertex_eq_x {p : V} (h : contractVertex x y p = x) : p = x ∨ p = y := by
-  by_cases hp : p = y
-  · exact Or.inr hp
-  · rw [contractVertex_of_ne hp] at h
-    exact Or.inl h
 
 /-! ### 되돌린 회전 -/
 

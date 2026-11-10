@@ -23,6 +23,9 @@ theorem isPlanar_iff_kuratowskiFree {G : SimpleGraph V} [Finite V] :
 `sorry`, `native_decide`, 추가 공리는 쓰지 않았다. `lake build`가 `KuratowskiAudit.lean`으로 모든
 선언을 검사해, 쓰인 공리가 표준 공리 `propext`, `Classical.choice`, `Quot.sound`뿐임을 확인한다.
 
+재사용할 모듈과 API는 [라이브러리 안내](docs/library.md), 후속 정리와 릴리스 범위는
+[릴리스 계획](docs/release-roadmap.md)에 적었다.
+
 ## 증명한 것
 
 | 정리 | 위치 | 내용 |
@@ -88,6 +91,7 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 `CyclicSequence G m`은 `3 ≤ m`, 단사 `vertex : ZMod m ↪ V`, 모든 위치에서의
 `G.Adj (vertex i) (vertex (i + 1))`을 묶는다. 마지막 위치에서 첫 위치로 닫히는 변도 포함하며,
 유도 사이클만으로 제한하지 않는다. 시작점을 옮기는 `rotate`와 방향을 뒤집는 `reverse`를 제공한다.
+`mono`로 부분 그래프의 순환 수열을 큰 그래프로 옮길 수 있다.
 삼각형의 닫는 변과 길이 0·1·2 및 변이 없는 그래프의 배제를 확인했다.
 `CyclicWalk.lean`의 `toWalk`는 길이 `m`인 `IsCycle`이고, `arc a b`는 정방향의 `IsPath`다.
 호의 길이는 `(b - a).val`이며 `a = b`이면 길이 0이다. 서로 반대 방향의 두 호는 양 끝점을 뺀
@@ -256,7 +260,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `Perm.lean` | 순환 수 `orbitCount`, 호환 보조정리, 잘라 내기 `cut` |
 | `Basic.lean` | 회전 체계, 면, 오일러 지표, `IsPlanar` |
 | `Components.lean` | 연결 성분·고립점·변 수 세기 (변 지우기, 세분, `K.map f`) |
-| `Contract.lean` | 변 수축 `contractEdge`와 국소 성질 (어려운 방향용 정의) |
+| `Contract.lean` | `contractVertex`와 변 수축 `contractEdge`와 국소 성질 (어려운 방향용 정의) |
 | `ContractCounts.lean` | 수축의 변 수 감소·성분 수·고립점 수, 두 다트 제외 전단사와 변 추가의 세기 |
 | `ConnectivityTools.lean` | 연결도 단조성·한 점 삭제·이웃 수 하한·임의 크기 최소 분리 집합의 이웃 |
 | `PathReplacement.lean` | 지지 집합 바깥 경로를 한 변으로 바꿀 때의 KF 보존 |
@@ -268,7 +272,8 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `SplitVertex.lean` | Option V의 꼭짓점 쪼개기, 다트 대응, 회전·χ·성분 수와 연결 조건 |
 | `FaceBoundary.lean` | 꼭짓점 쪼개기와 2-연결성으로 면 경계 단사성(J1) 증명 |
 | `FaceCycle.lean` | 면의 최소 주기와 길이 ≥ 3, 순서를 보존하는 CyclicSequence 구성 |
-| `DelVertexFace.lean` | 꼭짓점 둘레 회전의 이웃 열거와 삭제 뒤 특정 면의 조각·위치 계산(J2) |
+| `RotationOrder.lean` | 회전의 역의 주기와 자연수·ZMod 지표에 따른 이웃 열거 |
+| `DelVertexFace.lean` | 꼭짓점 삭제 뒤 특정 면의 조각·위치 계산(J2) |
 | `Euler.lean` | 오일러 부등식, 부분 그래프 |
 | `Smoothing.lean` | 세분 되돌리기 |
 | `NonPlanar.lean` | 변 개수 상한, `K₅`·`K₃,₃` 비평면성 |
@@ -289,6 +294,7 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `PathsBuild.lean` | 유한 원본의 경로 체계에서 세분 포함 도출, 한 방향 경로에서 체계 생성 |
 | `CommonNeighbors.lean` | 인접한 두 점과 사이클 위의 공통 이웃 셋에서 K₅ 세분 구성 |
 | `AlternatingNeighbors.lean` | 교대하는 사이클 위 네 점과 바깥 허브 둘에서 K₃,₃ 세분 구성 |
+| `PermSum.lean` | 그래프에 의존하지 않는 서로소 합 순열의 거듭제곱·순환·궤도 수 |
 | `Sum.lean` | 서로소 타입 합의 회전·면·성분 수, 지지 집합이 서로소인 합집합의 평면성 |
 | `GlueOne.lean` | 공통 꼭짓점에서 회전을 잇기, 면·성분·고립점 수, 공통 성분 교집합의 세기와 한 점 붙이기의 평면성 |
 | `GlueEdge.lean` | 공통 변의 두 끝에서 회전을 잇고 중복 변을 삭제해 합집합의 평면성 증명 |

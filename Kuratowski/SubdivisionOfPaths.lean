@@ -288,11 +288,10 @@ theorem isSubdivision_partialGraph (P : SubdivisionPaths K G) (T : Finset (Sym2 
         (P.partialGraph_adj_branch h hS)
         (fun z hz ↦ ⟨P.isIsolated_partialGraph h hS hz, P.interior_not_branch a b h z hz⟩)
 
-/-- 유한 그래프 안의 경로 체계는 같은 분기점 배치의 세분을 준다. -/
-theorem exists_isSubdivision_le [Finite V] (P : SubdivisionPaths K G) :
+/-- `exists_isSubdivision_le`에서 `V` 대신 `W`의 유한성만 가정한 판. -/
+theorem exists_isSubdivision_le_of_finite [Finite W] (P : SubdivisionPaths K G) :
     ∃ H, IsSubdivision K P.branch H ∧ H ≤ G := by
   classical
-  have : Finite W := Finite.of_injective P.branch P.branch.injective
   have : Fintype W := Fintype.ofFinite W
   have hfin : K.edgeSet.Finite := Set.toFinite _
   refine ⟨P.partialGraph hfin.toFinset, P.isSubdivision_partialGraph _ (by simp), ?_⟩
@@ -302,6 +301,12 @@ theorem exists_isSubdivision_le [Finite V] (P : SubdivisionPaths K G) :
   rcases hxy.1 with ⟨c, d, h', hcd, -⟩ | ⟨c, d, h', -, he⟩
   · exact (hcd h').elim
   · exact (P.path c d h').edges_subset_edgeSet he
+
+/-- 유한 그래프 안의 경로 체계는 같은 분기점 배치의 세분을 준다. -/
+theorem exists_isSubdivision_le [Finite V] (P : SubdivisionPaths K G) :
+    ∃ H, IsSubdivision K P.branch H ∧ H ≤ G := by
+  have : Finite W := Finite.of_injective P.branch P.branch.injective
+  exact P.exists_isSubdivision_le_of_finite
 
 theorem containsSubdivision [Finite V] (P : SubdivisionPaths K G) : ContainsSubdivision G K := by
   obtain ⟨H, hS, hle⟩ := P.exists_isSubdivision_le

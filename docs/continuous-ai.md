@@ -174,3 +174,23 @@ Conventional Commit은 `type(scope): 한국어 설명` 형식을 사용한다. �
 - [Claude Code GitHub Actions](https://code.claude.com/docs/en/github-actions)
 - [CLI 옵션](https://code.claude.com/docs/en/cli-reference)
 - [Continuous AI 개념](https://githubnext.com/projects/continuous-ai/)
+
+
+## 재사용 패키지 이관 (2026-11-10)
+
+`lean-improvement.yml`은 [continuous-ai-kit](https://github.com/Maokami/continuous-ai-kit)의
+`scan-report.yml`을 전체 SHA로 고정해 호출한다. 기존 주간 schedule·concurrency·원장(#32)·보고서 ID를
+유지하며, 설정은 `.github/continuous-ai/lean.json`에 있다. 소스·정책·패키지 SHA가 digest에 들어가므로
+첫 이관은 새 조사 주기를 시작하지만 이전 후보 ID는 중복 게시하지 않는다. PR 리뷰·머지 정책은 그대로다.
+
+CLI restricted mode로 프로젝트 설정을 자동 로드하지 않으므로 프롬프트에서 AGENTS.md를 명시적으로 읽는다.
+모델은 `claude-sonnet-5-5`, 32턴, 10분이고 job은 15분이다. 취소 기록과 실행 시도별 artifact를 제공한다.
+재시도는 부분 job 재실행 대신 batch 번호와 retry_failed를 지정한 새 수동 실행을 쓴다.
+기존 `scripts/lean_improvement.py`와 시험은 롤백용으로 남기며, 예전 workflow와 동시에 실행하지 않는다.
+
+`continuous-ai-docs-demo.yml`은 비-Lean text adapter의 수동 시험이다. 별도 원장·concurrency를 사용하며
+고의로 모순을 넣은 `.github/continuous-ai/fixtures/cache-guide.md`만 조사한다. 이 fixture는 실제 사용
+설명이나 품질 벤치마크가 아니다. 한 번의 검증 후 정기 실행하지 않는다.
+
+증명 공개 릴리스: [v1.0.0](https://github.com/Maokami/kuratowski-lean/releases/tag/v1.0.0).
+Mathlib 제출은 이 릴리스에 포함하지 않으며, API와 증명의 사람 검토를 별도로 거친다.

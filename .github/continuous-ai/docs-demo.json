@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "lane": "docs-demo",
+  "default_branch": "main",
+  "source_globs": [
+    ".github/continuous-ai/fixtures/*.md"
+  ],
+  "prompt_file": ".github/continuous-ai/docs-demo.md",
+  "adapter": "text",
+  "model": "claude-sonnet-5-5",
+  "batch_size": 4,
+  "max_turns": 32
+}

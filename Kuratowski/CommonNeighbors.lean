@@ -4,15 +4,18 @@ import Kuratowski.PathsBuild
 import Mathlib.Data.Fin.VecNotation
 
 /-!
-# 공통 이웃 셋이면 `TK₅` (블루프린트 `lem:TK5_of_common`)
+# Three common neighbors give `TK₅` (blueprint `lem:TK5_of_common`)
 
-`x ∼ y`이고 `x`, `y`를 지나지 않는 사이클 `C`의 서로 다른 세 위치 `i`, `j`, `k`가 `x`와 `y`의 공통
-이웃이면 `G`는 `K₅`의 세분을 포함한다 (`containsSubdivision_K5_of_three_common`).
+If `x ∼ y` and three distinct positions `i`, `j`, `k` of a cycle `C` avoiding `x` and `y` are
+common neighbors of `x` and `y`, then `G` contains a subdivision of `K₅`
+(`containsSubdivision_K5_of_three_common`).
 
-분기점은 `x, y, C i, C j, C k`다. `x`나 `y`를 끝점으로 하는 변은 `G`의 한 변이고, 세 공통 이웃 사이의
-변은 `C`의 세 호다. 위치를 `i.val < j.val < k.val`로 정렬하면 호는 `i → j`, `j → k`, `k → i`이고,
-`CyclicArcs`의 보조정리로 내부가 서로소이며 분기점을 피한다. 일반 경우는 세 위치의 여섯 가지 순서로
-나눈다. `K₅`의 꼭짓점이 유한하므로 `G`의 꼭짓점 타입에는 유한성을 가정하지 않는다.
+The branch vertices are `x, y, C i, C j, C k`. Each edge of `K₅` at `x` or `y` is an edge of `G`,
+and the edges among the three common neighbors are three arcs of `C`. If the positions are sorted
+as `i.val < j.val < k.val`, the arcs are `i → j`, `j → k`, `k → i`, and the lemmas of `CyclicArcs`
+show that their interiors are disjoint and avoid the branch vertices. The general case splits into
+the six orders of the three positions. Since `K₅` has finitely many vertices, the vertex type of
+`G` need not be finite.
 -/
 
 namespace Kuratowski
@@ -21,13 +24,13 @@ open SimpleGraph
 
 variable {V : Type*}
 
-/-! ### 공통 이웃 셋이면 `TK₅` -/
+/-! ### Three common neighbors give `TK₅` -/
 
 namespace CommonNeighbors
 
 variable {G : SimpleGraph V} {m : ℕ}
 
-/-- 정렬된 경우: 위치가 `i.val < j.val < k.val`. -/
+/-- The sorted case: the positions satisfy `i.val < j.val < k.val`. -/
 theorem containsSubdivision_K5_of_sorted (C : CyclicSequence G m) {x y : V} (hxy : G.Adj x y)
     (hxC : x ∉ Set.range C) (hyC : y ∉ Set.range C) {i j k : ZMod m}
     (hij : i.val < j.val) (hjk : j.val < k.val)
@@ -52,7 +55,7 @@ theorem containsSubdivision_K5_of_sorted (C : CyclicSequence G m) {x y : V} (hxy
   have hadj : ∀ a b : Fin 5, a.val < 2 → a < b → G.Adj (f a) (f b) := by
     intro a b ha hab
     fin_cases a <;> fin_cases b <;> simp_all [f, g, Fin.lt_def]
-  -- 세 호의 내부
+  -- interiors of the three arcs
   have A1 : ∀ c, f c ∉ walkInterior (C.arc i j) := by
     intro c
     fin_cases c
@@ -83,7 +86,7 @@ theorem containsSubdivision_K5_of_sorted (C : CyclicSequence G m) {x y : V} (hxy
     C.disjoint_arc_interiors_wrap i j k k hij.le hjk.le le_rfl
   have D31 : Disjoint (walkInterior (C.arc k i)) (walkInterior (C.arc i j)) :=
     C.disjoint_arc_interiors_wrap i i j k le_rfl hij.le hjk.le
-  -- 경로
+  -- paths
   let p : ∀ a b : Fin 5, a < b → K5.Adj a b → G.Walk (f a) (f b) := fun a b hab _ ↦
     if ha : a.val < 2 then Walk.cons (hadj a b ha hab) Walk.nil
     else if hb : b.val = a.val + 1 then
@@ -148,8 +151,9 @@ theorem containsSubdivision_K5_of_sorted (C : CyclicSequence G m) {x y : V} (hxy
 
 end CommonNeighbors
 
-/-- 블루프린트 `lem:TK5_of_common`: `x ∼ y`이고 `x`, `y`를 지나지 않는 사이클 `C`의 서로 다른 세
-위치가 `x`와 `y`의 공통 이웃이면 `G`는 `K₅`의 세분을 포함한다. -/
+/-- Blueprint `lem:TK5_of_common`: if `x ∼ y` and three distinct positions of a cycle `C`
+avoiding `x` and `y` are common neighbors of `x` and `y`, then `G` contains a subdivision of
+`K₅`. -/
 theorem containsSubdivision_K5_of_three_common {G : SimpleGraph V} {m : ℕ}
     (C : CyclicSequence G m) {x y : V} (hxy : G.Adj x y) (hxC : x ∉ Set.range C)
     (hyC : y ∉ Set.range C) {i j k : ZMod m} (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k)

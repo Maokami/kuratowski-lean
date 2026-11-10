@@ -2,17 +2,18 @@ import Kuratowski.Connected
 import Kuratowski.Contract
 
 /-!
-# 3-연결 그래프의 수축과 분리 집합
+# Contractions of 3-connected graphs and separating sets
 
-Diestel, *Graph Theory* 6판 보조정리 3.2.4(5판 3.2.1)의 증명에 쓰는 사실들.
+Facts used in the proof of Diestel, *Graph Theory*, 6th ed., Lemma 3.2.4 (5th ed., 3.2.1).
 
-* `Separates G T`: `T`를 지우면 지지 집합의 두 점이 끊어진다. `sepComponent G T c`는 `G - T`에서 `c`의
-  성분(지지 집합 안)이다.
-* `support_contractEdge_of_threeConnected`: 3-연결이고 지지 집합이 5개 이상이면 수축의 지지 집합은
-  `G.support \ {y}`다.
-* `exists_separates_of_not_threeConnected`: 수축이 3-연결이 아니면 `{x, y, z}`가 `G`를 분리하는 `z`가
-  있다 (Diestel의 첫 문단).
-* `exists_adj_mem_sepComponent`: 크기 3인 분리 집합의 각 점은 `G - T`의 모든 성분에 이웃이 있다.
+* `Separates G T`: deleting `T` disconnects two vertices of the support. `sepComponent G T c` is the
+  component of `c` in `G - T` (inside the support).
+* `support_contractEdge_of_threeConnected`: if `G` is 3-connected and its support has at least 5
+  vertices, the support of the contraction is `G.support \ {y}`.
+* `exists_separates_of_not_threeConnected`: if the contraction is not 3-connected, there is `z`
+  such that `{x, y, z}` separates `G` (Diestel's first paragraph).
+* `exists_adj_mem_sepComponent`: each vertex of a separating set of size 3 has a neighbor in every
+  component of `G - T`.
 -/
 
 namespace Kuratowski
@@ -21,15 +22,15 @@ open SimpleGraph
 
 variable {V : Type*} {G : SimpleGraph V}
 
-/-- `T`를 지우면 지지 집합의 두 점이 끊어진다. -/
+/-- Deleting `T` disconnects two vertices of the support. -/
 def Separates (G : SimpleGraph V) (T : Set V) : Prop :=
   ∃ u ∈ G.support \ T, ∃ v ∈ G.support \ T, ¬ (deleteVertices G T).Reachable u v
 
-/-- `G - T`에서 `c`가 속한 성분. 지지 집합 안에서만 센다. -/
+/-- The component of `c` in `G - T`, counted inside the support. -/
 def sepComponent (G : SimpleGraph V) (T : Set V) (c : V) : Set V :=
   {w | w ∈ G.support \ T ∧ (deleteVertices G T).Reachable c w}
 
-/-- 지지 집합 밖의 점은 지워도 지우지 않아도 같다. -/
+/-- Deleting vertices outside the support has no effect. -/
 theorem deleteVertices_inter_support (T : Set V) :
     deleteVertices G (T ∩ G.support) = deleteVertices G T := by
   ext a b
@@ -40,7 +41,7 @@ theorem deleteVertices_inter_support (T : Set V) :
   · rintro ⟨h, ha, hb⟩
     exact ⟨h, fun h' _ ↦ ha h', fun h' _ ↦ hb h'⟩
 
-/-- 변마다 도달 가능성을 옮기는 사상은 도달 가능성을 옮긴다. -/
+/-- A map that transports reachability along each edge transports reachability. -/
 theorem reachable_of_adj_reachable {H H' : SimpleGraph V} (φ : V → V)
     (hφ : ∀ a b, H.Adj a b → H'.Reachable (φ a) (φ b)) {u v : V} (h : H.Reachable u v) :
     H'.Reachable (φ u) (φ v) := by
@@ -51,7 +52,8 @@ theorem reachable_of_adj_reachable {H H' : SimpleGraph V} (φ : V → V)
 
 variable {x y : V}
 
-/-- `x`를 지우지 않으면 `G`의 걸음은 `y`를 `x`로 보내 수축 그래프의 걸음이 된다. -/
+/-- If `x` is not deleted, a walk in `G` becomes a walk in the contraction by sending `y` to
+`x`. -/
 theorem reachable_contractEdge_of_not_mem (hxy : x ≠ y) {S : Set V} (hxS : x ∉ S) {u v : V}
     (hu : u ≠ y) (hv : v ≠ y) (h : (deleteVertices G (S \ {y})).Reachable u v) :
     (deleteVertices (contractEdge G x y) S).Reachable u v := by
@@ -81,7 +83,7 @@ theorem reachable_contractEdge_of_not_mem (hxy : x ≠ y) {S : Set V} (hxS : x �
   have := reachable_of_adj_reachable φ key h
   simpa [φ, hu, hv] using this
 
-/-- `G`에서 `S`와 `y`를 피하는 걸음은 수축 그래프에서 `S`를 피하는 걸음이다. -/
+/-- A walk in `G` avoiding `S` and `y` is a walk in the contraction avoiding `S`. -/
 theorem reachable_contractEdge_of_union (S : Set V) {u v : V}
     (h : (deleteVertices G (S ∪ {y})).Reachable u v) :
     (deleteVertices (contractEdge G x y) S).Reachable u v := by
@@ -92,12 +94,12 @@ theorem reachable_contractEdge_of_union (S : Set V) {u v : V}
 
 variable [Finite V]
 
-/-- 3-연결 그래프에서 `y`가 아닌 지지점은 `y`가 아닌 이웃이 있다. -/
+/-- In a 3-connected graph, each support vertex other than `y` has a neighbor other than `y`. -/
 theorem exists_adj_ne_of_threeConnected (hG : ThreeConnected G) (h5 : 5 ≤ G.support.ncard)
     {w : V} (hw : w ∈ G.support) (hwy : w ≠ y) : ∃ w', w' ≠ y ∧ G.Adj w w' := by
   by_contra hno
   simp only [not_exists, not_and] at hno
-  -- `y`를 지우면 `w`가 고립된다. 다른 생존점이 있다.
+  -- Deleting `y` isolates `w`, and another vertex survives.
   have hbig : 2 ≤ (G.support \ {y}).ncard := by
     have h2 := Set.ncard_le_ncard_sdiff_add_ncard G.support {y}
     rw [Set.ncard_singleton] at h2
@@ -107,7 +109,8 @@ theorem exists_adj_ne_of_threeConnected (hG : ThreeConnected G) (h5 : 5 ≤ G.su
   rintro t ⟨ht, -, hty⟩
   exact hno t hty ht
 
-/-- 3-연결이고 지지 집합이 5개 이상이면 수축의 지지 집합은 `G.support \ {y}`다. -/
+/-- If `G` is 3-connected and its support has at least 5 vertices, the support of the
+contraction is `G.support \ {y}`. -/
 theorem support_contractEdge_of_threeConnected (hG : ThreeConnected G) (h5 : 5 ≤ G.support.ncard)
     (hxy : G.Adj x y) : (contractEdge G x y).support = G.support \ {y} := by
   ext w
@@ -120,7 +123,8 @@ theorem support_contractEdge_of_threeConnected (hG : ThreeConnected G) (h5 : 5 �
     obtain ⟨w', hw'y, hww'⟩ := exists_adj_ne_of_threeConnected hG h5 hw hwy
     exact ⟨w', hww'.ne, hwy, hw'y, Or.inl hww'⟩
 
-/-- 수축이 3-연결이 아니면 `{x, y, z}`가 `G`를 분리하는 `z`가 있다 (Diestel의 첫 문단). -/
+/-- If the contraction is not 3-connected, there is `z` such that `{x, y, z}` separates `G`
+(Diestel's first paragraph). -/
 theorem exists_separates_of_not_threeConnected (hG : ThreeConnected G) (h5 : 5 ≤ G.support.ncard)
     (hxy : G.Adj x y) (hc : ¬ ThreeConnected (contractEdge G x y)) :
     ∃ z ∈ G.support, z ≠ x ∧ z ≠ y ∧ Separates G {x, y, z} := by
@@ -141,7 +145,7 @@ theorem exists_separates_of_not_threeConnected (hG : ThreeConnected G) (h5 : 5 �
   obtain ⟨⟨hus, huy⟩, huS⟩ := hu
   obtain ⟨⟨hvs, hvy⟩, hvS⟩ := hv
   by_cases hxS : x ∈ S
-  · -- `x`를 지우는 분리: `G`에서는 `S ∪ {y}`가 분리한다
+  · -- A separator deleting `x`: in `G`, `S ∪ {y}` separates.
     set T := (S ∪ {y}) ∩ G.support with hTdef
     have hT : ¬ (deleteVertices G T).Reachable u v := by
       rw [hTdef, deleteVertices_inter_support]
@@ -187,20 +191,20 @@ theorem exists_separates_of_not_threeConnected (hG : ThreeConnected G) (h5 : 5 �
       exact hvT
     · rw [← hTeq]
       exact hT
-  · -- `x`를 지우지 않는 분리는 `G`에서도 분리라 3-연결성에 모순
+  · -- A separator not deleting `x` also separates `G`, contradicting 3-connectivity.
     exfalso
     have hS' : (S \ {y}).ncard < 3 := lt_of_le_of_lt (Set.ncard_sdiff_singleton_le S y) hS
     have h := hG.2 (S \ {y}) hS' u ⟨hus, fun h ↦ huS h.1⟩ v ⟨hvs, fun h ↦ hvS h.1⟩
     exact huv (reachable_contractEdge_of_not_mem hxy.ne hxS huy hvy h)
 
-/-- 크기 3인 분리 집합 `T`의 각 점은 `G - T`의 모든 성분에 이웃이 있다. 없으면 `T`에서 그 점을 뺀
-두 점이 이미 분리한다. -/
+/-- Each vertex of a separating set `T` of size 3 has a neighbor in every component of `G - T`.
+Otherwise the other two vertices of `T` would already separate. -/
 theorem exists_adj_mem_sepComponent (hG : ThreeConnected G) {T : Set V} (hT : T.ncard = 3)
     (hsep : Separates G T) {c : V} (hc : c ∈ G.support \ T) {t : V} (ht : t ∈ T) :
     ∃ d ∈ sepComponent G T c, G.Adj t d := by
   by_contra hno
   simp only [not_exists, not_and] at hno
-  -- `C` 밖의 점 `e`
+  -- a vertex `e` outside `C`
   have hout : ∃ e ∈ G.support \ T, e ∉ sepComponent G T c := by
     obtain ⟨u, hu, v, hv, huv⟩ := hsep
     by_cases huC : u ∈ sepComponent G T c
@@ -208,7 +212,7 @@ theorem exists_adj_mem_sepComponent (hG : ThreeConnected G) {T : Set V} (hT : T.
       exact huC.2.symm.trans hvC.2
     · exact ⟨u, hu, huC⟩
   obtain ⟨e, he, heC⟩ := hout
-  -- `T \ {t}`를 지워도 `C`를 벗어날 수 없다
+  -- deleting `T \ {t}` cannot leave `C`
   have stay : ∀ {a b : V} (p : (deleteVertices G (T \ {t})).Walk a b),
       a ∈ sepComponent G T c → b ∈ sepComponent G T c := by
     intro a b p

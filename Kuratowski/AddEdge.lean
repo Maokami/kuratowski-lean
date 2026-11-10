@@ -2,16 +2,18 @@ import Kuratowski.ContractCounts
 import Kuratowski.PermutationDeletion
 
 /-!
-# 같은 면의 두 모서리를 잇는 변 넣기 (블루프린트 `lem:add_edge`)
+# Adding an edge between two corners of one face (blueprint `lem:add_edge`)
 
-회전 체계 `R`에서 다트 `a`, `c`의 시작점 `u`, `v`가 서로 다르고 인접하지 않으며 `ā`, `c̄`가 같은 면
-순환에 있으면, `G ⊔ edge u v`의 회전 체계 `R₁`을 만든다. `a` 다음에 `(u, v)`, `c` 다음에 `(v, u)`를 넣고
-나머지 회전은 그대로 둔다. 면 순환 수는 하나 늘고 종수 0이 유지된다.
+Let `R` be a rotation system and `a`, `c` darts whose start vertices `u`, `v` are distinct and
+non-adjacent, with `ā`, `c̄` in the same face cycle. We build a rotation system `R₁` of
+`G ⊔ edge u v` by inserting `(u, v)` after `a` and `(v, u)` after `c`, keeping all other rotations.
+The number of face cycles increases by one and genus 0 is preserved.
 
-* 새 그래프의 다트는 옛 다트(`ι`)와 `(u, v)`, `(v, u)`로 나뉜다.
-* `ρ₁ = τ (ι a, uv) (ι c, vu)`: `τ`는 옮긴 `ρ`에 두 새 다트를 고정점으로 붙인 순열이다.
-* `φ₁ = τσ (ι ā, vu) (ι c̄, uv)`: 첫 호환은 2-순환 `(uv vu)`와 합치고(−1) 둘째는 나눈다(+1).
-  `τσ`는 옮긴 `φ`에 2-순환을 더한 것이라 순환 수가 `O + 1`이다.
+* The darts of the new graph are the old darts (`ι`) together with `(u, v)` and `(v, u)`.
+* `ρ₁ = τ (ι a, uv) (ι c, vu)`, where `τ` is the transported `ρ` with the two new darts fixed.
+* `φ₁ = τσ (ι ā, vu) (ι c̄, uv)`: the first transposition merges with the 2-cycle `(uv vu)` (−1)
+  and the second splits a cycle (+1). `τσ` is the transported `φ` plus a 2-cycle, so it has
+  `O + 1` cycles.
 -/
 
 namespace Kuratowski
@@ -20,7 +22,7 @@ open SimpleGraph Equiv Equiv.Perm Function
 
 variable {V : Type*} [DecidableEq V] {G : SimpleGraph V}
 
-/-- 같은 면의 두 모서리를 잇는 변 넣기의 자료. -/
+/-- Data for adding an edge between two corners of the same face. -/
 structure AddEdgeData (G : SimpleGraph V) where
   R : RotationSystem G
   a : G.Dart
@@ -33,21 +35,21 @@ namespace AddEdgeData
 
 variable (D : AddEdgeData G)
 
-/-- 변을 넣은 그래프 `G ⊔ edge u v`. -/
+/-- The graph with the new edge, `G ⊔ edge u v`. -/
 abbrev graph : SimpleGraph V := G ⊔ edge D.a.fst D.c.fst
 
-/-- 새 다트 `(u, v)`. -/
+/-- The new dart `(u, v)`. -/
 def uvDart : D.graph.Dart :=
   ⟨(D.a.fst, D.c.fst), Or.inr ((edge_adj _ _ _ _).2 ⟨Or.inl ⟨rfl, rfl⟩, D.hne⟩)⟩
 
-/-- 새 다트 `(v, u)`. -/
+/-- The new dart `(v, u)`. -/
 def vuDart : D.graph.Dart :=
   ⟨(D.c.fst, D.a.fst), Or.inr ((edge_adj _ _ _ _).2 ⟨Or.inr ⟨rfl, rfl⟩, D.hne.symm⟩)⟩
 
-/-- 옛 다트를 새 그래프의 다트로 본다. -/
+/-- An old dart viewed as a dart of the new graph. -/
 def ι (d : G.Dart) : D.graph.Dart := ⟨d.toProd, Or.inl d.adj⟩
 
-/-- 새 두 다트가 아닌 새 그래프의 다트. -/
+/-- Darts of the new graph other than the two new darts. -/
 abbrev Old := {d : D.graph.Dart // d.toProd ≠ (D.a.fst, D.c.fst) ∧ d.toProd ≠ (D.c.fst, D.a.fst)}
 
 omit [DecidableEq V] in
@@ -61,14 +63,14 @@ theorem ι_mem (d : G.Dart) :
     rw [show d.toProd = (D.c.fst, D.a.fst) from h] at hd
     exact hd.symm
 
-/-- 옛 다트로 되돌린다. -/
+/-- The corresponding old dart. -/
 def ofOld (s : D.Old) : G.Dart :=
   ⟨s.1.toProd, s.1.adj.resolve_right fun h ↦ by
     rcases ((edge_adj _ _ _ _).1 h).1 with ⟨h1, h2⟩ | ⟨h1, h2⟩
     · exact s.2.1 (Prod.ext h1 h2)
     · exact s.2.2 (Prod.ext h1 h2)⟩
 
-/-- 옛 다트와 새 두 다트가 아닌 다트의 전단사. -/
+/-- Bijection between the old darts and the darts other than the two new ones. -/
 def oldEquiv : G.Dart ≃ D.Old where
   toFun d := ⟨D.ι d, D.ι_mem d⟩
   invFun := D.ofOld
@@ -93,7 +95,7 @@ theorem uv_ne_vu : D.uvDart ≠ D.vuDart := fun h ↦ D.hne (congrArg (·.fst) h
 omit [DecidableEq V] in
 theorem ι_a_ne_ι_c : D.ι D.a ≠ D.ι D.c := fun h ↦ D.hne (congrArg (·.fst) h)
 
-/-- 새 그래프의 다트는 옛 다트이거나 새 두 다트다. -/
+/-- A dart of the new graph is an old dart or one of the two new darts. -/
 theorem dart_cases (d : D.graph.Dart) : (∃ e, d = D.ι e) ∨ d = D.uvDart ∨ d = D.vuDart := by
   by_cases h1 : d.toProd = (D.a.fst, D.c.fst)
   · exact Or.inr (Or.inl (Dart.ext _ _ h1))
@@ -101,7 +103,7 @@ theorem dart_cases (d : D.graph.Dart) : (∃ e, d = D.ι e) ∨ d = D.uvDart ∨
   · exact Or.inr (Or.inr (Dart.ext _ _ h2))
   exact Or.inl ⟨D.ofOld ⟨d, h1, h2⟩, rfl⟩
 
-/-- 옮긴 회전. 새 두 다트는 고정점이다. -/
+/-- The transported rotation; the two new darts are fixed points. -/
 def τ : Perm D.graph.Dart := Perm.ofSubtype (D.oldEquiv.permCongr D.R.rot)
 
 theorem τ_ι (d : G.Dart) : D.τ (D.ι d) = D.ι (D.R.rot d) := by
@@ -120,7 +122,7 @@ theorem τ_pow_ι (d : G.Dart) (n : ℕ) : (D.τ ^ n) (D.ι d) = D.ι ((D.R.rot 
   | zero => rfl
   | succ n ih => rw [pow_succ', Perm.mul_apply, ih, τ_ι, pow_succ', Perm.mul_apply]
 
-/-- 새 회전: `a` 다음에 `(u, v)`, `c` 다음에 `(v, u)`를 넣는다. -/
+/-- The new rotation: insert `(u, v)` after `a` and `(v, u)` after `c`. -/
 def rot : Perm D.graph.Dart := D.τ * swap (D.ι D.a) D.uvDart * swap (D.ι D.c) D.vuDart
 
 theorem rot_ι_a : D.rot (D.ι D.a) = D.uvDart := by
@@ -181,7 +183,7 @@ theorem sameCycle_rot (d d' : D.graph.Dart) (h : d.fst = d'.fst) : D.rot.SameCyc
     hy.mul_swap_of_sameCycle (hx.mul_swap_of_sameCycle hpq)
   have hau : D.rot.SameCycle (D.ι D.a) D.uvDart := hy.mul_swap_of_sameCycle hx
   have hcv : D.rot.SameCycle (D.ι D.c) D.vuDart := hy
-  -- 각 다트를 같은 시작점의 옛 다트로 보낸다
+  -- send each dart to an old dart with the same start vertex
   have base : ∀ d : D.graph.Dart, ∃ e : G.Dart, e.fst = d.fst ∧ D.rot.SameCycle d (D.ι e) := by
     intro d
     rcases D.dart_cases d with ⟨e, rfl⟩ | rfl | rfl
@@ -192,15 +194,15 @@ theorem sameCycle_rot (d d' : D.graph.Dart) (h : d.fst = d'.fst) : D.rot.SameCyc
   obtain ⟨e', he', hde'⟩ := base d'
   exact hde.trans ((keep (D.τ_sameCycle (he.trans (h.trans he'.symm)))).trans hde'.symm)
 
-/-- 변을 넣은 회전 체계. -/
+/-- The rotation system of the graph with the new edge. -/
 def rotationSystem : RotationSystem D.graph where
   rot := D.rot
   fst_rot := D.fst_rot
   sameCycle_rot := D.sameCycle_rot
 
-/-! ### 면 순환 수 -/
+/-! ### Number of face cycles -/
 
-/-- 새 그래프의 다트 뒤집기. -/
+/-- Dart reversal in the new graph. -/
 def rev : Perm D.graph.Dart := Function.Involutive.toPerm _ Dart.symm_involutive
 
 omit [DecidableEq V] [Finite V] in
@@ -228,7 +230,7 @@ theorem f_pow_ι (d : G.Dart) (n : ℕ) :
   | zero => rfl
   | succ n ih => rw [pow_succ', Perm.mul_apply, ih, f_ι, pow_succ', Perm.mul_apply]
 
-/-- `τσ`의 순환 수는 옮긴 `φ`에 2-순환 하나를 더한 것이다. -/
+/-- `τσ` has the cycles of the transported `φ` plus one 2-cycle. -/
 theorem orbitCount_f : orbitCount (D.τ * D.rev) = orbitCount D.R.facePerm + 1 := by
   set g := D.τ * D.rev * swap D.uvDart D.vuDart with hg
   have hguv : g D.uvDart = D.uvDart := by rw [hg, Perm.mul_apply, swap_apply_left, f_vu]
@@ -281,7 +283,8 @@ theorem orbitCount_f : orbitCount (D.τ * D.rev) = orbitCount D.R.facePerm + 1 :
   rw [h5] at h4
   omega
 
-/-- 블루프린트 `lem:add_edge`의 면 순환 수: 같은 면의 두 모서리를 이으면 하나 는다. -/
+/-- Face count of blueprint `lem:add_edge`: joining two corners of one face adds one face
+cycle. -/
 theorem orbitCount_facePerm :
     orbitCount D.rotationSystem.facePerm = orbitCount D.R.facePerm + 1 := by
   have hface : D.rot * D.rev = D.τ * D.rev * swap (D.ι D.a.symm) D.vuDart *
@@ -305,7 +308,7 @@ theorem orbitCount_facePerm :
   rw [facePerm_eq, hface]
   omega
 
-/-! ### 세기와 종수 -/
+/-! ### Counts and genus -/
 
 omit [DecidableEq V] in
 theorem reachable : G.Reachable D.a.fst D.c.fst := by
@@ -330,16 +333,17 @@ theorem eulerChar_rotationSystem : D.rotationSystem.eulerChar = D.R.eulerChar :=
   push_cast
   omega
 
-/-- 블루프린트 `lem:add_edge`: `R`이 종수 0이면 변을 넣은 회전 체계도 종수 0이다. -/
+/-- Blueprint `lem:add_edge`: if `R` has genus 0, so does the rotation system with the new
+edge. -/
 theorem eulerChar_eq (hR : D.R.eulerChar = 2 * Nat.card G.ConnectedComponent) :
     D.rotationSystem.eulerChar = 2 * Nat.card D.graph.ConnectedComponent := by
   rw [D.eulerChar_rotationSystem, hR, card_connectedComponent_sup_edge_of_reachable D.reachable]
 
-/-! ### 공개 회전 식 -/
+/-! ### Public rotation formulas -/
 
 theorem rotationSystem_rot (d : D.graph.Dart) : D.rotationSystem.rot d = D.rot d := rfl
 
-/-- 옛 다트 `e ≠ a, c`의 회전은 그대로다 (`toProd`). -/
+/-- The rotation of an old dart `e ≠ a, c` is unchanged (stated via `toProd`). -/
 theorem rotationSystem_rot_toProd_of_ne (d : D.graph.Dart) (e : G.Dart) (hde : d.toProd = e.toProd)
     (ha : e ≠ D.a) (hc : e ≠ D.c) : (D.rotationSystem.rot d).toProd = (D.R.rot e).toProd := by
   rw [show d = D.ι e from Dart.ext _ _ hde, rotationSystem_rot, D.rot_ι_of_ne ha hc]
@@ -347,8 +351,9 @@ theorem rotationSystem_rot_toProd_of_ne (d : D.graph.Dart) (e : G.Dart) (hde : d
 
 end AddEdgeData
 
-/-- 블루프린트 `lem:add_edge`. 같은 면의 두 모서리를 잇는 변을 넣으면 면 순환 수가 하나 늘고
-종수 0이 유지되는 회전 체계가 있다. 회전 식은 `AddEdgeData`의 `rot_*`에 있다. -/
+/-- Blueprint `lem:add_edge`. Adding an edge between two corners of the same face gives a
+rotation system with one more face cycle that preserves genus 0. The rotation formulas are the
+`rot_*` lemmas of `AddEdgeData`. -/
 theorem RotationSystem.exists_addEdge [Finite V] (R : RotationSystem G) {a c : G.Dart}
     (hne : a.fst ≠ c.fst) (hn : ¬ G.Adj a.fst c.fst) (hface : R.facePerm.SameCycle a.symm c.symm) :
     ∃ R₁ : RotationSystem (G ⊔ edge a.fst c.fst),

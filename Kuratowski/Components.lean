@@ -6,10 +6,10 @@ import Mathlib.Data.Set.Card
 import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
-# 연결 성분, 변, 고립점의 개수
+# Counting components, edges and isolated vertices
 
-변 하나를 지우거나 세분하거나, 꼭짓점 단사로 그래프를 옮길 때
-연결 성분의 수, 변의 수, 고립점의 수가 어떻게 바뀌는지 정리한다.
+How the numbers of connected components, edges and isolated vertices change when we delete one
+edge, subdivide an edge, or transport a graph along a vertex injection.
 -/
 
 namespace Kuratowski
@@ -17,7 +17,7 @@ open SimpleGraph
 
 variable {V : Type*} [Finite V]
 
-/-- 변 `xy`를 새 꼭짓점 `w`로 세분한다: `xy`를 지우고 `xw`, `wy`를 넣는다. -/
+/-- Subdivide the edge `xy` by a new vertex `w`: delete `xy` and add `xw` and `wy`. -/
 def subdivideEdge (H : SimpleGraph V) (x y w : V) : SimpleGraph V :=
   H.deleteEdges {s(x, y)} ⊔ edge x w ⊔ edge w y
 
@@ -36,10 +36,11 @@ theorem subdivideEdge_adj {H : SimpleGraph V} {x y w : V} (hxw : x ≠ w) (hwy :
     · exact Or.inr ⟨Or.inl h, by rw [h.1, h.2]; exact hwy⟩
     · exact Or.inr ⟨Or.inr h, by rw [h.1, h.2]; exact hwy.symm⟩
 
-/-! ### 보조정리 -/
+/-! ### Auxiliary lemmas -/
 
 omit [Finite V] in
-/-- 인접한 두 점이 `G'`에서 (`f`로 옮긴 뒤) 이어져 있으면, `G`에서 이어진 두 점도 그렇다. -/
+/-- If `f` maps adjacent vertices of `G` to vertices connected in `G'`, it maps connected
+vertices of `G` to vertices connected in `G'`. -/
 theorem reachable_of_forall_adj {G G' : SimpleGraph V} (f : V → V)
     (hf : ∀ a b, G.Adj a b → G'.Reachable (f a) (f b)) {a b : V} (h : G.Reachable a b) :
     G'.Reachable (f a) (f b) := by
@@ -49,7 +50,7 @@ theorem reachable_of_forall_adj {G G' : SimpleGraph V} (f : V → V)
   | tail _ hcb ih => exact ih.trans (hf _ _ hcb)
 
 omit [Finite V] in
-/-- 고립점에서 갈 수 있는 점은 자기 자신뿐이다. -/
+/-- The only vertex reachable from an isolated vertex is the vertex itself. -/
 theorem eq_of_isIsolated_of_reachable {G : SimpleGraph V} {a b : V} (ha : G.IsIsolated a)
     (h : G.Reachable a b) : b = a := by
   rw [reachable_iff_reflTransGen] at h
@@ -60,8 +61,8 @@ theorem eq_of_isIsolated_of_reachable {G : SimpleGraph V} {a b : V} (ha : G.IsIs
     exact (ha _ hcb).elim
 
 omit [Finite V] in
-/-- `G`의 변 가운데 `uv`가 아닌 것이 모두 `G'`의 변이면, `G`에서 이어진 두 점은
-`G'`에서 이어져 있거나, 둘 다 `G'`에서 `u` 또는 `v`에 이어져 있다. -/
+/-- If every edge of `G` other than `uv` is an edge of `G'`, then two vertices connected in `G`
+are connected in `G'`, or each of them is connected in `G'` to `u` or `v`. -/
 theorem reachable_or_of_adj_of_ne {G G' : SimpleGraph V} {u v : V}
     (hadj : ∀ a b, G.Adj a b → s(a, b) ≠ s(u, v) → G'.Adj a b) {a b : V} (h : G.Reachable a b) :
     G'.Reachable a b ∨
@@ -89,9 +90,9 @@ theorem adj_deleteEdges_of_ne {G : SimpleGraph V} {u v : V} :
     ∀ a b, G.Adj a b → s(a, b) ≠ s(u, v) → (G.deleteEdges {s(u, v)}).Adj a b :=
   fun _ _ hab he => (deleteEdges_adj ..).mpr ⟨hab, he⟩
 
-/-! ### 변 하나 지우기 -/
+/-! ### Deleting one edge -/
 
--- 변 하나를 지우면 연결 성분은 많아야 하나 는다.
+-- Deleting one edge increases the number of components by at most one.
 theorem card_connectedComponent_deleteEdges_le (G : SimpleGraph V) (u v : V) :
     Nat.card (G.deleteEdges {s(u, v)}).ConnectedComponent ≤ Nat.card G.ConnectedComponent + 1 := by
   classical
@@ -117,7 +118,7 @@ theorem card_connectedComponent_deleteEdges_le (G : SimpleGraph V) (u v : V) :
     _ = Nat.card G.ConnectedComponent + 1 := Finite.card_option
 
 omit [Finite V] in
--- 지운 변의 두 끝이 여전히 이어져 있으면 연결 성분 수는 그대로다.
+-- If the ends of the deleted edge stay connected, the number of components is unchanged.
 theorem card_connectedComponent_deleteEdges_eq (G : SimpleGraph V) {u v : V}
     (h : (G.deleteEdges {s(u, v)}).Reachable u v) :
     Nat.card (G.deleteEdges {s(u, v)}).ConnectedComponent = Nat.card G.ConnectedComponent := by
@@ -137,7 +138,7 @@ theorem ncard_edgeSet_deleteEdges (G : SimpleGraph V) {u v : V} (h : G.Adj u v) 
   exact Set.ncard_sdiff_singleton_add_one (G.mem_edgeSet.mpr h)
 
 omit [Finite V] in
--- 변이 없는 그래프는 꼭짓점마다 성분 하나.
+-- A graph without edges has one component per vertex.
 theorem card_connectedComponent_of_edgeSet_eq_empty (G : SimpleGraph V) (h : G.edgeSet = ∅) :
     Nat.card G.ConnectedComponent = Nat.card V := by
   rw [edgeSet_eq_empty] at h
@@ -148,7 +149,7 @@ theorem card_connectedComponent_of_edgeSet_eq_empty (G : SimpleGraph V) (h : G.e
   · intro C
     exact ConnectedComponent.ind (fun v => ⟨v, rfl⟩) C
 
--- 고립점은 각각 성분 하나이고, 변이 있으면 성분이 적어도 하나 더 있다.
+-- Each isolated vertex is a component, and an edge gives at least one more component.
 theorem ncard_isolated_add_one_le (G : SimpleGraph V) {u v : V} (h : G.Adj u v) :
     {w | G.IsIsolated w}.ncard + 1 ≤ Nat.card G.ConnectedComponent := by
   let f : Option {w | G.IsIsolated w} → G.ConnectedComponent :=
@@ -168,7 +169,7 @@ theorem ncard_isolated_add_one_le (G : SimpleGraph V) {u v : V} (h : G.Adj u v) 
   rw [← Nat.card_coe_set_eq, ← Finite.card_option]
   exact Nat.card_le_card_of_injective f hf
 
-/-! ### 변 세분 -/
+/-! ### Subdividing an edge -/
 
 omit [Finite V] in
 theorem ne_of_subdivide {H : SimpleGraph V} {x y w : V} (hxy : H.Adj x y) (hw : H.IsIsolated w) :
@@ -176,7 +177,7 @@ theorem ne_of_subdivide {H : SimpleGraph V} {x y w : V} (hxy : H.Adj x y) (hw : 
   ⟨fun h => hw y (h ▸ hxy), fun h => hw x (h ▸ hxy.symm)⟩
 
 omit [Finite V] in
-/-- `H`에서 이어진 두 점은 세분한 그래프에서도 이어져 있다. -/
+/-- Vertices connected in `H` stay connected in the subdivided graph. -/
 theorem reachable_subdivideEdge_of_reachable {H : SimpleGraph V} {x y w : V}
     (hxy : H.Adj x y) (hw : H.IsIsolated w) {a b : V} (h : H.Reachable a b) :
     (subdivideEdge H x y w).Reachable a b := by
@@ -192,7 +193,8 @@ theorem reachable_subdivideEdge_of_reachable {H : SimpleGraph V} {x y w : V}
   · exact ((subdivideEdge_adj hxw hwy).mpr (Or.inl ⟨hpq, he⟩)).reachable
 
 omit [Finite V] in
-/-- 세분한 그래프에서 이어진 두 점은, `w`를 `x`로 보내면 `H`에서 이어져 있다. -/
+/-- Vertices connected in the subdivided graph are connected in `H` after sending `w` to
+`x`. -/
 theorem reachable_collapse [DecidableEq V] {H : SimpleGraph V} {x y w : V}
     (hxy : H.Adj x y) (hw : H.IsIsolated w) {a b : V} (h : (subdivideEdge H x y w).Reachable a b) :
     H.Reachable (if a = w then x else a) (if b = w then x else b) := by
@@ -208,7 +210,7 @@ theorem reachable_collapse [DecidableEq V] {H : SimpleGraph V} {x y w : V}
     · simp only [h1, h2, ite_true, hwy.symm, ite_false]; exact hxy.reachable
     · simp only [h1, h2, ite_true, hwy.symm, ite_false]; exact hxy.symm.reachable
 
--- 세분: `H`의 변 `xy`를 `H`의 고립점 `w`로 세분한 그래프 `H₂`에 대해
+-- Subdividing an edge `xy` of `H` by an isolated vertex `w` of `H` removes one component.
 theorem card_connectedComponent_subdivideEdge {H : SimpleGraph V} {x y w : V}
     (hxy : H.Adj x y) (hw : H.IsIsolated w) :
     Nat.card H.ConnectedComponent = Nat.card (subdivideEdge H x y w).ConnectedComponent + 1 := by
@@ -310,9 +312,9 @@ theorem ncard_isolated_subdivideEdge {H : SimpleGraph V} {x y w : V}
         · exact hv x (h1 ▸ hxy.symm)
   rw [hS, Set.ncard_sdiff_singleton_add_one (show w ∈ {v | H.IsIsolated v} from hw)]
 
-/-! ### 꼭짓점 단사로 옮기기 -/
+/-! ### Transport along a vertex injection -/
 
--- 꼭짓점 단사 `f : W ↪ V`로 옮긴 그래프 (`K`에 고립점이 없을 때)
+-- Transport along a vertex injection `f : W ↪ V` when `K` has no isolated vertices.
 theorem ncard_isolated_map {W : Type*} [Finite W] (K : SimpleGraph W) (f : W ↪ V)
     (hK : ∀ a, ¬ K.IsIsolated a) :
     {v | (K.map f).IsIsolated v}.ncard + Nat.card W = Nat.card V := by

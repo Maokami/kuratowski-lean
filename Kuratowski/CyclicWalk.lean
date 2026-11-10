@@ -3,10 +3,11 @@ import Kuratowski.Paths
 import Mathlib.Combinatorics.SimpleGraph.CycleGraph
 
 /-!
-# 순환 꼭짓점 수열과 Mathlib의 사이클 걸음
+# Cyclic vertex sequences and Mathlib cycle walks
 
-`CyclicSequence`의 꼭짓점 배치를 표준 사이클 그래프의 단사 준동형으로 보고,
-표준 사이클 걸음을 옮긴다. 사이클 그래프의 기본 걸음은 역순이므로 뒤집어서 옮긴다.
+We view the vertices of a `CyclicSequence` as an injective homomorphism from the standard cycle
+graph and transport the standard cycle walk along it. The basic walk of the cycle graph runs in
+the opposite direction, so we reverse it before transporting.
 -/
 
 namespace Kuratowski.CyclicSequence
@@ -15,7 +16,8 @@ open SimpleGraph
 
 variable {V : Type*} {G : SimpleGraph V} {n m : ℕ}
 
-/-- 표준 사이클 그래프를 주어진 꼭짓점 배치로 보내는 준동형. 추가 현은 허용한다. -/
+/-- The homomorphism sending the standard cycle graph to the given vertex sequence. Extra chords
+are allowed. -/
 def cycleGraphHom (C : CyclicSequence G (n + 3)) : cycleGraph (n + 3) →g G where
   toFun i := C (ZMod.finEquiv (n + 3) i)
   map_rel' := by
@@ -38,7 +40,7 @@ theorem cycleGraphHom_injective (C : CyclicSequence G (n + 3)) :
     Function.Injective C.cycleGraphHom :=
   C.injective.comp (ZMod.finEquiv (n + 3)).injective
 
-/-- 순환 수열의 위치 `0`에서 출발해 돌아오는, 원래 순서 방향의 걸음. -/
+/-- The closed walk from position `0` back to itself, in the direction of the sequence. -/
 def toWalk : {m : ℕ} → (C : CyclicSequence G m) → G.Walk (C 0) (C 0)
   | 0, C => False.elim (by have := C.length_ge_three; omega)
   | 1, C => False.elim (by have := C.length_ge_three; omega)
@@ -72,7 +74,7 @@ theorem getVert_toWalk (C : CyclicSequence G m) (i : ℕ) (hi : i ≤ m) :
     simp [ZMod.finEquiv, Nat.sub_sub_self hi]
     rfl
 
-/-- `a`에서 시작해 정방향으로 `b`에 처음 도달할 때까지의 호. `a = b`이면 길이 0이다. -/
+/-- The arc from `a` forward to the first visit of `b`. It has length 0 when `a = b`. -/
 def arc (C : CyclicSequence G m) (a b : ZMod m) : G.Walk (C a) (C b) := by
   letI : NeZero m := C.neZero
   exact ((C.rotate a).toWalk.take (b - a).val).copy
@@ -175,7 +177,7 @@ private theorem not_in_both_open_arcs [NeZero m] (a b t : ZMod m) :
     omega
   omega
 
-/-- 두 방향의 호는 양 끝점을 제외하면 서로 만나지 않는다. -/
+/-- The two arcs in opposite directions meet only at their endpoints. -/
 theorem disjoint_arc_interiors (C : CyclicSequence G m) (a b : ZMod m) :
     Disjoint (walkInterior (C.arc a b)) (walkInterior (C.arc b a)) := by
   have : NeZero m := C.neZero

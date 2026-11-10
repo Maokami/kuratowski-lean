@@ -4,21 +4,23 @@ import Kuratowski.PathsBuild
 import Mathlib.Data.Fin.VecNotation
 
 /-!
-# 번갈아 놓이면 `TK₃,₃` (블루프린트 `lem:TK33_of_alt`)
+# Alternating neighbors give `TK₃,₃` (blueprint `lem:TK33_of_alt`)
 
-`x ∼ y`이고 `x`, `y`를 지나지 않는 사이클 `C` 위에 위치 `u, p, w, q`가 이 순환 순서로 있으며
-(`sbtw u p w`, `sbtw w q u`) `C u`, `C w`는 `y`의 이웃, `C p`, `C q`는 `x`의 이웃이면 `G`는
-`K₃,₃`의 세분을 포함한다 (`containsSubdivision_K33_of_alternating`).
+Let `x ∼ y` and let `C` be a cycle avoiding `x` and `y` with positions `u, p, w, q` in this cyclic
+order (`sbtw u p w`, `sbtw w q u`), where `C u`, `C w` are neighbors of `y` and `C p`, `C q` are
+neighbors of `x`. Then `G` contains a subdivision of `K₃,₃`
+(`containsSubdivision_K33_of_alternating`).
 
-두 편은 `{x, C u, C w}`와 `{y, C p, C q}`다. 경로는 변 다섯 개(`xy`, `x - C p`, `x - C q`,
-`y - C u`, `y - C w`)와 `C`의 네 호다. 완전 이분 그래프의 경로 체계는 왼쪽에서 오른쪽으로 가는 경로만
-주면 된다 (`SubdivisionPaths.ofBipartite`).
+The two sides are `{x, C u, C w}` and `{y, C p, C q}`. The paths are five edges (`xy`, `x - C p`,
+`x - C q`, `y - C u`, `y - C w`) and four arcs of `C`. A path system of a complete bipartite graph
+needs only the paths from left to right (`SubdivisionPaths.ofBipartite`).
 
-위치를 정수 대표의 크기순 `a < b < c < d`로 정렬하면 호는 `a → b`, `b → c`, `c → d`, `d → a`이고
-`CyclicArcs`의 보조정리로 내부가 서로소이며 분기점을 피한다
-(`Alternating.containsSubdivision_K33_of_sorted`). 일반 경우는 순환 순서의 네 회전으로 나눈다.
-홀수 번 회전한 경우에는 `x`와 `y`의 역할을 바꾼다. `K₃,₃`의 꼭짓점이 유한하므로 `G`의 꼭짓점 타입에는
-유한성을 가정하지 않는다.
+If the positions are sorted by their integer representatives as `a < b < c < d`, the arcs are
+`a → b`, `b → c`, `c → d`, `d → a`, and the lemmas of `CyclicArcs` show that their interiors are
+disjoint and avoid the branch vertices (`Alternating.containsSubdivision_K33_of_sorted`). The
+general case splits into the four rotations of the cyclic order; for an odd number of rotations
+the roles of `x` and `y` are exchanged. Since `K₃,₃` has finitely many vertices, the vertex type of
+`G` need not be finite.
 -/
 
 namespace Kuratowski
@@ -31,7 +33,8 @@ namespace SubdivisionPaths
 
 variable {α β : Type*} {G : SimpleGraph V}
 
-/-- 완전 이분 그래프의 경로 체계: 왼쪽 `a`에서 오른쪽 `b`로 가는 경로만 준다. -/
+/-- A path system of a complete bipartite graph, given only by the paths from a left vertex `a`
+to a right vertex `b`. -/
 def ofBipartite (f : α ⊕ β ↪ V) (p : ∀ a b, G.Walk (f (.inl a)) (f (.inr b)))
     (hp : ∀ a b, (p a b).IsPath)
     (hint : ∀ a b, ∀ z ∈ walkInterior (p a b), z ∉ Set.range f)
@@ -91,8 +94,9 @@ private theorem sbtw_iff_order [NeZero m] (a t b : ZMod m) :
   | zero => exact (NeZero.ne 0 rfl).elim
   | succ n => rfl
 
-/-- 정렬된 경우: 위치가 `a.val < b.val < c.val < d.val`이고, `h₁`은 `C a`, `C c`에, `h₂`는
-`C b`, `C d`에 이웃한다. 두 편은 `{h₁, C b, C d}`와 `{h₂, C a, C c}`다. -/
+/-- The sorted case: the positions satisfy `a.val < b.val < c.val < d.val`, `h₁` is adjacent to
+`C a`, `C c`, and `h₂` to `C b`, `C d`. The two sides are `{h₁, C b, C d}` and
+`{h₂, C a, C c}`. -/
 theorem containsSubdivision_K33_of_sorted (C : CyclicSequence G m) {h₁ h₂ : V}
     (h₁₂ : G.Adj h₁ h₂) (h₁C : h₁ ∉ Set.range C) (h₂C : h₂ ∉ Set.range C) {a b c d : ZMod m}
     (hab : a.val < b.val) (hbc : b.val < c.val) (hcd : c.val < d.val)
@@ -117,7 +121,7 @@ theorem containsSubdivision_K33_of_sorted (C : CyclicSequence G m) {h₁ h₂ : 
     rintro (i | i) (j | j) e <;> fin_cases i <;> fin_cases j <;>
       simp_all [L, R, h₁₂.ne, h₁₂.ne.symm, Ne.symm]
   let f : Fin 3 ⊕ Fin 3 ↪ V := ⟨Sum.elim L R, hg⟩
-  -- 네 호의 내부와 분기점
+  -- interiors of the four arcs and the branch vertices
   have avoid : ∀ {s t : ZMod m} (hst : s.val ≤ t.val),
       (∀ r ∈ [a, b, c, d], r.val ≤ s.val ∨ t.val ≤ r.val) →
       ∀ z ∈ walkInterior (C.arc s t), z ∉ Set.range f := by
@@ -158,7 +162,7 @@ theorem containsSubdivision_K33_of_sorted (C : CyclicSequence G m) {h₁ h₂ : 
     C.disjoint_arc_interiors_wrap a a b d le_rfl hab.le (hbc.trans hcd).le
   have D6 : Disjoint (walkInterior (C.arc d a)) (walkInterior (C.arc c d)) :=
     C.disjoint_arc_interiors_wrap a c d d (hab.trans hbc).le hcd.le le_rfl
-  -- 경로
+  -- paths
   let posL : Fin 3 → ZMod m := ![a, b, d]
   let posR : Fin 3 → ZMod m := ![a, a, c]
   have hposL : ∀ i : Fin 3, i ≠ 0 → C (posL i) = f (.inl i) := by
@@ -253,9 +257,10 @@ theorem containsSubdivision_K33_of_sorted (C : CyclicSequence G m) {h₁ h₂ : 
 
 end Alternating
 
-/-- 블루프린트 `lem:TK33_of_alt`: `x ∼ y`이고 `x`, `y`를 지나지 않는 사이클 `C` 위에 위치 `u, p, w, q`가
-이 순환 순서로 있으며(`sbtw u p w`, `sbtw w q u`), `C u`, `C w`는 `y`의 이웃이고 `C p`, `C q`는
-`x`의 이웃이면 `G`는 `K₃,₃`의 세분을 포함한다. -/
+/-- Blueprint `lem:TK33_of_alt`: let `x ∼ y` and let `C` be a cycle avoiding `x` and `y` with
+positions `u, p, w, q` in this cyclic order (`sbtw u p w`, `sbtw w q u`). If `C u`, `C w` are
+neighbors of `y` and `C p`, `C q` are neighbors of `x`, then `G` contains a subdivision of
+`K₃,₃`. -/
 theorem containsSubdivision_K33_of_alternating {G : SimpleGraph V} {m : ℕ}
     (C : CyclicSequence G m) {x y : V} (hxy : G.Adj x y) (hxC : x ∉ Set.range C)
     (hyC : y ∉ Set.range C) {u p w q : ZMod m} (hupw : sbtw u p w) (hwqu : sbtw w q u)

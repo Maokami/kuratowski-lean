@@ -4,16 +4,18 @@ import Mathlib.Data.Finset.Max
 import Mathlib.Data.ZMod.Basic
 
 /-!
-# 순환 단어의 구간 분류
+# Interval classification of cyclic words
 
-`X/B` 위치와 `Y/B` 위치를 두 유한 집합으로 나타낸다. 교집합이 `B` 위치다.
+The `X/B` positions and the `Y/B` positions are represented by two finite sets; their intersection
+is the set of `B` positions.
 -/
 
 namespace Kuratowski.CyclicWord
 
 variable {m : ℕ}
 
-/-- 순환 순서에서 연속한 두 `X` 위치. 양 끝점은 서로 다르고, 열린 호에는 `X`가 없다. -/
+/-- Two consecutive `X` positions in the cyclic order: the endpoints are distinct and the open
+arc between them contains no `X` position. -/
 def Consecutive {α : Type*} [CircularOrder α] (X : Finset α) (a b : α) : Prop :=
   a ∈ X ∧ b ∈ X ∧ a ≠ b ∧ ∀ t ∈ X, ¬ sbtw a t b
 
@@ -40,7 +42,7 @@ private theorem gap_extremes {X : Finset (Fin m)} (hX : 2 ≤ X.card) :
     · have ha := hu a (X.max'_mem hne)
       exact Or.inr (Or.inr ⟨hba, ha⟩)
 
-/-- `X`에 속하지 않는 위치는 연속한 두 `X` 위치 사이의 열린 호에 있다. -/
+/-- A position outside `X` lies in the open arc between two consecutive `X` positions. -/
 theorem exists_consecutive_gap (X : Finset (Fin m)) (hX : 2 ≤ X.card) (u : Fin m)
     (hu : u ∉ X) : ∃ a b, Consecutive X a b ∧ sbtw a u b := by
   classical
@@ -84,11 +86,11 @@ theorem exists_consecutive_gap (X : Finset (Fin m)) (hX : 2 ≤ X.card) (u : Fin
       exact hL ⟨x, Finset.mem_filter.mpr ⟨hx, hxu⟩⟩
     omega
 
-/-- 모든 `Y` 위치가 연속한 두 `X` 위치 사이의 닫힌 호에 있다. -/
+/-- Every `Y` position lies in the closed arc between two consecutive `X` positions. -/
 def Clustered {α : Type*} [CircularOrder α] (X Y : Finset α) : Prop :=
   ∃ a b, Consecutive X a b ∧ ∀ t ∈ Y, btw a t b
 
-/-- 두 `Y` 위치를 뺀 각각의 열린 호에 `X` 위치가 있다. -/
+/-- Each of the two open arcs between two `Y` positions contains an `X` position. -/
 def Alternating {α : Type*} [CircularOrder α] (X Y : Finset α) : Prop :=
   ∃ u ∈ Y, ∃ w ∈ Y, (∃ a ∈ X, sbtw u a w) ∧ ∃ b ∈ X, sbtw w b u
 
@@ -109,7 +111,7 @@ private theorem clustered_or_alternating_of_noncommon (X Y : Finset (Fin m))
     have hsep := gap_separates a u b w hu hwout
     exact Or.inr ⟨u, huY, w, hwY, ⟨b, hab.2.1, hsep.1⟩, a, hab.1, hsep.2⟩
 
-/-- 순환 단어의 세 가지 경우. `X ∩ Y`가 `B`의 위치를 나타낸다. -/
+/-- The three cases for a cyclic word. `X ∩ Y` is the set of `B` positions. -/
 theorem trichotomy_fin (X Y : Finset (Fin m)) (hX : 2 ≤ X.card) (hY : 2 ≤ Y.card) :
     Clustered X Y ∨ 3 ≤ (X ∩ Y).card ∨ Alternating X Y := by
   classical
@@ -146,7 +148,7 @@ theorem trichotomy_fin (X Y : Finset (Fin m)) (hX : 2 ≤ X.card) (hY : 2 ≤ Y.
       rw [hYeq, Finset.mem_insert, Finset.mem_singleton] at ht
       rcases ht with rfl | rfl <;> simp only [Fin.btw_iff] <;> omega
 
-/-- `ZMod m` 위의 순환 단어 분류. 길이 2 단어도 허용한다. -/
+/-- Classification of cyclic words on `ZMod m`. Words of length 2 are allowed. -/
 theorem trichotomy {m : ℕ} [NeZero m] (X Y : Finset (ZMod m))
     (hX : 2 ≤ X.card) (hY : 2 ≤ Y.card) :
     Clustered X Y ∨ 3 ≤ (X ∩ Y).card ∨ Alternating X Y := by
@@ -154,7 +156,7 @@ theorem trichotomy {m : ℕ} [NeZero m] (X Y : Finset (ZMod m))
   | zero => exact (NeZero.ne 0 rfl).elim
   | succ n => exact trichotomy_fin X Y hX hY
 
-/-- `ZMod`의 열린 순환 순서는 정방향 모듈러 거리의 엄격한 부등식과 같다. -/
+/-- The open cyclic order on `ZMod` is strict inequality of forward modular distances. -/
 theorem sbtw_iff_val {m : ℕ} [NeZero m] (a t b : ZMod m) :
     sbtw a t b ↔ 0 < (t - a).val ∧ (t - a).val < (b - a).val := by
   cases m with
@@ -173,27 +175,28 @@ theorem sbtw_iff_val {m : ℕ} [NeZero m] (a t b : ZMod m) :
     simp only [ZMod.val] at *
     split_ifs at hta hba <;> omega
 
-/-- 순환 단어의 열린 호와 실제 사이클 경로의 내부는 같은 위치를 가리킨다. -/
+/-- An open arc of a cyclic word and the interior of the corresponding cycle path refer to the
+same positions. -/
 theorem mem_walkInterior_arc_iff {V : Type*} {G : SimpleGraph V} {m : ℕ}
     (C : CyclicSequence G m) (a t b : ZMod m) :
     C t ∈ walkInterior (C.arc a b) ↔ sbtw a t b := by
   have : NeZero m := C.neZero
   rw [C.mem_walkInterior_arc, sbtw_iff_val]
 
-/-- 순환 단어의 글자. `both`는 `B`, `blank`는 `-`다. -/
+/-- Letters of a cyclic word. `both` is `B` and `blank` is `-`. -/
 inductive Letter
   | x | y | both | blank
   deriving DecidableEq
 
-/-- `X/B` 위치. -/
+/-- The `X/B` positions. -/
 def xPositions {m : ℕ} [NeZero m] (w : ZMod m → Letter) : Finset (ZMod m) :=
   Finset.univ.filter fun i ↦ w i = .x ∨ w i = .both
 
-/-- `Y/B` 위치. -/
+/-- The `Y/B` positions. -/
 def yPositions {m : ℕ} [NeZero m] (w : ZMod m → Letter) : Finset (ZMod m) :=
   Finset.univ.filter fun i ↦ w i = .y ∨ w i = .both
 
-/-- `B` 위치. -/
+/-- The `B` positions. -/
 def bothPositions {m : ℕ} [NeZero m] (w : ZMod m → Letter) : Finset (ZMod m) :=
   Finset.univ.filter fun i ↦ w i = .both
 
@@ -202,7 +205,8 @@ def bothPositions {m : ℕ} [NeZero m] (w : ZMod m → Letter) : Finset (ZMod m)
   ext i
   cases hw : w i <;> simp [xPositions, yPositions, bothPositions, hw]
 
-/-- 블루프린트 `lem:cyclic`: 구간에 모임, `B` 셋 이상, 두 열린 호에 `X/B`가 번갈아 있음. -/
+/-- Blueprint `lem:cyclic`: the positions are clustered in an interval, there are at least three
+`B` positions, or `X/B` positions alternate with `Y/B` positions across two open arcs. -/
 theorem classify {m : ℕ} [NeZero m] (w : ZMod m → Letter)
     (hX : 2 ≤ (xPositions w).card) (hY : 2 ≤ (yPositions w).card) :
     Clustered (xPositions w) (yPositions w) ∨ 3 ≤ (bothPositions w).card ∨

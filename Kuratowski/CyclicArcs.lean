@@ -1,9 +1,10 @@
 import Kuratowski.CyclicWord
 
 /-!
-# 순환 순서로 나눈 여러 호의 내부
+# Interiors of several arcs split by a cyclic order
 
-세 점과 네 점의 순환 순서에서 경로 체계의 내부 서로소 조건을 얻기 위한 보조정리.
+Lemmas giving the interior-disjointness condition of path systems for cyclic orders of three and of
+four points.
 -/
 
 namespace Kuratowski.CyclicSequence
@@ -19,7 +20,7 @@ private theorem sbtw_iff_order [NeZero m] (a t b : ZMod m) :
   | zero => exact (NeZero.ne 0 rfl).elim
   | succ n => rfl
 
-/-- 서로 겹치지 않는 위치 구간에 대응하는 두 호의 내부는 서로소다. -/
+/-- Arcs over non-overlapping position intervals have disjoint interiors. -/
 theorem disjoint_arc_interiors_of_le (C : CyclicSequence G m) (a b c d : ZMod m)
     (hab : a.val ≤ b.val) (hbc : b.val ≤ c.val) (hcd : c.val ≤ d.val) :
     Disjoint (walkInterior (C.arc a b)) (walkInterior (C.arc c d)) := by
@@ -30,7 +31,8 @@ theorem disjoint_arc_interiors_of_le (C : CyclicSequence G m) (a b c d : ZMod m)
   rw [← hi, CyclicWord.mem_walkInterior_arc_iff, sbtw_iff_order] at hx hy
   omega
 
-/-- 원의 끝을 넘어가는 호와 그 여집합 안의 한 구간은 내부에서 만나지 않는다. -/
+/-- An arc wrapping around the end of the circle and an interval inside its complement have
+disjoint interiors. -/
 theorem disjoint_arc_interiors_wrap (C : CyclicSequence G m) (a b c d : ZMod m)
     (hab : a.val ≤ b.val) (hbc : b.val ≤ c.val) (hcd : c.val ≤ d.val) :
     Disjoint (walkInterior (C.arc d a)) (walkInterior (C.arc b c)) := by
@@ -41,14 +43,15 @@ theorem disjoint_arc_interiors_wrap (C : CyclicSequence G m) (a b c d : ZMod m)
   rw [← hi, CyclicWord.mem_walkInterior_arc_iff, sbtw_iff_order] at hx hy
   omega
 
-/-- 사이클 위에 없는 꼭짓점은 어느 호에도 나타나지 않는다. -/
+/-- A vertex not on the cycle occurs in no arc. -/
 theorem not_mem_arc_support_of_not_mem_range (C : CyclicSequence G m) {x : V}
     (hx : x ∉ Set.range C) (a b : ZMod m) : x ∉ (C.arc a b).support := by
   intro h
   obtain ⟨i, -, hi⟩ := (C.mem_support_arc a b x).mp h
   exact hx ⟨_, hi⟩
 
-/-- 감기지 않는 호의 바깥 위치는 그 내부에 없다. 끝점도 포함한다. -/
+/-- A position outside a non-wrapping arc is not in its interior; this includes the
+endpoints. -/
 theorem not_mem_arc_interior_of_le (C : CyclicSequence G m) (a b t : ZMod m)
     (hab : a.val ≤ b.val) (ht : t.val ≤ a.val ∨ b.val ≤ t.val) :
     C t ∉ walkInterior (C.arc a b) := by
@@ -56,7 +59,8 @@ theorem not_mem_arc_interior_of_le (C : CyclicSequence G m) (a b t : ZMod m)
   rw [CyclicWord.mem_walkInterior_arc_iff, sbtw_iff_order]
   omega
 
-/-- 원의 끝을 넘어가는 호의 내부는 가운데 닫힌 구간을 피한다. -/
+/-- The interior of an arc wrapping around the end of the circle avoids the middle closed
+interval. -/
 theorem not_mem_arc_interior_wrap (C : CyclicSequence G m) (a b t : ZMod m)
     (hat : a.val ≤ t.val) (htb : t.val ≤ b.val) :
     C t ∉ walkInterior (C.arc b a) := by

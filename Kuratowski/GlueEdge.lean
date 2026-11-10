@@ -2,31 +2,35 @@ import Kuratowski.GlueOne
 import Kuratowski.PermutationDeletion
 
 /-!
-# 공통 변을 따라 평면 그래프 붙이기 (블루프린트 `lem:sum2`)
+# Gluing planar graphs along a common edge (blueprint `lem:sum2`)
 
-지지 집합이 공통 변의 두 끝점에서만 만나는 두 평면 그래프의 합집합은 평면이다.
+The union of two planar graphs whose supports meet only at the two endpoints of a common edge is
+planar.
 
-출처를 붙인 두 다트 집합의 합에서 회전 순환을 두 번 잇는다. 공통 변을 두 벌 유지한 이 순열에는
-두각형이 생긴다. 둘째 그래프의 공통 변 다트 둘을 잘라 내고 남은 다트를 합집합의 다트로 옮긴다.
-두 호환에서 면 순환 수는 그대로이고 중복 변 삭제에서 하나 줄어든다. 일반 순열의 삭제 식은
-`PermutationDeletion.lean`, 고립점과 성분 수 식은 `GlueOne.lean`의 정리를 쓴다.
+On the sum of the two dart sets, tagged by origin, we join the rotation cycles twice. This
+permutation keeps the common edge twice and contains a bigon. We cut out the two darts of the
+common edge of the second graph and transport the remaining darts to darts of the union. The two
+transpositions keep the number of face cycles, and deleting the duplicate edge decreases it by one.
+We use the deletion formula for general permutations from `PermutationDeletion.lean` and the
+isolated-vertex and component counts from `GlueOne.lean`.
 
-최종 정리 `IsPlanar.sup_of_inter_eq_edge`는 유한성 이외에 결정 가능성 인스턴스를 요구하지 않는다.
+The final theorem `IsPlanar.sup_of_inter_eq_edge` requires no decidability instances beyond
+finiteness.
 -/
 
 namespace Kuratowski.GlueEdge
 open SimpleGraph Equiv Equiv.Perm
 variable {V : Type*} [DecidableEq V] {G H : SimpleGraph V}
 
-/-- 출처가 다른 두 그래프의 다트를 구분하는 타입 합. -/
+/-- The sum type distinguishing darts of the two graphs by origin. -/
 abbrev Darts (G H : SimpleGraph V) := G.Dart ⊕ H.Dart
 
-/-- 출처를 지우고 다트의 시작점만 읽는다. -/
+/-- Forget the origin and read the start vertex of a dart. -/
 def vertex : Darts G H → V
   | .inl d => d.fst
   | .inr d => d.fst
 
-/-- 출처별 역다트 사상. -/
+/-- Dart reversal within each origin. -/
 def reverse : Perm (Darts G H) :=
   Perm.sumCongr (Function.Involutive.toPerm _ Dart.symm_involutive)
     (Function.Involutive.toPerm _ Dart.symm_involutive)
@@ -36,7 +40,7 @@ lemma reverse_involutive : Function.Involutive (reverse (G := G) (H := H)) := by
   intro d
   cases d <;> rfl
 
-/-- 원래 두 회전을 출처별로 나란히 둔다. -/
+/-- Place the two original rotations side by side, by origin. -/
 def baseRot (R : RotationSystem G) (S : RotationSystem H) : Perm (Darts G H) :=
   Perm.sumCongr R.rot S.rot
 
@@ -51,7 +55,8 @@ omit [DecidableEq V] in
 lemma invRot_fst (R : RotationSystem G) (d : G.Dart) : (R.rot⁻¹ d).fst = d.fst := by
   simpa using (R.fst_rot (R.rot⁻¹ d)).symm
 
-/-- 공통 변의 두 끝점에서 각각 선행 다트를 골라 회전 순환을 잇는다. -/
+/-- Join the rotation cycles at the two endpoints of the common edge, choosing a predecessor dart
+at each. -/
 def joinedRot (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (q : H.Dart) :
     Perm (Darts G H) :=
   baseRot R S * swap (.inl p) (.inr (S.rot⁻¹ q)) *
@@ -111,7 +116,8 @@ lemma baseFace (R : RotationSystem G) (S : RotationSystem H) :
   ext d
   cases d <;> rfl
 
-/-- 이 두 호환은 첫째 역다트와 둘째 정다트의 두각형을 만든다. -/
+/-- These two transpositions create a bigon of the first reverse dart and the second forward
+dart. -/
 lemma joinedFace_bigon (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (q : H.Dart) :
     (joinedRot R S p q * reverse (G := G) (H := H)) (.inl p.symm) = .inr q ∧
       (joinedRot R S p q * reverse (G := G) (H := H)) (.inr q) = .inl p.symm := by
@@ -136,7 +142,8 @@ private lemma baseFace_not_sameCycle [Finite V] (R : RotationSystem G) (S : Rota
   rw [baseFace]
   exact not_sameCycle_sumCongr_cross R.facePerm S.facePerm a b
 
-/-- 첫 호환은 합치고 둘째 호환은 나누어 면 순환 수의 합을 보존한다. -/
+/-- The first transposition merges and the second splits, so the total number of face cycles is
+preserved. -/
 lemma orbitCount_joinedFace [Finite V] (R : RotationSystem G) (S : RotationSystem H)
     (p : G.Dart) (q : H.Dart) :
     orbitCount (joinedRot R S p q * reverse (G := G) (H := H)) =
@@ -191,11 +198,11 @@ lemma orbitCount_deletedFace [Finite V] (R : RotationSystem G) (S : RotationSyst
   rw [orbitCount_joinedFace] at hh
   exact hh
 
-/-- 둘째 공통 변의 두 다트를 뺀 나머지 다트들. -/
+/-- The darts other than the two darts of the second copy of the common edge. -/
 abbrev Keep (q : H.Dart) :=
   {d : Darts G H // d ≠ .inr q ∧ d ≠ .inr q.symm}
 
-/-- 남은 다트에서 출처를 지워 합집합의 다트로 옮긴다. -/
+/-- Forget the origin of a remaining dart, giving a dart of the union. -/
 def toUnion (q : H.Dart) (d : Keep (G := G) q) : (G ⊔ H).Dart :=
   match d.val with
   | .inl d => ⟨d.toProd, Or.inl d.adj⟩
@@ -254,7 +261,8 @@ lemma toUnion_surjective (q : H.Dart) (hq : G.Adj q.fst q.snd) :
         exact hq.symm
     exact ⟨⟨.inr b, hb⟩, rfl⟩
 
-/-- 공유하는 다트가 공통 변의 두 방향뿐이면 남은 다트는 합집합 다트와 전단사다. -/
+/-- If the only shared darts are the two orientations of the common edge, the remaining darts
+are in bijection with the darts of the union. -/
 noncomputable def dartEquiv (q : H.Dart) (hq : G.Adj q.fst q.snd)
     (hshare : ∀ d : H.Dart, G.Adj d.fst d.snd → d = q ∨ d = q.symm) :
     Keep (G := G) q ≃ (G ⊔ H).Dart :=
@@ -364,7 +372,7 @@ lemma dartEquiv_reverse (q : H.Dart) (hq : G.Adj q.fst q.snd)
   rcases d with ⟨d, hd⟩
   cases d <;> rfl
 
-/-- 중복 변의 두 다트를 회전 순환에서 잘라 고정점으로 만든다. -/
+/-- Cut the two darts of the duplicate edge out of the rotation cycles, making them fixed points. -/
 def cutRot (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (q : H.Dart) :
     Perm (Darts G H) := cut (cut (joinedRot R S p q) (.inr q)) (.inr q.symm)
 
@@ -374,7 +382,7 @@ lemma cutRot_pred (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (q 
   PermutationDeletion.pair_pred _ (PermutationDeletion.cut_pair_left _
     (by intro h; exact (Dart.symm_ne q).symm (Sum.inr.inj h))) (cut_apply_self _ _) d
 
-/-- 두 고정점을 뺀 부분형 위의 회전. -/
+/-- The rotation on the subtype without the two fixed points. -/
 def deletedRot (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (q : H.Dart) :
     Perm (Keep (G := G) q) := (cutRot R S p q).subtypePerm (cutRot_pred R S p q)
 
@@ -385,7 +393,8 @@ lemma cutRot_vertex (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (
     cut_preserves (joinedRot R S p q) (.inr q) vertex (joinedRot_vertex R S p q hpq)
   exact cut_preserves (cut (joinedRot R S p q) (.inr q)) (.inr q.symm) vertex h₁ d
 
-/-- 두 끝점의 회전을 잇고 중복 변을 지워 합집합의 회전 체계를 구성한다. -/
+/-- Build the rotation system of the union by joining the rotations at the two endpoints and
+deleting the duplicate edge. -/
 noncomputable def rotation [Finite V] (R : RotationSystem G) (S : RotationSystem H)
     (p : G.Dart) (q : H.Dart) (hpq : p.toProd = q.toProd) (hq : G.Adj q.fst q.snd)
     (hvertices : ∀ (a : G.Dart) (b : H.Dart), a.fst = b.fst → a.fst = p.fst ∨ a.fst = p.snd)
@@ -411,7 +420,8 @@ noncomputable def rotation [Finite V] (R : RotationSystem G) (S : RotationSystem
     change (dartEquiv q hq hshare d).fst = (dartEquiv q hq hshare e).fst at h
     simpa only [dartEquiv_vertex] using h
 
-/-- 면에 호환을 곱하고 삭제할 두 점을 잘라 낸 전체 다트 순열. -/
+/-- The permutation of all darts obtained by multiplying the face permutation by the
+transpositions and cutting out the two points to be deleted. -/
 def cutFace (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (q : H.Dart) :
     Perm (Darts G H) := cut (cut ((joinedRot R S p q * reverse (G := G) (H := H)) *
       swap (.inr q) (.inr q.symm)) (.inr q)) (.inr q.symm)
@@ -422,7 +432,7 @@ lemma cutFace_pred (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (q
   PermutationDeletion.pair_pred _ (PermutationDeletion.cut_pair_left _
     (by intro h; exact (Dart.symm_ne q).symm (Sum.inr.inj h))) (cut_apply_self _ _) d
 
-/-- 고정점 둘을 뺀 면 순열. -/
+/-- The face permutation without the two fixed points. -/
 def deletedFace (R : RotationSystem G) (S : RotationSystem H) (p : G.Dart) (q : H.Dart) :
     Perm (Keep (G := G) q) := (cutFace R S p q).subtypePerm (cutFace_pred R S p q)
 
@@ -478,7 +488,8 @@ namespace Kuratowski
 open SimpleGraph
 variable {V : Type*} {G H : SimpleGraph V}
 
-/-- 지지 집합이 공통 변의 두 끝점에서만 만나는 두 평면 그래프의 합집합은 평면이다. -/
+/-- The union of two planar graphs whose supports meet only at the two endpoints of a common edge
+is planar. -/
 theorem IsPlanar.sup_of_inter_eq_edge [Finite V] {x y : V} (hG : IsPlanar G) (hH : IsPlanar H)
     (hGxy : G.Adj x y) (hHxy : H.Adj x y) (hs : G.support ∩ H.support = {x, y}) :
     IsPlanar (G ⊔ H) := by

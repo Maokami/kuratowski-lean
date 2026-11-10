@@ -2,14 +2,16 @@ import Kuratowski.Contract
 import Kuratowski.PathsSubdivision
 
 /-!
-# 수축 그래프의 걸음 들어 올리기
+# Lifting walks of the contracted graph
 
-`G.Adj x y`일 때 `contractEdge G x y`(`x`를 남기고 `y`는 고립점)의 걸음을 `G`의 걸음으로 옮긴다.
-수축 그래프의 변 `u ∼ b`는 `G`의 변이거나, 한쪽이 `x`이고 다른 쪽이 `y`의 이웃이다. 뒤의 경우에는
-`u - y - b`로 바꾼다 (`liftWalk`). 경로가 필요하면 `bypass`로 줄인다 (`liftPath`).
+For `G.Adj x y`, we transport walks of `contractEdge G x y` (which keeps `x` and isolates `y`) to
+walks of `G`. An edge `u ∼ b` of the contracted graph is an edge of `G`, or one end is `x` and the
+other is a neighbor of `y`; in the latter case it is replaced by `u - y - b` (`liftWalk`). When a
+path is needed, `bypass` shortens the lift (`liftPath`).
 
-분기점 `x`에서 출발하는 경로는 새 분기점 `t ∈ {x, y}`에서 출발하도록 바꾼다 (`exists_liftFrom`).
-첫 변이 `t`에 닿지 않을 때만 다른 점(`x`나 `y`)이 하나 끼어든다.
+A path starting at the branch vertex `x` is changed to start at a new branch vertex `t ∈ {x, y}`
+(`exists_liftFrom`). The other vertex (`x` or `y`) is inserted only when the first edge does not
+meet `t`.
 -/
 
 namespace Kuratowski
@@ -18,7 +20,7 @@ open SimpleGraph
 
 variable {V : Type*} {G : SimpleGraph V} {x y : V}
 
-/-- 수축 그래프의 변은 원래 변이거나 `y`를 거치는 두 변이다. -/
+/-- An edge of the contracted graph is an original edge or a pair of edges through `y`. -/
 theorem adj_or_adj_y_of_contractEdge_adj (hxy : G.Adj x y) {u b : V}
     (h : (contractEdge G x y).Adj u b) : G.Adj u b ∨ (G.Adj u y ∧ G.Adj y b) := by
   rcases h with ⟨-, -, -, h | ⟨rfl, h⟩ | ⟨rfl, h⟩⟩
@@ -26,7 +28,7 @@ theorem adj_or_adj_y_of_contractEdge_adj (hxy : G.Adj x y) {u b : V}
   · exact Or.inr ⟨hxy, h⟩
   · exact Or.inr ⟨h.symm, hxy.symm⟩
 
-/-- `x`에 닿지 않는 수축 그래프의 변은 원래 변이다. -/
+/-- An edge of the contracted graph not meeting `x` is an original edge. -/
 theorem adj_of_contractEdge_adj_of_ne {u b : V} (h : (contractEdge G x y).Adj u b)
     (hu : u ≠ x) (hb : b ≠ x) : G.Adj u b := by
   rcases h with ⟨-, -, -, h | ⟨rfl, -⟩ | ⟨rfl, -⟩⟩
@@ -34,7 +36,8 @@ theorem adj_of_contractEdge_adj_of_ne {u b : V} (h : (contractEdge G x y).Adj u 
   · exact absurd rfl hu
   · exact absurd rfl hb
 
-/-- `x`에서 나가는 수축 그래프의 변의 끝은 `x`나 `y`의 원래 이웃이다. -/
+/-- The other end of an edge of the contracted graph at `x` is an original neighbor of `x` or of
+`y`. -/
 theorem adj_x_or_adj_y_of_contractEdge_adj {b : V} (h : (contractEdge G x y).Adj x b) :
     G.Adj x b ∨ G.Adj y b := by
   rcases h with ⟨hxb, -, -, h | ⟨-, h⟩ | ⟨rfl, -⟩⟩
@@ -42,13 +45,15 @@ theorem adj_x_or_adj_y_of_contractEdge_adj {b : V} (h : (contractEdge G x y).Adj
   · exact Or.inr h
   · exact absurd rfl hxb
 
-/-- 수축 그래프의 걸음은 `y`가 아닌 점에서 출발하면 `y`를 지나지 않는다. -/
+/-- A walk of the contracted graph starting at a vertex other than `y` does not pass through
+`y`. -/
 theorem not_mem_support_contractEdge {u v : V} (q : (contractEdge G x y).Walk u v) (hu : u ≠ y) :
     y ∉ q.support :=
   not_mem_support_of_isIsolated isIsolated_contractEdge q hu
 
 open Classical in
-/-- 수축 그래프의 걸음을 변마다 들어 올린 걸음. 원래 변이 아니면 `y`를 거친다. -/
+/-- Lift a walk of the contracted graph edge by edge. Edges that are not original edges pass
+through `y`. -/
 noncomputable def liftWalk (hxy : G.Adj x y) :
     ∀ {u v : V}, (contractEdge G x y).Walk u v → G.Walk u v
   | _, _, .nil => .nil
@@ -81,7 +86,7 @@ theorem mem_support_liftWalk (hxy : G.Adj x y) {u v : V} (q : (contractEdge G x 
         · exact Or.inl (by simp [h1])
         · exact Or.inr h1
 
-/-- `x`를 지나지 않는 걸음은 그대로 옮겨진다. -/
+/-- A walk avoiding `x` is transported unchanged. -/
 theorem support_liftWalk_of_not_mem (hxy : G.Adj x y) {u v : V}
     (q : (contractEdge G x y).Walk u v) (hx : x ∉ q.support) :
     (liftWalk hxy q).support = q.support := by
@@ -98,7 +103,7 @@ theorem support_liftWalk_of_not_mem (hxy : G.Adj x y) {u v : V}
     have hG := adj_of_contractEdge_adj_of_ne h hu hb
     simp only [liftWalk, hG, ↓reduceDIte, Walk.support_cons, ih hpx]
 
-/-- 들어 올린 걸음을 경로로 줄인 것. -/
+/-- The lifted walk shortened to a path. -/
 noncomputable def liftPath [DecidableEq V] (hxy : G.Adj x y) {u v : V}
     (q : (contractEdge G x y).Walk u v) : G.Walk u v :=
   (liftWalk hxy q).bypass
@@ -118,7 +123,7 @@ theorem mem_support_liftPath_of_not_mem [DecidableEq V] (hxy : G.Adj x y) {u v :
   have h := Walk.support_bypass_subset_support _ hz
   rwa [support_liftWalk_of_not_mem hxy q hx] at h
 
-/-- 들어 올린 경로의 내부는 원래 내부와 `y`에 들어 있다. -/
+/-- The interior of a lifted path lies in the original interior together with `y`. -/
 theorem walkInterior_liftPath_subset [DecidableEq V] (hxy : G.Adj x y) {u v : V}
     (q : (contractEdge G x y).Walk u v) {z : V} (hz : z ∈ walkInterior (liftPath hxy q)) :
     z ∈ walkInterior q ∨ z = y := by
@@ -126,14 +131,15 @@ theorem walkInterior_liftPath_subset [DecidableEq V] (hxy : G.Adj x y) {u v : V}
   · exact Or.inl ⟨h, hz.2⟩
   · exact Or.inr h
 
-/-- `x`를 지나지 않으면 들어 올린 경로의 내부는 원래 내부에 들어 있다. -/
+/-- If the walk avoids `x`, the interior of the lifted path lies in the original interior. -/
 theorem walkInterior_liftPath_subset_of_not_mem [DecidableEq V] (hxy : G.Adj x y) {u v : V}
     (q : (contractEdge G x y).Walk u v) (hx : x ∉ q.support) {z : V}
     (hz : z ∈ walkInterior (liftPath hxy q)) : z ∈ walkInterior q :=
   ⟨mem_support_liftPath_of_not_mem hxy q hx hz.1, hz.2⟩
 
-/-- 분기점 `x`에서 출발하는 경로를 새 분기점 `t ∈ {x, y}`에서 출발하도록 들어 올린다. 첫 변이
-`t`에 닿지 않을 때만 `x`나 `y` 가운데 다른 점이 끼어든다. -/
+/-- Lift a path starting at the branch vertex `x` to a path starting at the new branch vertex
+`t ∈ {x, y}`. The vertex of `{x, y}` other than `t` is inserted only when the first edge does not
+meet `t`. -/
 theorem exists_liftFrom [DecidableEq V] (hxy : G.Adj x y) {t : V} (ht : t = x ∨ t = y) {v : V}
     (q : (contractEdge G x y).Walk x v) (hq : q.IsPath) (hv : v ≠ x) :
     ∃ r : G.Walk t v, r.IsPath ∧ ∀ z ∈ r.support,
@@ -159,7 +165,7 @@ theorem exists_liftFrom [DecidableEq V] (hxy : G.Adj x y) {t : V} (ht : t = x �
     rcases hz' with rfl | hz'
     · exact Or.inl rfl
     · exact Or.inr (Or.inl (htail' z hz'))
-  · -- 다른 점 `o`를 거친다
+  · -- pass through the other vertex `o`
     have hto : ∃ o, (o = x ∨ o = y) ∧ G.Adj t o ∧ G.Adj o b := by
       rcases ht with rfl | rfl
       · refine ⟨y, Or.inr rfl, hxy, ?_⟩

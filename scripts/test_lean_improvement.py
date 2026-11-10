@@ -201,6 +201,36 @@ class Tests(unittest.TestCase):
         m.publish(api)
         self.assertEqual(len(api.issues), 2)
 
+    def test_recovery_with_different_candidates_tracks_only_posted_ids(self):
+        api = API(state())
+        api.fail_state = True
+        with self.assertRaises(OSError):
+            m.publish(api)
+        api.fail_state = False
+        m.error(api)
+        data = copy.deepcopy(RESULT)
+        candidate = data["candidates"][0]
+        candidate["path"] = "Kuratowski/B.lean"
+        candidate["declaration"] = "bar"
+        candidate["evidence"] = [{"path": "Kuratowski/B.lean", "line": 1,
+                                  "quote": "theorem bar : True := by trivial"}]
+        (self.out / "review.json").write_text(json.dumps(data))
+        with patch.dict(os.environ, {"GITHUB_RUN_ID": "124", "REVIEW_BATCH": "0", "RETRY_FAILED": "true"}):
+            m.prepare(api)
+            m.publish(api)
+        saved = m.load_state(api.issues)[1]
+        self.assertEqual(set(saved["seen"]), {m.candidate_id(CANDIDATE), m.candidate_id(candidate)})
+        self.assertEqual(m.posted_ids(api.issues), set(saved["seen"]))
+        self.assertEqual(len(api.issues), 3)
+
+    def test_malformed_publication_ledger_fails_closed(self):
+        api = API(state())
+        api.issues.append({"number": 2, "user": {"login": "github-actions[bot]"},
+                           "body": m.REPORT + "broken", "title": "old report"})
+        with self.assertRaises(ValueError):
+            m.publish(api)
+        self.assertEqual(api.writes, [])
+
     def test_stale_head_and_other_run_do_not_publish(self):
         api = API(state())
         api.head = "c" * 40

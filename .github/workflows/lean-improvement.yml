@@ -22,7 +22,8 @@ concurrency:
 
 jobs:
   prepare:
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    # 상태·게시 검증도 main을 기준으로 한다. schedule의 event.repository payload에 기대지 않는다.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

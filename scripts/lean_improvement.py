@@ -14,6 +14,7 @@ GitHub = runpy.run_path(str(Path(__file__).with_name("pr_review.py")))["GitHub"]
 TITLE = "[Continuous AI] Lean 개선 조사 상태"
 MARKER = "<!-- lean-improvement-state:v1 -->"
 REPORT = "<!-- lean-improvement-report:"
+IDS = "<!-- lean-improvement-ids:"
 OUT = Path(".improvement")
 PROMPT = Path(".github/prompts/lean-improvement.md")
 SCHEMA = Path(".github/prompts/lean-improvement-schema.json")
@@ -208,6 +209,23 @@ def safe(value):
     return value.replace("@", "＠").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def posted_ids(issues):
+    result = set()
+    for i in issues:
+        body = i.get("body") or ""
+        if not owned(i) or not body.startswith(REPORT):
+            continue
+        lines = body.splitlines()
+        if len(lines) < 2 or not lines[1].startswith(IDS) or not lines[1].endswith(" -->"):
+            raise ValueError("게시 후보 ID를 복구하지 못했습니다.")
+        ids = json.loads(lines[1][len(IDS):-4])
+        if (not isinstance(ids, list) or not 1 <= len(ids) <= 3
+                or any(not isinstance(k, str) or not re.fullmatch(r"[0-9a-f]{64}", k) for k in ids)):
+            raise ValueError("게시 후보 ID 형식이 잘못되었습니다.")
+        result.update(ids)
+    return result
+
+
 def publish(api):
     plan = json.loads((OUT / "plan.json").read_text())
     data = validate((OUT / "review.json").read_text(), plan, "success")
@@ -220,12 +238,15 @@ def publish(api):
         raise ValueError("현재 실행이 예약한 조사가 아닙니다.")
     if api.request(f"/repos/{api.repo}/git/ref/heads/main")["object"]["sha"] != plan["sha"]:
         raise ValueError("main이 바뀌었습니다. 오래된 결과는 게시하지 않습니다.")
+    # 게시 뒤 상태 저장이 실패했어도, 실제 게시한 ID를 이전 보고서에서 복구한다.
+    state["seen"] = sorted(set(state["seen"]) | posted_ids(issues))
     fresh = [c for c in data["candidates"] if candidate_id(c) not in state["seen"]]
     if len(state["seen"]) + len(fresh) > 300:
         raise ValueError("후보 이력을 유지관리자가 정리해야 합니다.")
-    marker = REPORT + str(plan["batch"]) + ":" + plan["digest"] + " -->"
-    if fresh and not any(owned(i) and (i.get("body") or "").startswith(marker) for i in issues):
-        body = marker + "\nAI가 제안한 미검증 후보입니다. 코드 수정·PR 생성은 수행하지 않았습니다.\n\n"
+    marker = REPORT + str(plan["batch"]) + ":" + plan["digest"] + ":" + plan["run_id"] + " -->"
+    if fresh:
+        body = marker + "\n" + IDS + json.dumps([candidate_id(c) for c in fresh]) + " -->\n"
+        body += "AI가 제안한 미검증 후보입니다. 코드 수정·PR 생성은 수행하지 않았습니다.\n\n"
         body += f"소스: `{plan['sha']}` · batch {plan['batch']} · run {plan['run_id']}\n\n"
         body += safe(data["summary"]) + "\n"
         for c in fresh:

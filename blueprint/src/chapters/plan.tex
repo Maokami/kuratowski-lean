@@ -47,9 +47,9 @@
 \section{검사 실행}
 
 \begin{verbatim}
-lake build                               # Lean 빌드와 공리 감사
-scripts/blueprint.sh                     # 위에 더해 웹·PDF 판, checkdecls, 전수 검사
-python3 -I scripts/check_definition.py   # 평면성 정의의 전수 검사
+lake build                               # Library and axiom audit
+scripts/blueprint.sh                     # HTML/PDF, names, finite checks
+python3 -I scripts/check_definition.py   # Planarity definition checks
 \end{verbatim}
 작업 규칙(공리, \texttt{\textbackslash planned}에서 \texttt{\textbackslash lean}으로 옮기기, 작성자와
 검토자 분리)은 저장소의

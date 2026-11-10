@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite this software release."
+type: software
+title: "Kuratowski's theorem in Lean 4"
+authors:
+  - alias: "Maokami"
+    website: "https://github.com/Maokami"
+version: 1.0.0
+repository-code: "https://github.com/Maokami/kuratowski-lean"
+url: "https://github.com/Maokami/kuratowski-lean"
+license: Apache-2.0
+keywords:
+  - Lean 4
+  - formal verification
+  - graph theory
+  - Kuratowski theorem
+  - rotation systems
+abstract: >-
+  A Lean 4 proof of both directions of Kuratowski's theorem for finite simple
+  graphs, with planarity defined combinatorially by genus-zero rotation systems.
+  Disconnected graphs and isolated vertices are included. The correspondence
+  with topological embeddings is not formalized.

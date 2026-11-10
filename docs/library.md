@@ -1,7 +1,7 @@
 # Using the library
 
 The library proves Kuratowski's theorem for finite simple graphs with
-**combinatorial planarity**: a rotation system has Euler characteristic
+**combinatorial planarity**: some rotation system has Euler characteristic
 `|V| - |E| + |F| = 2 * |ConnectedComponent|`. Isolated vertices contribute one face.
 The correspondence with embeddings in the plane or sphere is not formalized here.
 
@@ -15,14 +15,18 @@ Import a focused module when possible. `import Kuratowski` imports the complete 
 | `Kuratowski.PermSum` | Sum-permutation powers, cycle membership, `orbitCount_sumCongr` | `Perm`; no graphs |
 | `Kuratowski.Basic` | `RotationSystem`, `facePerm`, `eulerChar`, `IsPlanar` | Simple graphs and `Perm` |
 | `Kuratowski.RotationOrder` | Inverse-rotation periods and neighbor enumeration | `Basic`; no face surgery |
-| `Kuratowski.Contract` | `contractEdge`, `contractVertex`, adjacency formulas | Simple graphs; no excluded subdivisions |
-| `Kuratowski.Cyclic` | `CyclicSequence`, rotation, reversal, monotonicity | Simple graphs and modular indices |
+| `Kuratowski.Contract` | `contractEdge`, `contractVertex`, adjacency formulas | Simple graphs; no rotation-system dependencies |
+| `Kuratowski.Cyclic` | `CyclicSequence`, index shifts (`rotate`), reversal, monotonicity | Simple graphs and modular indices |
 | `Kuratowski.Paths` | `walkInterior`, `SubdivisionPaths` | Paths and injective branch maps |
+| `Kuratowski.Subdivision` | `IsSubdivision`, `ContainsSubdivision` | Edge subdivision, smoothing, and non-planarity bounds |
 | `Kuratowski.SubdivisionOfPaths` | `containsSubdivision_iff_paths` | Equivalence with iterated subdivision |
 | `Kuratowski.Hard` | `isPlanar_iff_kuratowskiFree` | The complete proof |
 
 Public names remain in the `Kuratowski` namespace. The foundation extraction preserves the
 existing public statement types and argument order; importing their old modules still works.
+In particular, `Uncontract` uses `RotationOrder` and `Contract` instead of importing the
+path-replacement and J2 face-construction modules. The later removal of unused arguments from
+`Smooth` auxiliary lemmas is listed separately in [the changelog](../CHANGELOG.md).
 
 ```lean
 import Kuratowski.Hard
@@ -33,6 +37,9 @@ example {V : Type*} [Finite V] (G : SimpleGraph V) :
     IsPlanar G ↔ ¬ ContainsSubdivision G K5 ∧ ¬ ContainsSubdivision G K33 :=
   isPlanar_iff_kuratowskiFree
 ```
+
+The examples in [`examples/`](../examples/) are checked by CI. Lake also resolves the
+small `checkdecls` package, which is a regular dependency used for blueprint validation.
 
 ## Conventions
 

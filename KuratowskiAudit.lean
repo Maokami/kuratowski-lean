@@ -1,21 +1,21 @@
 import Kuratowski
 
 /-!
-# 공리 감사
+# Axiom audit
 
-`lake build` 때 `Kuratowski` 모듈들(`Kuratowski.lean`과 `Kuratowski/` 아래 파일)에서 선언한
-**모든** 상수가 표준 공리 `propext`, `Classical.choice`, `Quot.sound`만 쓰는지 검사한다.
-다른 공리가 보이면 오류를 내고 빌드가 실패한다. 이렇게 걸리는 것은 `sorry`(`sorryAx`),
-`native_decide`(Lean 4.35에서는 `….native_decide.ax_…` 보조 공리), 새로 선언한 `axiom`과 그것을
-간접으로 쓰는 정리다. `decide +kernel`은 공리를 늘리지 않는다.
+During `lake build`, inspect every constant declared in the imported `Kuratowski`
+modules. Only `propext`, `Classical.choice`, and `Quot.sound` are allowed.
+An additional axiom, including `sorryAx` or a native-evaluation axiom, fails the build.
+`decide +kernel` introduces no additional axiom.
 
-선언 목록을 손으로 관리하지 않는다. 감사 대상은 루트 모듈 `Kuratowski`가 직접 또는 간접으로
-import하는 모듈이므로, `Kuratowski/`에 파일을 추가하면 `Kuratowski.lean`에 import를 추가한다.
+The declaration list comes from the imported module metadata. When adding a library
+file, regenerate `Kuratowski.lean` with `lake exe mk_all --lib Kuratowski`; otherwise
+that file would be omitted from both the build and this audit.
 -/
 
 open Lean Elab Command
 
-/-- `Kuratowski`로 시작하는 가져온 모듈의 모든 선언이 표준 공리만 쓰는지 검사한다. -/
+/-- Reject nonstandard axioms in every declaration of the imported `Kuratowski` modules. -/
 elab "#audit_axioms" : command => do
   let env ← getEnv
   let allowed : List Name := [``propext, ``Classical.choice, ``Quot.sound]
@@ -43,5 +43,8 @@ elab "#audit_axioms" : command => do
 
 #audit_axioms
 
--- 주 정리 (쉬운 방향)
+-- Both directions and the final equivalence.
 #print axioms Kuratowski.not_isPlanar_of_containsSubdivision
+
+#print axioms Kuratowski.isPlanar_of_kuratowskiFree
+#print axioms Kuratowski.isPlanar_iff_kuratowskiFree

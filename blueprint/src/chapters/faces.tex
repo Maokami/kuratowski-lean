@@ -400,8 +400,11 @@ Lean의 \texttt{RotationOrder.lean}은 위 이웃 열거를 다룬다.
   \item \textbf{회전.} \(\tau\)를 대응으로 옮긴 \(\rho'\)에 \((x,y)\), \((y,x)\)를 고정점으로 붙인 순열이라 하자.
         \(u = (x, u_0)\)(\(k > 0\)), \(w = (y, u_k)\)(\(k < N\))로 두면
         \[
-          \rho = \tau\,(u\ w)\,(u\ xy)\,(w\ yx) \quad (0 < k < N), \qquad
-          \rho = \tau\,(u\ xy) \quad (k = N), \qquad \rho = \tau\,(w\ yx) \quad (k = 0)
+          \rho = \begin{cases}
+            \tau\,(u\ w)\,(u\ xy)\,(w\ yx), & 0 < k < N,\\
+            \tau\,(u\ xy), & k = N,\\
+            \tau\,(w\ yx), & k = 0.
+          \end{cases}
         \]
         이다. \(\tau(u) = (y, u_{N-1})\), \(\tau(w) = (x, u_{k-1})\)이므로 \((u\ w)\)는 \(x\)의 \(\tau\)-순환을 \(x\)쪽 호와
         \(y\)쪽 호로 나누고, 뒤의 두 호환은 \(xy\), \(yx\)를 각 호의 끝에 넣는다. 각 꼭짓점의 다트는 한 순환을 이룬다.

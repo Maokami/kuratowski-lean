@@ -2,15 +2,17 @@ import Kuratowski.Deletion
 import Kuratowski.Components
 
 /-!
-# 오일러 부등식과 부분 그래프
+# Euler's inequality and subgraphs
 
-* **오일러 부등식** (`RotationSystem.eulerChar_le`): 모든 회전 체계에서
-  `V - E + F ≤ 2 · (연결 성분 수)`. 변의 수에 대한 귀납법으로 보인다. 변 `uv`를 지우면
-  - `uv`의 두 다트가 같은 면에 있을 때: `F`가 1 늘어 오일러 지표가 2 늘고, 성분은 많아야 하나 는다.
-  - 다른 면에 있을 때: `F`가 1 줄어 오일러 지표는 그대로이고, `uv`가 다리가 아니므로 성분 수도
-    그대로다.
-* **부분 그래프** (`IsPlanar.mono`): 평면 그래프의 부분 그래프는 평면 그래프다. 위와 같은 계산에
-  오일러 부등식을 더하면 변 하나를 지워도 평면성이 유지되고, 이것을 반복한다.
+* **Euler's inequality** (`RotationSystem.eulerChar_le`): every rotation system satisfies
+  `V - E + F ≤ 2 · (number of connected components)`. The proof is by induction on the number of
+  edges. When an edge `uv` is deleted:
+  - if the two darts of `uv` lie on the same face, `F` increases by 1, so the Euler characteristic
+    increases by 2, and the number of components increases by at most one;
+  - if they lie on different faces, `F` decreases by 1, so the Euler characteristic is unchanged,
+    and `uv` is not a bridge, so the number of components is unchanged.
+* **Subgraphs** (`IsPlanar.mono`): a subgraph of a planar graph is planar. The same computation
+  together with Euler's inequality shows that deleting one edge preserves planarity; iterate.
 -/
 
 namespace Kuratowski
@@ -22,7 +24,7 @@ variable {V : Type*} [Finite V] [DecidableEq V]
 namespace RotationSystem
 
 omit [Finite V] [DecidableEq V] in
-/-- 변이 없는 그래프에서는 `V - E + F = 2V = 2c`. -/
+/-- For a graph without edges, `V - E + F = 2V = 2c`. -/
 lemma eulerChar_of_edgeSet_eq_empty {G : SimpleGraph V} (R : RotationSystem G)
     (h : G.edgeSet = ∅) : R.eulerChar = 2 * Nat.card G.ConnectedComponent := by
   have hD : IsEmpty G.Dart := ⟨fun d => by
@@ -47,7 +49,8 @@ lemma eulerChar_of_edgeSet_eq_empty {G : SimpleGraph V} (R : RotationSystem G)
   push_cast
   ring
 
-/-- 변 `uv`를 지운 뒤의 오일러 지표: 두 다트가 같은 면에 있으면 2 는다. -/
+/-- Euler characteristic after deleting an edge `uv`: it increases by 2 if the two darts lie on
+the same face. -/
 lemma eulerChar_del_of_sameCycle {G : SimpleGraph V} (R : RotationSystem G) (d : G.Dart)
     (h : SameCycle R.facePerm d d.symm) : (R.del d).eulerChar = R.eulerChar + 2 := by
   have hE : (G.deleteEdges {d.edge}).edgeSet.ncard + 1 = G.edgeSet.ncard :=
@@ -58,7 +61,8 @@ lemma eulerChar_del_of_sameCycle {G : SimpleGraph V} (R : RotationSystem G) (d :
   push_cast
   omega
 
-/-- 변 `uv`를 지운 뒤의 오일러 지표: 두 다트가 다른 면에 있으면 그대로다. -/
+/-- Euler characteristic after deleting an edge `uv`: it is unchanged if the two darts lie on
+different faces. -/
 lemma eulerChar_del_of_not_sameCycle {G : SimpleGraph V} (R : RotationSystem G) (d : G.Dart)
     (h : ¬ SameCycle R.facePerm d d.symm) : (R.del d).eulerChar = R.eulerChar := by
   have hE : (G.deleteEdges {d.edge}).edgeSet.ncard + 1 = G.edgeSet.ncard :=
@@ -96,14 +100,15 @@ lemma eulerChar_le_aux (n : ℕ) :
       rw [hc] at ih'
       omega
 
-/-- **오일러 부등식**: 모든 회전 체계에서 `V - E + F ≤ 2 · (연결 성분 수)`. -/
+/-- **Euler's inequality**: every rotation system satisfies
+`V - E + F ≤ 2 · (number of connected components)`. -/
 theorem eulerChar_le {G : SimpleGraph V} (R : RotationSystem G) :
     R.eulerChar ≤ 2 * Nat.card G.ConnectedComponent :=
   eulerChar_le_aux _ R rfl
 
 end RotationSystem
 
-/-- 평면 그래프에서 변 하나를 지워도 평면 그래프다. -/
+/-- Deleting one edge of a planar graph gives a planar graph. -/
 theorem IsPlanar.deleteEdge {G : SimpleGraph V} (hG : IsPlanar G) {u v : V} (huv : G.Adj u v) :
     IsPlanar (G.deleteEdges {s(u, v)}) := by
   obtain ⟨R, hR⟩ := hG
@@ -151,7 +156,7 @@ lemma IsPlanar.mono_aux (n : ℕ) :
     · rw [edgeSet_deleteEdges, Set.sdiff_sdiff_comm, Set.ncard_sdiff_singleton_of_mem he]
       omega
 
-/-- **평면 그래프의 부분 그래프는 평면 그래프다.** -/
+/-- **A subgraph of a planar graph is planar.** -/
 theorem IsPlanar.mono {G H : SimpleGraph V} (hG : IsPlanar G) (hHG : H ≤ G) : IsPlanar H :=
   IsPlanar.mono_aux _ hG hHG rfl
 

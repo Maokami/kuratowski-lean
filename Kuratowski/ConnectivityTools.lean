@@ -1,22 +1,25 @@
 import Kuratowski.ConnectedContraction
 
 /-!
-# 삭제와 최소 분리 집합의 연결성
+# Connectivity under deletion and minimal separating sets
 
-연결도 하한의 단조성, 한 점 삭제, 이웃 수 하한과 수축 뒤 삭제의 그래프 등식을 둔다.
-크기 `k`인 분리 집합의 각 점은 `k`-연결 그래프에서 지지 성분마다 이웃을 갖는다.
-`ConnectedContraction.lean`의 크기 3인 분리 집합 논증을 임의의 `k`에 적용하며 기존 진술은 바꾸지 않는다.
+Monotonicity of the connectivity bound, deletion of one vertex, the lower bound on the number of
+neighbors, and a graph identity for deletion after contraction. In a `k`-connected graph each
+vertex of a separating set of size `k` has a neighbor in every support component. This generalizes
+the size-3 argument of `ConnectedContraction.lean` to arbitrary `k` without changing its
+statements.
 -/
 
 namespace Kuratowski
 open SimpleGraph
 variable {V : Type*} [Finite V] {G : SimpleGraph V} {A : Set V} {j k : ℕ}
 
-/-- 더 적은 점을 지우는 연결성은 더 강한 연결성에서 따른다. -/
+/-- Connectivity for fewer deletions follows from stronger connectivity. -/
 theorem ConnectedOn.mono (h : ConnectedOn G k A) (hjk : j ≤ k) : ConnectedOn G j A := by
   refine ⟨by have := h.1; omega, fun S hS ↦ h.2 S (lt_of_lt_of_le hS hjk)⟩
 
-/-- 한 점을 먼저 지우면 연결도 하한은 하나 줄어든다. 기준 집합도 원래 집합에서 그 점만 뺀다. -/
+/-- Deleting one vertex first lowers the connectivity bound by one. The base set is the original
+set minus that vertex. -/
 theorem ConnectedOn.deleteVertex (h : ConnectedOn G (k + 1) A) (v : V) :
     ConnectedOn (deleteVertices G {v}) k (A \ {v}) := by
   refine ⟨?_, ?_⟩
@@ -40,7 +43,7 @@ theorem ConnectedOn.deleteVertex (h : ConnectedOn G (k + 1) A) (v : V) :
     refine ⟨⟨hab.1, fun ha ↦ hab.2.1 (Or.inl ha), fun hb ↦ hab.2.2 (Or.inl hb)⟩,
       fun ha ↦ hab.2.1 (Or.inr ha), fun hb ↦ hab.2.2 (Or.inr hb)⟩
 
-/-- `k`-연결 기준 집합의 점은 그래프 전체에서 적어도 `k`개의 이웃을 갖는다. -/
+/-- A vertex of a `k`-connected base set has at least `k` neighbors in the whole graph. -/
 theorem ConnectedOn.ncard_neighborSet_ge (h : ConnectedOn G k A) {x : V} (hx : x ∈ A) :
     k ≤ (G.neighborSet x).ncard := by
   by_contra hle
@@ -57,7 +60,8 @@ theorem ConnectedOn.ncard_neighborSet_ge (h : ConnectedOn G k A) {x : V} (hx : x
   exact hzx (Or.inl heq)
 
 omit [Finite V] in
-/-- 수축 뒤 남긴 점을 지우면 원래 양 끝점을 모두 지운 그래프다. -/
+/-- Deleting the kept vertex after contraction gives the graph with both original ends
+deleted. -/
 theorem deleteVertices_contractEdge_left {x y : V} :
     deleteVertices (contractEdge G x y) {x} = deleteVertices G {x, y} := by
   ext a b
@@ -71,14 +75,15 @@ theorem deleteVertices_contractEdge_left {x y : V} :
     exact ⟨⟨hab.ne, fun h ↦ ha (Or.inr h), fun h ↦ hb (Or.inr h), Or.inl hab⟩,
       fun h ↦ ha (Or.inl h), fun h ↦ hb (Or.inl h)⟩
 
-/-- 크기 `k`인 분리 집합의 각 점은 `k`-연결 그래프에서 모든 지지 성분에 이웃이 있다. -/
+/-- In a `k`-connected graph, each vertex of a separating set of size `k` has a neighbor in
+every support component. -/
 theorem exists_adj_mem_sepComponent_of_connectedOn (hG : ConnectedOn G k G.support)
     {T : Set V} (hT : T.ncard = k)
     (hsep : Separates G T) {c : V} (hc : c ∈ G.support \ T) {t : V} (ht : t ∈ T) :
     ∃ d ∈ sepComponent G T c, G.Adj t d := by
   by_contra hno
   simp only [not_exists, not_and] at hno
-  -- `C` 밖의 점 `e`
+  -- a vertex `e` outside `C`
   have hout : ∃ e ∈ G.support \ T, e ∉ sepComponent G T c := by
     obtain ⟨u, hu, v, hv, huv⟩ := hsep
     by_cases huC : u ∈ sepComponent G T c
@@ -86,7 +91,7 @@ theorem exists_adj_mem_sepComponent_of_connectedOn (hG : ConnectedOn G k G.suppo
       exact huC.2.symm.trans hvC.2
     · exact ⟨u, hu, huC⟩
   obtain ⟨e, he, heC⟩ := hout
-  -- `T \ {t}`를 지워도 `C`를 벗어날 수 없다
+  -- deleting `T \ {t}` cannot leave `C`
   have stay : ∀ {a b : V} (p : (deleteVertices G (T \ {t})).Walk a b),
       a ∈ sepComponent G T c → b ∈ sepComponent G T c := by
     intro a b p

@@ -5,24 +5,28 @@ import Kuratowski.WalkLift
 import Mathlib.Data.Fin.VecNotation
 
 /-!
-# 수축해도 KF가 유지된다 (블루프린트 `lem:lift`)
+# Contraction preserves Kuratowski-freeness (blueprint `lem:lift`)
 
-`x ∼ y`이고 `G`가 `K₅`와 `K₃,₃`의 세분을 포함하지 않으면(KF) `G/xy`도 KF다
-(`kuratowskiFree_contractEdge`). 대우를 보인다. `G/xy`의 경로 체계(정방향은 유한성이 필요 없다)를
-`G`로 들어 올리고, `K₅`와 `K₃,₃`의 꼭짓점 타입이 유한하므로 `containsSubdivision_of_finite`로 세분을
-얻는다. `G`의 꼭짓점 타입에는 유한성을 가정하지 않는다.
+If `x ∼ y` and `G` contains no subdivision of `K₅` or `K₃,₃` (KF), then `G/xy` is KF
+(`kuratowskiFree_contractEdge`). We prove the contrapositive. A path system in `G/xy` (the forward
+direction needs no finiteness) is lifted to `G`; since `K₅` and `K₃,₃` have finitely many vertices,
+`containsSubdivision_of_finite` gives a subdivision. The vertex type of `G` need not be finite.
 
-* `SubdivisionPaths.ofFamily`: 대칭 조건 없이 모든 방향의 경로 모음에서 체계를 만든다.
-* 사례 A (`nonempty_lift_of_not_branch`): `x`가 분기점이 아니면 경로마다 `liftPath`를 쓴다.
-  `x`를 지나는 무방향 변의 경로는 많아야 하나이고 `y`는 그 경로에만 끼어든다.
-* 사례 B (`nonempty_lift_of_branch`): `x = P.branch a₀`이면 새 분기점 `t ∈ {x, y}`를 고른다.
-  첫 변이 `t`에 닿지 않는 `a₀`의 경로가 많아야 하나이면, 그 경로에만 다른 점이 끼어든다.
-* 사례 C (`containsSubdivision_K33_of_split`): 두 종류의 나쁜 경로가 각각 둘 이상이면 분기점 `x`를
-  `x`와 `y`로 나눠 `K₃,₃`을 만든다. 두 편은 `{x, f b₁, f b₂}`와 `{y, f a₁, f a₂}`이고 경로는
-  `xy`, `x → f aⱼ`, `f bᵢ → y`, 원래 경로 `bᵢ — aⱼ` 넷이다.
-* 첫 변이 `x`에 닿지 않는 경로는 `y`에 닿으므로 두 종류의 나쁜 경로는 서로 다르다
-  (`nonempty_lift_or_split`). `K₃,₃`은 차수가 3이라 사례 C가 생기지 않고, `K₅`는 사례 C에서
-  `K₃,₃`을 준다.
+* `SubdivisionPaths.ofFamily`: builds a path system from paths in all directions, without the
+  symmetry condition.
+* Case A (`nonempty_lift_of_not_branch`): if `x` is not a branch vertex, lift each path with
+  `liftPath`. At most one undirected edge has a path through `x`, and `y` is inserted only into
+  that path.
+* Case B (`nonempty_lift_of_branch`): if `x = P.branch a₀`, choose a new branch vertex
+  `t ∈ {x, y}`. If at most one path from `a₀` has a first edge not meeting `t`, the other vertex is
+  inserted only into that path.
+* Case C (`containsSubdivision_K33_of_split`): if each of the two kinds of bad paths occurs at
+  least twice, split the branch vertex `x` into `x` and `y` to obtain `K₃,₃`. The two sides are
+  `{x, f b₁, f b₂}` and `{y, f a₁, f a₂}`, and the paths are `xy`, `x → f aⱼ`, `f bᵢ → y`, and the
+  four original paths `bᵢ — aⱼ`.
+* A path whose first edge does not meet `x` meets `y`, so the two kinds of bad paths are different
+  (`nonempty_lift_or_split`). Case C cannot occur for `K₃,₃`, whose degree is 3, and for `K₅` it
+  yields `K₃,₃`.
 -/
 
 
@@ -34,8 +38,8 @@ namespace SubdivisionPaths
 
 variable {V W : Type*} {K : SimpleGraph W} {G : SimpleGraph V}
 
-/-- 대칭 조건 없이 모든 방향의 경로 모음에서 경로 체계를 만든다. `W`가 유한하면 선형 순서를
-하나 골라 `ofLT`로 한쪽 방향의 경로만 쓴다. -/
+/-- Build a path system from paths in all directions, without the symmetry condition. For finite
+`W`, choose a linear order and use only the paths in one direction via `ofLT`. -/
 noncomputable def ofFamily [Finite W] (f : W ↪ V) (q : ∀ a b, K.Adj a b → G.Walk (f a) (f b))
     (hp : ∀ a b (h : K.Adj a b), (q a b h).IsPath)
     (hint : ∀ a b (h : K.Adj a b), ∀ z ∈ walkInterior (q a b h), z ∉ Set.range f)
@@ -55,20 +59,20 @@ section Lift
 
 variable {V W : Type*} {K : SimpleGraph W} {G : SimpleGraph V} {x y : V}
 
-/-- 들어 올린 경로에 `y`가 있으면 원래 경로가 `x`를 지난다. -/
+/-- If `y` lies on a lifted path, the original path passes through `x`. -/
 theorem mem_support_of_y_mem_liftPath [DecidableEq V] (hxy : G.Adj x y) {u v : V}
     (q : (contractEdge G x y).Walk u v) (hu : u ≠ y) (hy : y ∈ (liftPath hxy q).support) :
     x ∈ q.support := by
   by_contra hx
   exact not_mem_support_contractEdge q hu (mem_support_liftPath_of_not_mem hxy q hx hy)
 
-/-- 사례 A: `x`가 분기점이 아니면 모든 경로를 들어 올린다. -/
+/-- Case A: if `x` is not a branch vertex, lift every path. -/
 theorem SubdivisionPaths.nonempty_lift_of_not_branch [Finite W] (hxy : G.Adj x y)
     (P : SubdivisionPaths K (contractEdge G x y)) (hx : x ∉ Set.range P.branch)
     (hy : y ∉ Set.range P.branch) : Nonempty (SubdivisionPaths K G) := by
   classical
   have hby : ∀ a, P.branch a ≠ y := fun a e ↦ hy ⟨a, e⟩
-  -- 들어 올린 경로의 내부: 원래 내부이거나, 원래 경로가 `x`를 지날 때의 `y`
+  -- interior of a lifted path: the original interior, or `y` when the original path passes `x`
   have key : ∀ a b (h : K.Adj a b), ∀ z ∈ walkInterior (liftPath hxy (P.path a b h)),
       z ∈ walkInterior (P.path a b h) ∨ (z = y ∧ x ∈ walkInterior (P.path a b h)) := by
     intro a b h z hz
@@ -92,8 +96,9 @@ theorem SubdivisionPaths.nonempty_lift_of_not_branch [Finite W] (hxy : G.Adj x y
     · exact not_mem_support_contractEdge _ (hby c) h2.1
     · exact Set.disjoint_left.1 (P.disjoint a b h c d h' hne) hx1 hx2
 
-/-- 사례 B: `x = P.branch a₀`이고, 새 분기점 `t ∈ {x, y}`에 첫 변이 닿지 않는 `a₀`의 경로가 많아야
-하나면 경로 체계를 들어 올린다. 그런 경로에만 `x`, `y` 가운데 `t`가 아닌 점이 끼어든다. -/
+/-- Case B: if `x = P.branch a₀` and at most one path from `a₀` has a first edge not meeting the
+new branch vertex `t ∈ {x, y}`, the path system lifts. Only that path gets the vertex of `{x, y}`
+other than `t` inserted. -/
 theorem SubdivisionPaths.nonempty_lift_of_branch [Finite W] (hxy : G.Adj x y)
     (P : SubdivisionPaths K (contractEdge G x y)) {a₀ : W} (hxa : P.branch a₀ = x)
     (hy : y ∉ Set.range P.branch) {t : V} (ht : t = x ∨ t = y)
@@ -109,7 +114,7 @@ theorem SubdivisionPaths.nonempty_lift_of_branch [Finite W] (hxy : G.Adj x y)
     rcases ht with rfl | rfl
     · exact hbx a ha e.symm
     · exact hby a e.symm
-  -- 새 분기점 배치
+  -- the new branch vertices
   let g : W → V := Function.update P.branch a₀ t
   have hg : Function.Injective g := by
     intro a b hab
@@ -124,7 +129,7 @@ theorem SubdivisionPaths.nonempty_lift_of_branch [Finite W] (hxy : G.Adj x y)
   let f : W ↪ V := ⟨g, hg⟩
   have hfa : f a₀ = t := Function.update_self _ _ _
   have hfo : ∀ a, a ≠ a₀ → f a = P.branch a := fun a ha ↦ Function.update_of_ne ha _ _
-  -- `a₀`에서 나가는 경로 들어 올리기
+  -- lifting the paths leaving `a₀`
   have hlift : ∀ c (h : K.Adj a₀ c), ∃ r : G.Walk t (P.branch c), r.IsPath ∧
       ∀ z ∈ r.support, z = t ∨ (z ∈ (P.path a₀ c h).support ∧ z ≠ x) ∨
         ((z = x ∨ z = y) ∧ ¬ G.Adj t (P.path a₀ c h).snd) := by
@@ -172,7 +177,7 @@ theorem SubdivisionPaths.nonempty_lift_of_branch [Finite W] (hxy : G.Adj x y)
       · exact Or.inr ⟨h1, h2, a, h.symm, Sym2.eq_swap, h3⟩
     · simp only [q, ha, hb, ↓reduceDIte, walkInterior_copy] at hz
       exact Or.inl (walkInterior_liftPath_subset_of_not_mem hxy _ (hxnot a b h ha hb) hz)
-  -- 원래 내부의 점은 `x`도 `y`도 아니다
+  -- vertices of the original interiors are neither `x` nor `y`
   have horig : ∀ a b (h : K.Adj a b), ∀ z ∈ walkInterior (P.path a b h), z ≠ x ∧ z ≠ y := by
     intro a b h z hz
     refine ⟨fun e ↦ P.interior_not_branch a b h z hz ⟨a₀, hxa.trans e.symm⟩, fun e ↦ ?_⟩
@@ -221,9 +226,10 @@ theorem SubdivisionPaths.nonempty_lift_of_branch [Finite W] (hxy : G.Adj x y)
       subst this
       exact hne (e₁.trans e₂.symm)
 
-/-- 사례 C: 분기점 `x = P.branch a₀`의 네 이웃 경로가 둘씩 나뉘면(`a₁`, `a₂`는 첫 변이 `x`에, `b₁`,
-`b₂`는 `y`에 닿음) `K₃,₃`의 세분이 있다. 두 편은 `{x, f b₁, f b₂}`와 `{y, f a₁, f a₂}`이고, 경로는
-`xy`, `x → f aⱼ`, `f bᵢ → y`, 원래 경로 `bᵢ — aⱼ` 넷이다. -/
+/-- Case C: if the four paths at the branch vertex `x = P.branch a₀` split in pairs (the first
+edges of `a₁`, `a₂` meet `x`, those of `b₁`, `b₂` meet `y`), there is a subdivision of `K₃,₃`.
+The two sides are `{x, f b₁, f b₂}` and `{y, f a₁, f a₂}`, and the paths are `xy`, `x → f aⱼ`,
+`f bᵢ → y`, and the four original paths `bᵢ — aⱼ`. -/
 theorem SubdivisionPaths.containsSubdivision_K33_of_split (hxy : G.Adj x y)
     (P : SubdivisionPaths K (contractEdge G x y)) {a₀ a₁ a₂ b₁ b₂ : W} (hxa : P.branch a₀ = x)
     (hy : y ∉ Set.range P.branch)
@@ -302,7 +308,7 @@ theorem SubdivisionPaths.containsSubdivision_K33_of_split (hxy : G.Adj x y)
     · exact hyb₂
   have hbx : ∀ a, a ≠ a₀ → P.branch a ≠ x :=
     fun a ha e ↦ ha (P.branch.injective (e.trans hxa.symm))
-  -- 첫 변이 새 분기점에 닿는 경로는 다른 점 없이 들어 올려진다
+  -- a path whose first edge meets the new branch vertex lifts without inserted vertices
   have hlift : ∀ {t : V} (ht : t = x ∨ t = y) (c : W) (h : K.Adj a₀ c),
       G.Adj t (P.path a₀ c h).snd → ∃ r : G.Walk t (P.branch c), r.IsPath ∧
         ∀ z ∈ walkInterior r, z ∈ walkInterior (P.path a₀ c h) := by
@@ -324,7 +330,7 @@ theorem SubdivisionPaths.containsSubdivision_K33_of_split (hxy : G.Adj x y)
     fun i hi ↦ hlift (Or.inr rfl) _ _ (hY i hi)
   choose Rx hRxp hRxi using hRx
   choose Ry hRyp hRyi using hRy
-  -- 분기점
+  -- branch vertices
   let Lb : Fin 3 → V := fun i ↦ P.branch (wL i)
   let Rb : Fin 3 → V := fun j ↦ if j = 0 then y else P.branch (wR j)
   have hinj : Function.Injective (Sum.elim Lb Rb) := by
@@ -355,7 +361,7 @@ theorem SubdivisionPaths.containsSubdivision_K33_of_split (hxy : G.Adj x y)
     intro j hj
     simp [f, Rb, hj]
   have hLi : ∀ i : Fin 3, P.branch (wL i) = f (.inl i) := fun _ ↦ rfl
-  -- 경로
+  -- paths
   let p : ∀ i j : Fin 3, G.Walk (f (.inl i)) (f (.inr j)) := fun i j ↦
     if hj : j = 0 then
       if hi : i = 0 then (Walk.cons hxy Walk.nil).copy (hL0 i hi) (hR0 j hj)
@@ -447,7 +453,8 @@ theorem SubdivisionPaths.containsSubdivision_K33_of_split (hxy : G.Adj x y)
     exact Set.disjoint_left.1 (P.disjoint _ _ (hK i j hij) _ _ (hK k l hkl) hs)
       (hpint i j hij z hz1) (hpint k l hkl z hz2)
 
-/-- `K`에 고립점이 없으면 수축 그래프의 경로 체계에서 `y`는 분기점이 아니다. -/
+/-- If `K` has no isolated vertices, `y` is not a branch vertex of a path system in the
+contracted graph. -/
 theorem SubdivisionPaths.y_not_mem_range (P : SubdivisionPaths K (contractEdge G x y))
     (hK : ∀ a, ∃ c, K.Adj a c) : y ∉ Set.range P.branch := by
   rintro ⟨a, ha⟩
@@ -459,8 +466,8 @@ theorem SubdivisionPaths.y_not_mem_range (P : SubdivisionPaths K (contractEdge G
   rw [ha] at h2
   exact h1 h2
 
-/-- 들어 올릴 수 있거나, 분기점 `x`의 이웃 경로가 둘씩 나뉜다. 첫 변이 `x`에 닿지 않는 경로는
-`y`에 닿으므로, 두 종류의 나쁜 경로는 서로 다르다. -/
+/-- Either the path system lifts, or the paths at the branch vertex `x` split in pairs. A path
+whose first edge does not meet `x` meets `y`, so the two kinds of bad paths are different. -/
 theorem SubdivisionPaths.nonempty_lift_or_split [Finite W] (hxy : G.Adj x y)
     (P : SubdivisionPaths K (contractEdge G x y)) (hy : y ∉ Set.range P.branch) :
     Nonempty (SubdivisionPaths K G) ∨
@@ -500,13 +507,13 @@ theorem SubdivisionPaths.nonempty_lift_or_split [Finite W] (hxy : G.Adj x y)
 
 end Lift
 
-/-! ### `K₅`, `K₃,₃`의 세분 들어 올리기 -/
+/-! ### Lifting subdivisions of `K₅` and `K₃,₃` -/
 
 section Final
 
 variable {V : Type*} {G : SimpleGraph V} {x y : V}
 
-/-- `K₃,₃`의 한 꼭짓점에는 서로 다른 이웃이 넷일 수 없다. -/
+/-- A vertex of `K₃,₃` cannot have four distinct neighbors. -/
 theorem K33_not_four_neighbors {a c₁ c₂ c₃ c₄ : Fin 3 ⊕ Fin 3} (h₁ : K33.Adj a c₁)
     (h₂ : K33.Adj a c₂) (h₃ : K33.Adj a c₃) (h₄ : K33.Adj a c₄) (n₁₂ : c₁ ≠ c₂) (n₁₃ : c₁ ≠ c₃)
     (n₁₄ : c₁ ≠ c₄) (n₂₃ : c₂ ≠ c₃) (n₂₄ : c₂ ≠ c₄) (n₃₄ : c₃ ≠ c₄) : False := by
@@ -535,7 +542,7 @@ theorem K33_not_four_neighbors {a c₁ c₂ c₃ c₄ : Fin 3 ⊕ Fin 3} (h₁ :
         (fun e ↦ n₁₄ (by rw [e])) (fun e ↦ n₂₃ (by rw [e])) (fun e ↦ n₂₄ (by rw [e]))
         (fun e ↦ n₃₄ (by rw [e]))
 
-/-- 수축 그래프가 `K₃,₃`의 세분을 포함하면 원래 그래프도 포함한다. -/
+/-- If the contracted graph contains a subdivision of `K₃,₃`, so does the original graph. -/
 theorem containsSubdivision_K33_of_contractEdge (hxy : G.Adj x y)
     (h : ContainsSubdivision (contractEdge G x y) K33) : ContainsSubdivision G K33 := by
   obtain ⟨P⟩ := h.nonempty_subdivisionPaths
@@ -549,8 +556,9 @@ theorem containsSubdivision_K33_of_contractEdge (hxy : G.Adj x y)
     exact P'.containsSubdivision_of_finite
   · exact (K33_not_four_neighbors ha₁ ha₂ hb₁ hb₂ n₁ n₃ n₄ n₅ n₆ n₂).elim
 
-/-- 수축 그래프가 `K₅`의 세분을 포함하면 원래 그래프는 `K₅`나 `K₃,₃`의 세분을 포함한다.
-분기점 `x`의 네 경로가 둘씩 나뉘는 경우에 `K₃,₃`이 나온다. -/
+/-- If the contracted graph contains a subdivision of `K₅`, the original graph contains a
+subdivision of `K₅` or of `K₃,₃`. The `K₃,₃` case arises when the four paths at the branch vertex
+`x` split in pairs. -/
 theorem containsSubdivision_K5_or_K33_of_contractEdge (hxy : G.Adj x y)
     (h : ContainsSubdivision (contractEdge G x y) K5) :
     ContainsSubdivision G K5 ∨ ContainsSubdivision G K33 := by
@@ -567,11 +575,11 @@ theorem containsSubdivision_K5_or_K33_of_contractEdge (hxy : G.Adj x y)
     · exact (top_adj _ _).2 n₄.symm
     · exact (top_adj _ _).2 n₆.symm
 
-/-- `K₅`의 세분도 `K₃,₃`의 세분도 포함하지 않는다 (KF). -/
+/-- Contains no subdivision of `K₅` and no subdivision of `K₃,₃` (KF). -/
 def KuratowskiFree (G : SimpleGraph V) : Prop :=
   ¬ ContainsSubdivision G K5 ∧ ¬ ContainsSubdivision G K33
 
-/-- 블루프린트 `lem:lift`: `x ∼ y`이고 `G`가 KF이면 `G/xy`도 KF다. -/
+/-- Blueprint `lem:lift`: if `x ∼ y` and `G` is KF, then `G/xy` is KF. -/
 theorem kuratowskiFree_contractEdge (hxy : G.Adj x y) (h5 : ¬ ContainsSubdivision G K5)
     (h33 : ¬ ContainsSubdivision G K33) :
     ¬ ContainsSubdivision (contractEdge G x y) K5 ∧

@@ -2,23 +2,23 @@ import Kuratowski.Basic
 import Mathlib.Combinatorics.SimpleGraph.DeleteEdges
 
 /-!
-# 변 하나 지우기
+# Deleting one edge
 
-회전 체계 `R`에서 다트 `d = (u, v)`의 변을 지우면, 각 꼭짓점의 순환 순서에서 `d`, `d.symm`을
-빼서 그래프 `G - uv`의 회전 체계 `R.del d`를 얻는다.
+Deleting the edge of a dart `d = (u, v)` from a rotation system `R` removes `d` and `d.symm` from
+the cyclic orders at their vertices. This gives a rotation system `R.del d` of `G - uv`.
 
-면의 개수는 정확히 하나 바뀐다.
+The number of faces changes by exactly one.
 
-* `d`, `d.symm`이 같은 면에 있으면 그 면이 둘로 갈라진다: `F' = F + 1`.
-* 다른 면에 있으면 두 면이 합쳐진다: `F' = F - 1`.
+* If `d` and `d.symm` lie on the same face, that face splits into two: `F' = F + 1`.
+* Otherwise the two faces merge: `F' = F - 1`.
 
-증명은 면 순열 수준에서 한다. `R.del d`의 면 순열은 `φ * swap d d.symm`에서 `d`, `d.symm`을
-잘라 낸 것과 같다 (`del_facePerm`). 호환 하나는 순환 수를 ±1 바꾸고 (`Kuratowski.Perm`),
-잘라 내기는 고정점을 만들 뿐이다. `u`나 `v`가 고립점이 되는 경우는 `numFaces`의 고립점
-항이 정확히 메운다.
+The proof works with face permutations. The face permutation of `R.del d` is
+`φ * swap d d.symm` with `d` and `d.symm` cut out (`del_facePerm`). A transposition changes the
+number of cycles by ±1 (`Kuratowski.Perm`), and cutting only creates fixed points. When `u` or `v`
+becomes isolated, the isolated-vertex term of `numFaces` compensates exactly.
 
-또 `d`, `d.symm`이 다른 면에 있으면 `d`의 면을 따라 돌아 `v`에서 `u`로 가는 길이 `uv`를 쓰지
-않고 생기므로, `uv`는 다리(bridge)가 아니다 (`reachable_del_of_not_sameCycle`).
+Moreover, if `d` and `d.symm` lie on different faces, following the face of `d` gives a path from
+`v` to `u` that avoids `uv`, so `uv` is not a bridge (`reachable_del_of_not_sameCycle`).
 -/
 
 namespace Kuratowski
@@ -27,7 +27,7 @@ open Equiv Equiv.Perm SimpleGraph
 
 variable {V : Type*} [DecidableEq V] {G : SimpleGraph V}
 
-/-- `d`, `d.symm`이 아닌 다트는 `d`의 변을 지운 그래프의 다트다. -/
+/-- Darts other than `d` and `d.symm` are darts of the graph with the edge of `d` deleted. -/
 def delDartEquiv (d : G.Dart) :
     {x : G.Dart // x ≠ d ∧ x ≠ d.symm} ≃ (G.deleteEdges {d.edge}).Dart where
   toFun x := ⟨x.1.toProd, by
@@ -59,7 +59,8 @@ namespace RotationSystem
 
 variable (R : RotationSystem G) (d : G.Dart)
 
-/-- 지운 뒤의 회전 (전체 다트 위): `d`, `d.symm`을 각 꼭짓점의 순환에서 잘라 낸다. -/
+/-- The rotation after deletion, on all darts: cut `d` and `d.symm` out of the cycle at each
+vertex. -/
 def rot₀ : Perm G.Dart := cut (cut R.rot d) d.symm
 
 lemma rot₀_left : R.rot₀ d d = d := by
@@ -74,7 +75,7 @@ lemma rot₀_fst (x : G.Dart) : (R.rot₀ d x).fst = x.fst :=
     (cut_preserves R.rot d (fun y : G.Dart => y.fst) R.fst_rot) x
 
 omit [DecidableEq V] in
-/-- 고정점 두 개를 가진 순열은 그 둘이 아닌 점들을 보존한다. -/
+/-- A permutation with two fixed points preserves the set of the other points. -/
 lemma pred_of_fix {f : Perm G.Dart} (h1 : f d = d) (h2 : f d.symm = d.symm) (x : G.Dart) :
     (f x ≠ d ∧ f x ≠ d.symm) ↔ (x ≠ d ∧ x ≠ d.symm) := by
   constructor
@@ -84,7 +85,7 @@ lemma pred_of_fix {f : Perm G.Dart} (h1 : f d = d) (h2 : f d.symm = d.symm) (x :
     exact ⟨fun h => hx1 (f.injective (h.trans h1.symm)),
       fun h => hx2 (f.injective (h.trans h2.symm))⟩
 
-/-- `d`의 변을 지운 그래프의 회전 체계. -/
+/-- The rotation system of the graph with the edge of `d` deleted. -/
 def del [Finite V] : RotationSystem (G.deleteEdges {d.edge}) where
   rot := (delDartEquiv d).permCongr
     ((R.rot₀ d).subtypePerm (pred_of_fix d (R.rot₀_left d) (R.rot₀_right d)))
@@ -98,7 +99,8 @@ def del [Finite V] : RotationSystem (G.deleteEdges {d.edge}) where
     unfold rot₀
     exact sameCycle_cut x.2.2 x'.2.2 (sameCycle_cut x.2.1 x'.2.1 (R.sameCycle_rot _ _ hfst))
 
-/-- 지운 뒤의 면 순열 (전체 다트 위): `φ * swap d d.symm`에서 `d`, `d.symm`을 잘라 낸다. -/
+/-- The face permutation after deletion, on all darts: `φ * swap d d.symm` with `d` and `d.symm`
+cut out. -/
 def face₀ : Perm G.Dart := cut (cut (R.facePerm * swap d d.symm) d) d.symm
 
 lemma face₀_left : R.face₀ d d = d := by
@@ -139,7 +141,7 @@ lemma del_facePerm [Finite V] :
   rw [this, R.rot₀_symm d x.1 x.2.1 x.2.2]
 
 omit [DecidableEq V] in
-/-- `rot`이 `e`를 고정한다는 것은 `e`의 시작점의 이웃이 `e.snd` 하나뿐이라는 것이다. -/
+/-- `rot` fixes `e` iff `e.snd` is the only neighbor of the start vertex of `e`. -/
 lemma rot_eq_self_iff (e : G.Dart) : R.rot e = e ↔ ∀ z, G.Adj e.fst z → z = e.snd := by
   constructor
   · intro h z hz
@@ -154,7 +156,8 @@ omit [DecidableEq V] in
 lemma edge_eq_iff {p q : V} : s(p, q) = d.edge ↔ (p = d.fst ∧ q = d.snd) ∨ (p = d.snd ∧ q = d.fst) :=
   Sym2.eq_iff
 
-/-- 지운 그래프에서 고립점이 되는 것은 `d`의 끝점 중 차수가 1이던 것뿐이다. -/
+/-- The only vertices that become isolated after deletion are endpoints of `d` of degree
+1. -/
 lemma isIsolated_del_iff (w : V) :
     (G.deleteEdges {d.edge}).IsIsolated w ↔
       G.IsIsolated w ∨ (w = d.fst ∧ R.rot d = d) ∨ (w = d.snd ∧ R.rot d.symm = d.symm) := by
@@ -216,8 +219,8 @@ lemma ncard_isolated_del [Finite V] :
     · exact h1 d.fst (by rw [h2.1]; exact d.adj.symm)
     · exact d.fst_ne_snd (h1.1.symm.trans h2.1)
 
-/-- **면 개수 공식**: `d`의 변을 지운 뒤의 면 수는 `φ * swap d d.symm`의 순환 수에 원래 고립점
-수를 더한 것이다. -/
+/-- **Face count formula**: after deleting the edge of `d`, the number of faces is the number of
+cycles of `φ * swap d d.symm` plus the original number of isolated vertices. -/
 theorem numFaces_del [Finite V] :
     (R.del d).numFaces = orbitCount (R.facePerm * swap d d.symm) + {w | G.IsIsolated w}.ncard := by
   set ψ := R.facePerm * swap d d.symm with hψ
@@ -269,8 +272,8 @@ theorem numFaces_del_of_not_sameCycle [Finite V] (h : ¬ SameCycle R.facePerm d 
   rw [numFaces_del, numFaces, ← orbitCount_mul_swap_of_not_sameCycle h]
   omega
 
-/-- `d`, `d.symm`이 다른 면에 있으면 `d`의 면을 따라 돌아 `d.snd`에서 `d.fst`로 가는 길이
-지운 그래프 안에 생긴다. 즉 `d`의 변은 다리가 아니다. -/
+/-- If `d` and `d.symm` lie on different faces, following the face of `d` gives a path from
+`d.snd` to `d.fst` in the graph after deletion. Hence the edge of `d` is not a bridge. -/
 theorem reachable_del_of_not_sameCycle [Finite V] (h : ¬ SameCycle R.facePerm d d.symm) :
     (G.deleteEdges {d.edge}).Reachable d.fst d.snd := by
   have key : ∀ k : ℕ, (G.deleteEdges {d.edge}).Reachable d.snd ((R.facePerm ^ (k + 1)) d).fst := by

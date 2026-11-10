@@ -1,14 +1,17 @@
 import Kuratowski.SplitVertex
 
 /-!
-# 면 경계는 꼭짓점을 반복하지 않는다 (블루프린트 `lem:J1`)
+# Face boundaries do not repeat vertices (blueprint `lem:J1`)
 
-2-연결 그래프의 종수 0 회전 체계에서 한 면 위의 서로 다른 다트는 시작점이 다르다
-(`RotationSystem.eq_of_sameCycle_facePerm_of_fst_eq`). 같은 시작점 `w`의 두 다트 `d ≠ e`가 같은 면에
-있으면 그 앞의 다트 `φ⁻¹ d`, `φ⁻¹ e`는 같은 면에서 `w`로 들어오는 서로 다른 두 다트다. 그 두 모서리에서
-`w`를 쪼개면 (`SplitVertex.lean`) `χ`가 2 늘고, 2-연결성 때문에 `w`를 지워도 두 다트의 시작점이
-이어져 연결 조건이 성립하므로 성분 수는 그대로다. 이는 오일러 부등식에 어긋난다.
-`d.symm`, `e.symm`을 쓰면 같은 면이라는 보장이 없으므로 앞의 다트를 쓴다.
+For a genus-0 rotation system of a 2-connected graph, distinct darts on one face have distinct
+start vertices (`RotationSystem.eq_of_sameCycle_facePerm_of_fst_eq`). Suppose two darts `d ≠ e`
+with the same start vertex `w` lie on one face. Their predecessors `φ⁻¹ d` and `φ⁻¹ e` are two
+distinct darts of that face entering `w`. Splitting `w` at these two corners (`SplitVertex.lean`)
+increases `χ` by 2. By 2-connectivity the start vertices of the predecessors `φ⁻¹ d`, `φ⁻¹ e`
+stay connected after deleting `w`, so the linking condition holds and the number of components is
+unchanged. This
+contradicts Euler's inequality. We use the predecessors because `d.symm` and `e.symm` need not lie
+on the same face.
 -/
 
 namespace Kuratowski
@@ -21,10 +24,11 @@ namespace RotationSystem
 
 variable [Finite V] [DecidableEq V]
 
-/-- 블루프린트 `lem:J1`: 2-연결 그래프의 종수 0 회전 체계에서 한 면 위의 서로 다른 다트는 시작점이
-다르다. 같은 시작점 `w`를 가진 두 다트 `d ≠ e`가 같은 면에 있으면, 그 앞의 다트 `φ⁻¹ d`, `φ⁻¹ e`는
-같은 면에서 `w`로 들어온다. 그 두 모서리에서 `w`를 쪼개면 2-연결성 때문에 연결 조건이 성립하여
-오일러 부등식에 모순이다 (`not_splitLinked_of_eulerChar`). -/
+/-- Blueprint `lem:J1`: for a genus-0 rotation system of a 2-connected graph, distinct darts on
+one face have distinct start vertices. If two darts `d ≠ e` with the same start vertex `w` lie on
+one face, their predecessors `φ⁻¹ d` and `φ⁻¹ e` enter `w` along that face. Splitting `w` at these
+two corners satisfies the linking condition by 2-connectivity, contradicting Euler's inequality
+(`not_splitLinked_of_eulerChar`). -/
 theorem eq_of_sameCycle_facePerm_of_fst_eq (hG : TwoConnected G) (R : RotationSystem G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) {d e : G.Dart}
     (h : R.facePerm.SameCycle d e) (hfst : d.fst = e.fst) : d = e := by
@@ -42,7 +46,7 @@ theorem eq_of_sameCycle_facePerm_of_fst_eq (hG : TwoConnected G) (R : RotationSy
     exact h'
   apply not_splitLinked_of_eulerChar hR hsnd hne hface
   refine ⟨e₁.symm, e₂.symm, hsnd, symm_not_mem_splitSet hsnd hne, symm_mem_splitSet, ?_⟩
-  -- 2-연결성: `w`를 지워도 `e₁`, `e₂`의 시작점은 이어진다
+  -- 2-connectivity: the start vertices of `e₁` and `e₂` stay connected after deleting `w`
   have hw1 : e₁.fst ≠ e₂.snd := fun h' ↦ e₁.adj.ne (h'.trans hsnd.symm)
   have hw2 : e₂.fst ≠ e₂.snd := e₂.adj.ne
   exact hG.2 {e₂.snd} (by rw [Set.ncard_singleton]; omega) e₁.fst

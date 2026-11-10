@@ -2,15 +2,17 @@ import Kuratowski.Cyclic
 import Kuratowski.FaceBoundary
 
 /-!
-# 면 순환을 순환 꼭짓점 수열로 (블루프린트 `lem:J2`의 준비)
+# Face cycles as cyclic vertex sequences (preparation for blueprint `lem:J2`)
 
-2-연결 그래프의 종수 0 회전 체계에서 다트 `d`의 면은 순환 꼭짓점 수열이다
-(`RotationSystem.exists_cyclicSequence_face`). 길이는 `d`의 면 순열 최소 주기이고, `k`번째 점은
-`φ^k d`의 시작점이다. 그래서 시작점과 진행 방향이 보존된다.
+For a genus-0 rotation system of a 2-connected graph, the face of a dart `d` is a cyclic vertex
+sequence (`RotationSystem.exists_cyclicSequence_face`). Its length is the minimal period of `d`
+under the face permutation, and its `k`-th vertex is the start vertex of `φ^k d`. Hence the
+starting point and the direction are preserved.
 
-* 꼭짓점이 겹치지 않는 것은 보조정리 `lem:J1`(`eq_of_sameCycle_facePerm_of_fst_eq`)에서 온다.
-* 길이가 1이면 `φ d = d`라 `d`가 고리가 되고, 길이가 2이면 `φ d = d.symm`이라 `d`의 두 끝이 모두
-  차수 1이 되어 2-연결성에 어긋난다. 길이 3 이상에는 종수 0이 필요 없다.
+* The vertices are distinct by lemma `lem:J1` (`eq_of_sameCycle_facePerm_of_fst_eq`).
+* Length 1 would give `φ d = d`, making `d` a loop. Length 2 would give `φ d = d.symm`, so both
+  ends of `d` would have degree 1, contradicting 2-connectivity. The bound `length ≥ 3` does not
+  need genus 0.
 -/
 
 namespace Kuratowski
@@ -23,7 +25,7 @@ namespace RotationSystem
 
 variable [Finite V] [DecidableEq V] (R : RotationSystem G)
 
-/-- 다트 `d`의 면의 길이: 면 순열의 최소 주기. -/
+/-- The length of the face of a dart `d`: the minimal period of the face permutation. -/
 noncomputable def faceLength (d : G.Dart) : ℕ := minimalPeriod R.facePerm d
 
 omit [DecidableEq V] in
@@ -50,7 +52,7 @@ theorem eq_of_facePerm_pow_eq {d : G.Dart} {a b : ℕ} (ha : a < R.faceLength d)
   iterate_injOn_Iio_minimalPeriod ha hb (by simpa only [coe_pow] using h)
 
 omit [Finite V] [DecidableEq V] in
-/-- 길이가 1인 면은 없다: `φ d = d`이면 `d`의 두 끝이 같아진다. -/
+/-- No face has length 1: `φ d = d` would make the two ends of `d` equal. -/
 theorem faceLength_ne_one (d : G.Dart) : R.faceLength d ≠ 1 := by
   intro h
   have h1 := R.facePerm_pow_faceLength d
@@ -60,7 +62,7 @@ theorem faceLength_ne_one (d : G.Dart) : R.faceLength d ≠ 1 := by
   exact d.adj.ne this
 
 omit [DecidableEq V] in
-/-- `ρ d = d`이면 `d`의 시작점의 이웃은 `d`의 끝점뿐이다. -/
+/-- If `ρ d = d`, the only neighbor of the start vertex of `d` is the end vertex of `d`. -/
 theorem adj_eq_of_rot_eq (d : G.Dart) (hd : R.rot d = d) {z : V} (hz : G.Adj d.fst z) :
     z = d.snd := by
   let e : G.Dart := ⟨(d.fst, z), hz⟩
@@ -74,8 +76,8 @@ theorem adj_eq_of_rot_eq (d : G.Dart) (hd : R.rot d = d) {z : V} (hz : G.Adj d.f
   exact (congrArg Prod.snd (congrArg Dart.toProd hn)).symm
 
 omit [DecidableEq V] in
-/-- 2-연결이면 길이가 2인 면은 없다. 그런 면에서는 `φ d = d.symm`, `φ d.symm = d`라
-`d`의 두 끝이 모두 차수 1이 된다. -/
+/-- A 2-connected graph has no face of length 2. On such a face `φ d = d.symm` and
+`φ d.symm = d`, so both ends of `d` have degree 1. -/
 theorem faceLength_ne_two (hG : TwoConnected G) (d : G.Dart) : R.faceLength d ≠ 2 := by
   intro h
   have h2 := R.facePerm_pow_faceLength d
@@ -84,11 +86,11 @@ theorem faceLength_ne_two (hG : TwoConnected G) (d : G.Dart) : R.faceLength d �
   have he1 : e.fst = d.snd := R.facePerm_fst d
   have he2 : e.snd = d.fst := by rw [← R.facePerm_fst e, h2]
   have hes : e = d.symm := Dart.ext _ _ (Prod.ext he1 he2)
-  -- `ρ d = d`: `φ d.symm = d`이고 `φ d.symm = ρ d`
+  -- `ρ d = d`: `φ d.symm = d` and `φ d.symm = ρ d`
   have hrot : R.rot d = d := by
     have : R.facePerm d.symm = d := by rw [← hes]; exact h2
     rwa [facePerm_apply, Dart.symm_symm] at this
-  -- 지지점이 3개 이상이므로 `d`의 두 끝이 아닌 지지점 `z`가 있다
+  -- the support has at least 3 vertices, so some support vertex `z` is not an end of `d`
   have hpair : ({d.fst, d.snd} : Set V).ncard < G.support.ncard := by
     have := hG.1
     rw [Set.ncard_pair d.adj.ne]
@@ -108,8 +110,8 @@ theorem three_le_faceLength (hG : TwoConnected G) (d : G.Dart) : 3 ≤ R.faceLen
   have h2 := R.faceLength_ne_two hG d
   omega
 
-/-- 2-연결 그래프의 종수 0 회전 체계에서 다트 `d`의 면은 순환 꼭짓점 수열이다. `k`번째 점은
-`φ^k d`의 시작점이다. -/
+/-- For a genus-0 rotation system of a 2-connected graph, the face of a dart `d` is a cyclic
+vertex sequence whose `k`-th vertex is the start vertex of `φ^k d`. -/
 theorem exists_cyclicSequence_face (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d : G.Dart) :
     ∃ m, ∃ C : CyclicSequence G m, ∀ k : ℕ, C (k : ZMod m) = ((R.facePerm ^ k) d).fst := by

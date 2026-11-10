@@ -2,19 +2,22 @@ import Kuratowski.WalkLift
 import Kuratowski.ConnectedContraction
 
 /-!
-# 수축과 변 추가의 세기
+# Counts for contraction and edge addition
 
-변 수에 대한 강한 귀납법과 꼭짓점 나누기 수술에 필요한 식이다. 변 수축은 변 수를 엄밀히 줄인다.
-꼭짓점 타입은 그대로이므로 합쳐진 점은 고립점으로 남아 성분 수가 하나 늘어난다.
-남긴 점이 수축 뒤 비고립이면 고립점 수도 하나 늘어난다. 역다트 한 쌍을 뺀 전단사에서의 변 수 식과,
-이미 이어진 비고립 두 점 사이에 변을 넣을 때의 세기도 함께 둔다.
+Formulas needed for the strong induction on the number of edges and for the vertex-splitting
+surgery. Contracting an edge strictly decreases the number of edges. The vertex type is unchanged,
+so the merged vertex stays as an isolated vertex and the number of components increases by one.
+If the kept vertex is not isolated after contraction, the number of isolated vertices also
+increases by one. We also give the edge count for a dart bijection that omits one pair of reverse
+darts, and the counts for adding an edge between two non-isolated vertices that are already
+connected.
 -/
 
 namespace Kuratowski
 open SimpleGraph
 variable {V : Type*} {G H : SimpleGraph V} {x y : V}
 
-/-- `y`가 부분 그래프의 고립점이면 `y`를 합쳐도 그 부분 그래프의 변은 남는다. -/
+/-- If `y` is isolated in a subgraph `H`, merging `y` keeps the edges of `H`. -/
 theorem le_contractEdge_of_isIsolated (hHG : H ≤ G) (hy : H.IsIsolated y) :
     H ≤ contractEdge G x y := by
   intro a b hab
@@ -26,7 +29,7 @@ theorem le_contractEdge_of_isIsolated (hHG : H ≤ G) (hy : H.IsIsolated y) :
     subst b
     exact hy a hab.symm
 
-/-- 수축 뒤의 변은 `xy`를 뺀 원래 변의 상에 포함된다. -/
+/-- The edges after contraction lie in the image of the original edges other than `xy`. -/
 theorem edgeSet_contractEdge_subset_image [DecidableEq V] :
     (contractEdge G x y).edgeSet ⊆
       Sym2.map (fun a ↦ if a = y then x else a) '' (G.edgeSet \ {s(x, y)}) := by
@@ -54,7 +57,7 @@ theorem edgeSet_contractEdge_subset_image [DecidableEq V] :
         · exact hay rfl
       · simp [Sym2.map_mk, hay]
 
-/-- 실제 변을 수축하면 변 수가 엄밀히 줄어든다. -/
+/-- Contracting an actual edge strictly decreases the number of edges. -/
 theorem ncard_edgeSet_contractEdge_lt [Finite V] (hxy : G.Adj x y) :
     (contractEdge G x y).edgeSet.ncard < G.edgeSet.ncard := by
   classical
@@ -70,21 +73,23 @@ namespace Kuratowski
 open SimpleGraph
 variable {V : Type*} {G : SimpleGraph V} {x y : V}
 
-/-- 수축 그래프에서의 도달은 원래 그래프에서도 도달이다. -/
+/-- Reachability in the contracted graph implies reachability in the original graph. -/
 theorem reachable_of_contractEdge (hxy : G.Adj x y) {a b : V}
     (h : (contractEdge G x y).Reachable a b) : G.Reachable a b := by
   classical
   obtain ⟨p⟩ := h
   exact ⟨liftWalk hxy p⟩
 
-/-- 합쳐져 고립점이 된 `y`를 제외하면 원래 그래프와 수축 그래프의 성분 관계가 같다. -/
+/-- Away from the merged vertex `y`, which becomes isolated, the original and contracted graphs
+have the same reachability. -/
 theorem reachable_contractEdge_iff (hxy : G.Adj x y) {a b : V} (ha : a ≠ y) (hb : b ≠ y) :
     (contractEdge G x y).Reachable a b ↔ G.Reachable a b := by
   refine ⟨reachable_of_contractEdge hxy, fun h ↦ ?_⟩
   simpa using reachable_contractEdge_of_not_mem (G := G) hxy.ne (S := ∅)
     (by simp) ha hb (by simpa using h)
 
-/-- 고정된 꼭짓점 타입 위에서는 수축이 고립점 `y`의 성분 하나를 더 만든다. -/
+/-- On a fixed vertex type, contraction creates one more component: the isolated vertex
+`y`. -/
 theorem card_connectedComponent_contractEdge [Finite V] (hxy : G.Adj x y) :
     Nat.card (contractEdge G x y).ConnectedComponent = Nat.card G.ConnectedComponent + 1 := by
   classical
@@ -135,7 +140,7 @@ theorem card_connectedComponent_contractEdge [Finite V] (hxy : G.Adj x y) :
         · exact ⟨(contractEdge G x y).connectedComponentMk a, by simp [f, label, ha]⟩
   simpa only [Finite.card_option] using Nat.card_eq_of_bijective f hf
 
-/-- `x`, `y`가 아닌 점의 고립 여부는 수축에서 유지된다. -/
+/-- Contraction preserves whether a vertex other than `x` and `y` is isolated. -/
 theorem isIsolated_contractEdge_iff_of_ne (hxy : x ≠ y) {a : V} (hax : a ≠ x) (hay : a ≠ y) :
     (contractEdge G x y).IsIsolated a ↔ G.IsIsolated a := by
   constructor
@@ -149,7 +154,7 @@ theorem isIsolated_contractEdge_iff_of_ne (hxy : x ≠ y) {a : V} (hax : a ≠ x
     · exact hax rfl
     · exact h y hab.symm
 
-/-- 수축 뒤 `x`가 고립되지 않으면, 고립점은 `y` 하나만 늘어난다. -/
+/-- If `x` is not isolated after contraction, the only new isolated vertex is `y`. -/
 theorem ncard_isolated_contractEdge [Finite V] (hxy : G.Adj x y)
     (hx : ¬ (contractEdge G x y).IsIsolated x) :
     {a | (contractEdge G x y).IsIsolated a}.ncard = {a | G.IsIsolated a}.ncard + 1 := by
@@ -174,7 +179,8 @@ namespace Kuratowski
 open SimpleGraph
 variable {V : Type*} [Finite V] {G H : SimpleGraph V}
 
-/-- 서로 역인 두 다트를 뺀 전단사는 변 수를 하나 줄인다. -/
+/-- A dart bijection that omits a pair of mutually reverse darts decreases the number of edges
+by one. -/
 theorem ncard_edgeSet_of_dartEquiv_delete_pair (p : G.Dart)
     (e : {d : G.Dart // d ≠ p ∧ d ≠ p.symm} ≃ H.Dart) :
     G.edgeSet.ncard = H.edgeSet.ncard + 1 := by
@@ -187,7 +193,7 @@ theorem ncard_edgeSet_of_dartEquiv_delete_pair (p : G.Dart)
   rw [Nat.card_congr e, card_dart_eq, card_dart_eq] at hc
   omega
 
-/-- 없던 변을 하나 넣으면 변 수가 하나 늘어난다. -/
+/-- Adding an edge that was absent increases the number of edges by one. -/
 theorem ncard_edgeSet_sup_edge {a b : V} (hab : a ≠ b) (hn : ¬ G.Adj a b) :
     (G ⊔ edge a b).edgeSet.ncard = G.edgeSet.ncard + 1 := by
   have heq : (G ⊔ edge a b).edgeSet = insert s(a, b) G.edgeSet := by
@@ -196,7 +202,8 @@ theorem ncard_edgeSet_sup_edge {a b : V} (hab : a ≠ b) (hn : ¬ G.Adj a b) :
   rw [heq, Set.ncard_insert_of_notMem hnot]
 
 omit [Finite V] in
-/-- 이미 비고립인 두 점 사이에 변을 넣어도 고립점 수는 같다. -/
+/-- Adding an edge between two non-isolated vertices does not change the number of isolated
+vertices. -/
 theorem ncard_isolated_sup_edge {a b : V} (ha : ¬ G.IsIsolated a) (hb : ¬ G.IsIsolated b) :
     {v | (G ⊔ edge a b).IsIsolated v}.ncard = {v | G.IsIsolated v}.ncard := by
   congr 1
@@ -212,7 +219,8 @@ theorem ncard_isolated_sup_edge {a b : V} (ha : ¬ G.IsIsolated a) (hb : ¬ G.Is
       · exact hb hv
 
 omit [Finite V] in
-/-- 이미 이어진 두 점 사이에 변을 넣어도 성분 수는 같다. -/
+/-- Adding an edge between two connected vertices does not change the number of
+components. -/
 theorem card_connectedComponent_sup_edge_of_reachable {a b : V} (hab : G.Reachable a b) :
     Nat.card (G ⊔ edge a b).ConnectedComponent = Nat.card G.ConnectedComponent := by
   have hreach : ∀ u v, (G ⊔ edge a b).Reachable u v ↔ G.Reachable u v := by

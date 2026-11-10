@@ -1,10 +1,10 @@
 import Kuratowski.NonPlanar
 
 /-!
-# 평면성은 그래프 동형에 대해 불변이다
+# Planarity is invariant under graph isomorphism
 
-그래서 `K₅`, `K₃,₃`의 비평면성은 꼭짓점 이름(`Fin 5`, `Fin 3 ⊕ Fin 3`)과 상관없이
-그 그래프와 동형인 모든 그래프에 대해 성립한다.
+Hence the non-planarity of `K₅` and `K₃,₃` holds for every graph isomorphic to them, independently
+of the vertex names (`Fin 5`, `Fin 3 ⊕ Fin 3`).
 -/
 
 open SimpleGraph
@@ -13,7 +13,7 @@ namespace Kuratowski
 
 variable {V W : Type*} {G : SimpleGraph V} {H : SimpleGraph W}
 
-/-- 그래프 동형이 유도하는 다트의 일대일 대응. -/
+/-- The bijection of darts induced by a graph isomorphism. -/
 def dartEquivOfIso (f : G ≃g H) : G.Dart ≃ H.Dart where
   toFun d := ⟨(f d.fst, f d.snd), f.map_adj_iff.2 d.adj⟩
   invFun d := ⟨(f.symm d.fst, f.symm d.snd), f.symm.map_adj_iff.2 d.adj⟩
@@ -33,7 +33,7 @@ namespace RotationSystem
 
 variable [Finite V]
 
-/-- 회전 체계를 그래프 동형을 따라 옮긴다. -/
+/-- Transport a rotation system along a graph isomorphism. -/
 def map (f : G ≃g H) (R : RotationSystem G) : RotationSystem H where
   rot := (dartEquivOfIso f).permCongr R.rot
   fst_rot d := by simp [Equiv.permCongr_apply, R.fst_rot]
@@ -64,7 +64,7 @@ lemma isIsolated_iso_iff (f : G ≃g H) (v : V) : H.IsIsolated (f v) ↔ G.IsIso
 
 variable [Finite V]
 
-/-- **평면성은 그래프 동형에 대해 불변이다.** -/
+/-- **Planarity is invariant under graph isomorphism.** -/
 theorem IsPlanar.of_iso (f : G ≃g H) (h : IsPlanar G) : IsPlanar H := by
   obtain ⟨R, hR⟩ := h
   refine ⟨R.map f, ?_⟩
@@ -85,11 +85,11 @@ omit [Finite V] in
 theorem not_isPlanar_of_iso [Finite W] (f : G ≃g H) (h : ¬ IsPlanar G) : ¬ IsPlanar H :=
   fun hH => h (hH.of_iso f.symm)
 
-/-- `K₅`와 동형인 그래프는 평면 그래프가 아니다. -/
+/-- A graph isomorphic to `K₅` is not planar. -/
 theorem not_isPlanar_of_iso_K5 [Finite W] (f : K5 ≃g H) : ¬ IsPlanar H :=
   not_isPlanar_of_iso f K5_not_isPlanar
 
-/-- `K₃,₃`와 동형인 그래프는 평면 그래프가 아니다. -/
+/-- A graph isomorphic to `K₃,₃` is not planar. -/
 theorem not_isPlanar_of_iso_K33 [Finite W] (f : K33 ≃g H) : ¬ IsPlanar H :=
   not_isPlanar_of_iso f K33_not_isPlanar
 

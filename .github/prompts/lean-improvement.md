@@ -22,5 +22,8 @@ Read/Glob/Grep만 사용한다. 셸, 편집, 외부 호출, 하위 에이전트,
 evidence에는 실제 소스에서 그대로 복사한 연속 문자열을 넣고 1-based 시작 line을 기록한다.
 주장에 필요한 다른 선언도 최대 3개의 evidence로 인용한다. 근거가 부족하면 후보에서 제외한다.
 reason에는 문제와 실제 영향, proposal에는 최소 변경과 검증 방법을 쓴다.
-reviewed_files는 실제 읽은 정규화된 저장소 상대 경로다. 이 목록은 자기 보고임을 유의한다.
+reviewed_files에는 실제 확인한 Kuratowski/*.lean 소스 경로만 넣는다. 필수 파일뿐 아니라
+evidence에서 인용한 추가 소스도 반드시 모두 넣는다. AGENTS.md·CLAUDE.md·prompt·plan은 읽더라도
+reviewed_files에 넣지 않는다. 각 evidence.path가 reviewed_files 안에 있는지 출력 전에 확인한다.
+경로는 정규화된 저장소 상대 경로이며 이 목록은 자기 보고이지 읽었다는 증명이 아니다.
 결과는 제공된 JSON schema를 따른다. 한국어로 작성하고 코드 fence 없이 JSON만 반환한다.

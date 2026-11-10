@@ -134,16 +134,7 @@ private lemma baseFace_not_sameCycle [Finite V] (R : RotationSystem G) (S : Rota
     (a : G.Dart) (b : H.Dart) :
     ¬ (baseRot R S * reverse (G := G) (H := H)).SameCycle (.inl a) (.inr b) := by
   rw [baseFace]
-  intro h
-  obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-  have hp : ∀ n : ℕ, ((Perm.sumCongr R.facePerm S.facePerm) ^ n) (.inl a) =
-      .inl ((R.facePerm ^ n) a) := by
-    intro n
-    induction n with
-    | zero => rfl
-    | succ n ih => simp only [pow_succ', Perm.mul_apply, ih, Perm.sumCongr_apply, Sum.map_inl]
-  rw [hp] at hn
-  cases hn
+  exact not_sameCycle_sumCongr_cross R.facePerm S.facePerm a b
 
 /-- 첫 호환은 합치고 둘째 호환은 나누어 면 순환 수의 합을 보존한다. -/
 lemma orbitCount_joinedFace [Finite V] (R : RotationSystem G) (S : RotationSystem H)

@@ -1,98 +1,24 @@
+import Kuratowski.PermSum
 import Kuratowski.Map
 import Kuratowski.Euler
 import Mathlib.Combinatorics.SimpleGraph.Sum
 
 /-!
-# 서로소 그래프의 평면 회전 체계
+# Planar rotation systems on disjoint unions
 
-먼저 서로소 타입 합 위의 그래프를 다루고, 지지 집합이 서로소인 고정 타입 위의 합집합으로 옮긴다.
+We first construct a rotation system on a disjoint sum of vertex types.
+Restricting to the supports then gives planarity of a union on a fixed vertex
+type when the two supports are disjoint.
 -/
 
 namespace Kuratowski
 
 open SimpleGraph Equiv
 
-section Perm
-
-variable {α β : Type*} (f : Perm α) (g : Perm β)
-
-private theorem pow_sumCongr_inl (n : ℕ) (a : α) :
-    ((Perm.sumCongr f g) ^ n) (.inl a) = .inl ((f ^ n) a) := by
-  induction n with
-  | zero => rfl
-  | succ n ih => simp only [pow_succ', Perm.mul_apply, ih, Perm.sumCongr_apply, Sum.map_inl]
-
-private theorem pow_sumCongr_inr (n : ℕ) (b : β) :
-    ((Perm.sumCongr f g) ^ n) (.inr b) = .inr ((g ^ n) b) := by
-  induction n with
-  | zero => rfl
-  | succ n ih => simp only [pow_succ', Perm.mul_apply, ih, Perm.sumCongr_apply, Sum.map_inr]
-
-variable [Finite α] [Finite β]
-
-private theorem sameCycle_sumCongr_inl (a b : α) :
-    (Perm.sumCongr f g).SameCycle (.inl a) (.inl b) ↔ f.SameCycle a b := by
-  constructor
-  · intro h
-    obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-    rw [pow_sumCongr_inl] at hn
-    exact ⟨n, by simpa using Sum.inl.inj hn⟩
-  · intro h
-    obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-    exact ⟨n, by simpa only [zpow_natCast, pow_sumCongr_inl] using congrArg Sum.inl hn⟩
-
-private theorem sameCycle_sumCongr_inr (a b : β) :
-    (Perm.sumCongr f g).SameCycle (.inr a) (.inr b) ↔ g.SameCycle a b := by
-  constructor
-  · intro h
-    obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-    rw [pow_sumCongr_inr] at hn
-    exact ⟨n, by simpa using Sum.inr.inj hn⟩
-  · intro h
-    obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-    exact ⟨n, by simpa only [zpow_natCast, pow_sumCongr_inr] using congrArg Sum.inr hn⟩
-
-private theorem not_sameCycle_sumCongr (a : α) (b : β) :
-    ¬ (Perm.sumCongr f g).SameCycle (.inl a) (.inr b) := by
-  intro h
-  obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
-  rw [pow_sumCongr_inl] at hn
-  cases hn
-
-/-- 서로소 합에서 각 쪽의 순열이 따로 작용하면 순환 수가 더해진다. -/
-theorem orbitCount_sumCongr : orbitCount (Perm.sumCongr f g) = orbitCount f + orbitCount g := by
-  let Qf := Quotient (Perm.SameCycle.setoid f)
-  let Qg := Quotient (Perm.SameCycle.setoid g)
-  let Q := Quotient (Perm.SameCycle.setoid (Perm.sumCongr f g))
-  let F : Qf ⊕ Qg → Q := fun
-    | .inl c => Quotient.map Sum.inl (fun a b h ↦ (sameCycle_sumCongr_inl f g a b).mpr h) c
-    | .inr c => Quotient.map Sum.inr (fun a b h ↦ (sameCycle_sumCongr_inr f g a b).mpr h) c
-  have hF : Function.Bijective F := by
-    constructor
-    · rintro (a | a) (b | b) h
-      all_goals
-        induction a using Quotient.inductionOn with | h a => ?_
-        induction b using Quotient.inductionOn with | h b => ?_
-      · exact congrArg Sum.inl (Quotient.sound
-          ((sameCycle_sumCongr_inl f g a b).mp (Quotient.exact h)))
-      · exact (not_sameCycle_sumCongr f g a b (Quotient.exact h)).elim
-      · exact (not_sameCycle_sumCongr f g b a (Quotient.exact h).symm).elim
-      · exact congrArg Sum.inr (Quotient.sound
-          ((sameCycle_sumCongr_inr f g a b).mp (Quotient.exact h)))
-    · intro q
-      induction q using Quotient.inductionOn with
-      | h x =>
-        cases x with
-        | inl a => exact ⟨.inl ⟦a⟧, rfl⟩
-        | inr b => exact ⟨.inr ⟦b⟧, rfl⟩
-  unfold orbitCount
-  rw [← Nat.card_eq_of_bijective F hF, Nat.card_sum]
-
-end Perm
 
 variable {V W : Type*} (G : SimpleGraph V) (H : SimpleGraph W)
 
-/-- 그래프 서로소 합의 다트는 각 그래프의 다트의 서로소 합이다. -/
+/-- Darts of a disjoint graph sum correspond to the disjoint sum of its dart types. -/
 def dartEquivSum : G.Dart ⊕ H.Dart ≃ (G ⊕g H).Dart where
   toFun
     | .inl d => ⟨(.inl d.fst, .inl d.snd), d.adj⟩
@@ -110,7 +36,7 @@ namespace RotationSystem
 
 variable [Finite V] [Finite W]
 
-/-- 각 쪽의 꼭짓점에서 회전을 독립적으로 수행한다. -/
+/-- Rotate independently at the vertices of each summand. -/
 def sum (R : RotationSystem G) (S : RotationSystem H) : RotationSystem (G ⊕g H) where
   rot := (dartEquivSum G H).permCongr (Perm.sumCongr R.rot S.rot)
   fst_rot d := by
@@ -141,7 +67,7 @@ def sum (R : RotationSystem G) (S : RotationSystem H) : RotationSystem (G ⊕g H
         exact (sameCycle_sumCongr_inr R.rot S.rot d d').mpr
           (S.sameCycle_rot d d' (Sum.inr.inj hd))
 
-/-- 서로소 합의 면 순열은 두 면 순열의 서로소 합이다. -/
+/-- The face permutation is the disjoint sum of the two face permutations. -/
 theorem sum_facePerm (R : RotationSystem G) (S : RotationSystem H) :
     (R.sum G H S).facePerm =
       (dartEquivSum G H).permCongr (Perm.sumCongr R.facePerm S.facePerm) := by
@@ -149,7 +75,7 @@ theorem sum_facePerm (R : RotationSystem G) (S : RotationSystem H) :
   obtain ⟨d, rfl⟩ := (dartEquivSum G H).surjective d
   rcases d with ⟨⟨u, v⟩, h⟩ | ⟨⟨u, v⟩, h⟩ <;> rfl
 
-/-- 면 순환 수는 서로소 합에서 더해진다. -/
+/-- Face orbit counts add under disjoint sum. -/
 theorem orbitCount_sum_facePerm (R : RotationSystem G) (S : RotationSystem H) :
     orbitCount (R.sum G H S).facePerm = orbitCount R.facePerm + orbitCount S.facePerm := by
   rw [sum_facePerm, orbitCount_permCongr, orbitCount_sumCongr]
@@ -188,7 +114,7 @@ private theorem reachable_sum_inr_iff (u v : W) :
   · intro h
     exact h.map (Embedding.sumInr : H ↪g G ⊕g H).toHom
 
-/-- 서로소 타입 합 위의 그래프는 연결 성분 수가 더해진다. -/
+/-- Connected component counts add under disjoint sum. -/
 theorem card_connectedComponent_sum [Finite V] [Finite W] :
     Nat.card (G ⊕g H).ConnectedComponent =
       Nat.card G.ConnectedComponent + Nat.card H.ConnectedComponent := by
@@ -229,7 +155,7 @@ theorem card_connectedComponent_sum [Finite V] [Finite W] :
     (G ⊕g H).IsIsolated (.inr u) ↔ H.IsIsolated u := by
   simp [SimpleGraph.IsIsolated, Sum.forall]
 
-/-- 서로소 타입 합에서 고립점 수가 더해진다. -/
+/-- Isolated vertex counts add under disjoint sum. -/
 theorem ncard_isolated_sum [Finite V] [Finite W] :
     {u | (G ⊕g H).IsIsolated u}.ncard =
       {u | G.IsIsolated u}.ncard + {u | H.IsIsolated u}.ncard := by
@@ -240,7 +166,7 @@ theorem ncard_isolated_sum [Finite V] [Finite W] :
     Nat.card {u // G.IsIsolated u} + Nat.card {u // H.IsIsolated u}
   rw [Nat.card_congr e, Nat.card_sum]
 
-/-- 서로소 타입 합에서 변 수가 더해진다. -/
+/-- Edge counts add under disjoint sum. -/
 theorem ncard_edges_sum [Finite V] [Finite W] :
     (G ⊕g H).edgeSet.ncard = G.edgeSet.ncard + H.edgeSet.ncard := by
   change Nat.card (G ⊕g H).edgeSet = Nat.card G.edgeSet + Nat.card H.edgeSet
@@ -248,7 +174,7 @@ theorem ncard_edges_sum [Finite V] [Finite W] :
 
 namespace RotationSystem
 
-/-- 서로소 타입 합에서 오일러 지표가 더해진다. -/
+/-- Euler characteristics add under disjoint sum. -/
 theorem sum_eulerChar [Finite V] [Finite W] (R : RotationSystem G) (S : RotationSystem H) :
     (R.sum G H S).eulerChar = R.eulerChar + S.eulerChar := by
   unfold eulerChar numFaces
@@ -258,7 +184,7 @@ theorem sum_eulerChar [Finite V] [Finite W] (R : RotationSystem G) (S : Rotation
 
 end RotationSystem
 
-/-- 서로소 타입 합 위의 두 평면 그래프를 합쳐도 평면이다. -/
+/-- The disjoint sum of planar graphs is planar. -/
 theorem IsPlanar.sum [Finite V] [Finite W] (hG : IsPlanar G) (hH : IsPlanar H) :
     IsPlanar (G ⊕g H) := by
   obtain ⟨R, hR⟩ := hG
@@ -268,7 +194,7 @@ theorem IsPlanar.sum [Finite V] [Finite W] (hG : IsPlanar G) (hH : IsPlanar H) :
   simp only [Nat.cast_add]
   omega
 
-/-- 블루프린트 `lem:sum0`: 지지 집합이 서로소인 두 평면 그래프의 합집합은 평면이다. -/
+/-- The union of planar graphs with disjoint supports is planar (blueprint `lem:sum0`). -/
 theorem IsPlanar.sup_of_disjoint {V : Type*} [Finite V] {G₁ G₂ : SimpleGraph V}
     (hG₁ : IsPlanar G₁) (hG₂ : IsPlanar G₂) (hd : Disjoint G₁.support G₂.support) :
     IsPlanar (G₁ ⊔ G₂) := by

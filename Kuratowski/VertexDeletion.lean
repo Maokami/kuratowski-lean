@@ -2,17 +2,18 @@ import Kuratowski.Connected
 import Kuratowski.Euler
 
 /-!
-# 꼭짓점 지우기 (블루프린트 `def:delVertex`)
+# Deleting a vertex (blueprint `def:delVertex`)
 
-회전 체계 `R`에서 꼭짓점 `v`의 변을 모두 지운 그래프 `deleteVertices G {v}`의 회전 체계
-`R.delVertex v`를 만든다. 단순 그래프이므로 `v`가 아닌 꼭짓점 `u`에서 지워지는 다트는 `(u, v)`
-하나뿐이다. 그래서 새 회전은 `ρ x`가 `v`로 가면 한 칸 더 간 `ρ (ρ x)`, 아니면 `ρ x`다
-(`delVertex_rot_toProd`). `ρ (ρ x)`는 다시 `v`로 가지 않는다 (`snd_rot_rot_ne`).
+From a rotation system `R` we build a rotation system `R.delVertex v` of
+`deleteVertices G {v}`, the graph with all edges at `v` deleted. Since the graph is simple, the
+only dart at a vertex `u ≠ v` that gets deleted is `(u, v)`. Hence the new rotation is `ρ (ρ x)`,
+one step further, if `ρ x` goes to `v`, and `ρ x` otherwise (`delVertex_rot_toProd`). `ρ (ρ x)`
+does not go to `v` again (`snd_rot_rot_ne`).
 
-구성은 변 하나 지우기(`RotationSystem.del`, 정리 `thm:del`)를 `v`의 이웃마다 반복한 것이다.
-각 단계에서 위의 건너뛰기 공식이 유지되고 (`exists_rot_deleteEdges_star`), 종수 0도 유지된다
-(`eulerChar_del_eq_of_eq`). 따라서 평면 그래프에서 꼭짓점을 지워도 이 회전 체계가 평면성의 증인이다
-(`IsPlanar.deleteVertex`).
+The construction iterates single-edge deletion (`RotationSystem.del`, theorem `thm:del`) over the
+neighbors of `v`. Each step preserves the skipping formula above (`exists_rot_deleteEdges_star`)
+and genus 0 (`eulerChar_del_eq_of_eq`). So after deleting a vertex of a planar graph, this
+rotation system still witnesses planarity (`IsPlanar.deleteVertex`).
 -/
 
 namespace Kuratowski
@@ -21,7 +22,7 @@ open Equiv Equiv.Perm SimpleGraph
 
 variable {V : Type*} {G : SimpleGraph V}
 
-/-- `v`에서 `W`의 점으로 가는 변들. -/
+/-- The edges from `v` to the vertices of `W`. -/
 def star (v : V) (W : Set V) : Set (Sym2 V) := {e | ∃ w ∈ W, e = s(v, w)}
 
 namespace RotationSystem
@@ -29,12 +30,13 @@ namespace RotationSystem
 variable (R : RotationSystem G)
 
 open Classical in
-/-- 건너뛰기 공식: `ρ x`가 `W`의 점에서 `v`로 가는 다트이면 한 칸 더 간다. -/
+/-- The skipping formula: if `ρ x` is a dart from a vertex of `W` to `v`, take one more step. -/
 noncomputable def skip (v : V) (W : Set V) (x : G.Dart) : G.Dart :=
   if (R.rot x).snd = v ∧ (R.rot x).fst ∈ W then R.rot (R.rot x) else R.rot x
 
-/-- `x`가 `v`로 가지 않고 `ρ x`가 `v`로 가면 `ρ (ρ x)`는 `v`로 가지 않는다. 같은 점에서 `v`로 가는
-다트는 하나뿐이므로 `ρ (ρ x) = ρ x`가 되어 단사성으로 `ρ x = x`이기 때문이다. -/
+/-- If `x` does not go to `v` but `ρ x` does, then `ρ (ρ x)` does not go to `v`. Otherwise
+`ρ (ρ x) = ρ x`, since only one dart from a given vertex goes to `v`, and injectivity gives
+`ρ x = x`. -/
 theorem snd_rot_rot_ne {v : V} {x : G.Dart} (hx : x.snd ≠ v) (h : (R.rot x).snd = v) :
     (R.rot (R.rot x)).snd ≠ v := by
   intro h'
@@ -45,7 +47,7 @@ theorem snd_rot_rot_ne {v : V} {x : G.Dart} (hx : x.snd ≠ v) (h : (R.rot x).sn
   have := R.rot.injective he
   exact hx (this ▸ h)
 
-/-- 같은 꼭짓점 타입 위에서 변 하나를 지운 뒤에도 종수 0이 유지된다. -/
+/-- Deleting one edge on the same vertex type preserves genus 0. -/
 theorem eulerChar_del_eq_of_eq [Finite V] [DecidableEq V] {H : SimpleGraph V}
     (R : RotationSystem H) (d : H.Dart)
     (hR : R.eulerChar = 2 * Nat.card H.ConnectedComponent) :
@@ -63,8 +65,8 @@ theorem eulerChar_del_eq_of_eq [Finite V] [DecidableEq V] {H : SimpleGraph V}
     rw [hc]
     omega
 
-/-- `R.del d`의 회전: `d`의 시작점이 아닌 다트 `x`(`x ≠ d.symm`)에서 `ρ x = d.symm`이면
-`ρ d.symm`, 아니면 `ρ x`. -/
+/-- The rotation of `R.del d`: for a dart `x ≠ d.symm` not starting at the start vertex of `d`,
+it is `ρ d.symm` if `ρ x = d.symm`, and `ρ x` otherwise. -/
 theorem rot₀_of_fst_ne [DecidableEq V] {H : SimpleGraph V} (R : RotationSystem H) (d x : H.Dart)
     (hx : x.fst ≠ d.fst) (hx' : x ≠ d.symm) (hd : d.snd ≠ d.fst) :
     R.rot₀ d x = if R.rot x = d.symm then R.rot d.symm else R.rot x := by
@@ -80,8 +82,9 @@ theorem rot₀_of_fst_ne [DecidableEq V] {H : SimpleGraph V} (R : RotationSystem
   rw [cut_apply_of_ne _ hx', cut_apply_of_ne _ hxd, cut_apply_of_ne _ hdd]
   simp only [hgx, hgd, ↓reduceIte]
 
-/-- 이웃 `W`로 가는 변들을 차례로 지운 회전 체계. `v`가 아닌 꼭짓점의 다트에서는 건너뛰기 공식이
-성립하고, 종수 0이 유지된다. 그래프는 등식으로 일반화해 캐스트 없이 옮긴다. -/
+/-- The rotation system obtained by deleting the edges to the neighbors `W` one by one. The
+skipping formula holds at darts of vertices other than `v`, and genus 0 is preserved. The graph is
+generalized by an equation so that it can be transported without casts. -/
 theorem exists_rot_deleteEdges_star [Finite V] [DecidableEq V] (R : RotationSystem G) (v : V)
     (W : Finset V) (hW : (W : Set V) ⊆ G.neighborSet v) :
     ∀ H : SimpleGraph V, G.deleteEdges (star v W) = H → ∃ R' : RotationSystem H,
@@ -181,7 +184,7 @@ theorem exists_rot_deleteEdges_star [Finite V] [DecidableEq V] (R : RotationSyst
           exact Prod.ext hw h2.1
         · rw [ite_eq_right_of_eq_false _ _ (eq_false h2)]
 
-/-- 회전이 같은 두 회전 체계는 같다. -/
+/-- Two rotation systems with the same rotation are equal. -/
 theorem ext_rot {H : SimpleGraph V} {R₁ R₂ : RotationSystem H} (h : R₁.rot = R₂.rot) : R₁ = R₂ := by
   cases R₁
   cases R₂
@@ -190,7 +193,7 @@ theorem ext_rot {H : SimpleGraph V} {R₁ R₂ : RotationSystem H} (h : R₁.rot
 
 end RotationSystem
 
-/-- `v`에서 모든 이웃으로 가는 변을 지운 그래프는 `v`를 지운 그래프다. -/
+/-- Deleting the edges from `v` to all its neighbors gives the graph with `v` deleted. -/
 theorem deleteEdges_star_neighborSet (v : V) :
     G.deleteEdges (star v (G.neighborSet v)) = deleteVertices G {v} := by
   ext a b
@@ -215,8 +218,8 @@ namespace RotationSystem
 
 variable [Finite V] [DecidableEq V] (R : RotationSystem G) (v : V)
 
-/-- `v`를 지운 회전 체계가 있다: 좋은 다트에서 `ρ x`가 `v`로 가면 `ρ (ρ x)`, 아니면 `ρ x`이고,
-종수 0이 유지된다. -/
+/-- There is a rotation system with `v` deleted: at good darts it is `ρ (ρ x)` if `ρ x` goes to
+`v`, and `ρ x` otherwise; genus 0 is preserved. -/
 theorem exists_delVertex : ∃ R' : RotationSystem (deleteVertices G {v}),
     (∀ (x : (deleteVertices G {v}).Dart) (y : G.Dart), x.toProd = y.toProd →
       (R'.rot x).toProd = (if (R.rot y).snd = v then R.rot (R.rot y) else R.rot y).toProd) ∧
@@ -247,11 +250,11 @@ theorem exists_delVertex : ∃ R' : RotationSystem (deleteVertices G {v}),
   · rw [ite_eq_right_of_eq_false _ _ (eq_false fun hc ↦ h hc.1)]
     simp only [h, ↓reduceIte]
 
-/-- 꼭짓점 `v`를 지운 회전 체계 (블루프린트 `def:delVertex`). -/
+/-- The rotation system with the vertex `v` deleted (blueprint `def:delVertex`). -/
 noncomputable def delVertex : RotationSystem (deleteVertices G {v}) :=
   (R.exists_delVertex v).choose
 
-/-- 대응: 지운 뒤의 회전은 `v`로 가는 다트를 건너뛴다. -/
+/-- Correspondence: after deletion, the rotation skips the darts going to `v`. -/
 theorem delVertex_rot_toProd (x : (deleteVertices G {v}).Dart) (y : G.Dart)
     (hxy : x.toProd = y.toProd) :
     ((R.delVertex v).rot x).toProd =
@@ -264,14 +267,15 @@ theorem delVertex_rot_of_snd_ne (x : (deleteVertices G {v}).Dart) (y : G.Dart)
   rw [R.delVertex_rot_toProd v x y hxy]
   simp only [h, ↓reduceIte]
 
-/-- `ρ x`가 `v`로 가면 한 칸 건너뛴다. 이때 `ρ (ρ x)`는 `v`로 가지 않는다 (`snd_rot_rot_ne`). -/
+/-- If `ρ x` goes to `v`, skip one step. Then `ρ (ρ x)` does not go to `v`
+(`snd_rot_rot_ne`). -/
 theorem delVertex_rot_of_snd_eq (x : (deleteVertices G {v}).Dart) (y : G.Dart)
     (hxy : x.toProd = y.toProd) (h : (R.rot y).snd = v) :
     ((R.delVertex v).rot x).toProd = (R.rot (R.rot y)).toProd := by
   rw [R.delVertex_rot_toProd v x y hxy]
   simp only [h, ↓reduceIte]
 
-/-- 지운 뒤의 면 순열: `x̄`에서 `v`로 가는 다트를 건너뛴다. -/
+/-- The face permutation after deletion: skip the dart from `x̄` going to `v`. -/
 theorem delVertex_facePerm_toProd (x : (deleteVertices G {v}).Dart) (y : G.Dart)
     (hxy : x.toProd = y.toProd) :
     ((R.delVertex v).facePerm x).toProd =
@@ -281,7 +285,7 @@ theorem delVertex_facePerm_toProd (x : (deleteVertices G {v}).Dart) (y : G.Dart)
     change x.toProd.swap = y.toProd.swap
     rw [hxy])
 
-/-- 같은 대응을 만족하는 회전 체계는 `delVertex`뿐이다. -/
+/-- `delVertex` is the only rotation system satisfying this correspondence. -/
 theorem eq_delVertex (R'' : RotationSystem (deleteVertices G {v}))
     (h : ∀ (x : (deleteVertices G {v}).Dart) (y : G.Dart), x.toProd = y.toProd →
       (R''.rot x).toProd = (if (R.rot y).snd = v then R.rot (R.rot y) else R.rot y).toProd) :
@@ -292,14 +296,15 @@ theorem eq_delVertex (R'' : RotationSystem (deleteVertices G {v}))
   let y : G.Dart := ⟨x.toProd, x.adj.1⟩
   rw [h x y rfl, R.delVertex_rot_toProd v x y rfl]
 
-/-- 종수 0이 유지된다. -/
+/-- Genus 0 is preserved. -/
 theorem eulerChar_delVertex (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) :
     (R.delVertex v).eulerChar = 2 * Nat.card (deleteVertices G {v}).ConnectedComponent :=
   (R.exists_delVertex v).choose_spec.2 hR
 
 end RotationSystem
 
-/-- 평면 그래프에서 꼭짓점을 지워도 평면이다. 증인은 건너뛰기로 만든 회전 체계 `R.delVertex v`다. -/
+/-- Deleting a vertex of a planar graph gives a planar graph, witnessed by the rotation system
+`R.delVertex` built by skipping. -/
 theorem IsPlanar.deleteVertex [Finite V] [DecidableEq V] (hG : IsPlanar G) (v : V) :
     IsPlanar (deleteVertices G {v}) := by
   obtain ⟨R, hR⟩ := hG

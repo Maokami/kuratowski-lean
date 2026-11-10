@@ -4,22 +4,26 @@ import Kuratowski.GlueEdge
 import Kuratowski.Small
 
 /-!
-# 변 수가 최소인 비평면 KF 그래프는 3-연결이다
+# A non-planar KF graph with the fewest edges is 3-connected
 
-블루프린트 `thm:reduce`. 같은 유한 꼭짓점 타입 위에서 변 수가 더 적은 모든 KF 그래프의 평면성을
-가정하면, 원래 그래프는 평면이거나 3-연결이다 (`isPlanar_or_threeConnected`).
+Blueprint `thm:reduce`. Assume that every KF graph on the same finite vertex type with fewer edges
+is planar. Then the original graph is planar or 3-connected (`isPlanar_or_threeConnected`).
 
-한 지지 성분과 분리 집합을 남긴 쪽, 그 성분을 지운 반대쪽으로 그래프를 나눈다.
-크기 0·1의 분리 집합은 두 쪽의 평면성을 귀납 가정으로 얻어 서로소 합·한 점 붙이기로 처리한다.
-크기 2인 분리 집합은 양쪽에 공유 변을 넣는다. 반대쪽 성분을 통과하는 경로가 추가 변의 KF를 보장하고,
-각 쪽은 원래 변 둘 이상을 놓치고 하나만 더하므로 변 수가 엄밀히 줄어든다. 마지막은 공통 변 붙이기다.
+Split the graph into the side keeping one support component together with the separating set, and
+the opposite side with that component deleted. For separating sets of size 0 or 1, both sides are
+planar by the induction hypothesis, and a disjoint union or a one-vertex gluing finishes. For a
+separating set of size 2, add the shared edge to both sides. A path through the opposite component
+shows that the added edge keeps the side KF, and each side misses at least two original edges
+while adding one, so the number of edges strictly decreases. The last step is gluing along a common
+edge.
 -/
 
 namespace Kuratowski
 open SimpleGraph
 variable {V : Type*} {G : SimpleGraph V}
 
-/-- 크기 조건을 만족하는데 `k`-연결이 아니면 지지 집합 안의 작은 분리 집합이 있다. -/
+/-- If the size condition holds but the graph is not `k`-connected, there is a small separating
+set inside the support. -/
 theorem exists_separates_of_not_connectedOn [Finite V] {k : ℕ} (hcard : k + 1 ≤ G.support.ncard)
     (hnot : ¬ ConnectedOn G k G.support) :
     ∃ T ⊆ G.support, T.ncard < k ∧ Separates G T := by
@@ -36,23 +40,24 @@ theorem exists_separates_of_not_connectedOn [Finite V] {k : ℕ} (hcard : k + 1 
   · exact ⟨hv.1, fun h ↦ hv.2 h.1⟩
   · simpa only [deleteVertices_inter_support] using huv
 
-/-- 지지 성분에서 삭제 집합 밖으로 가는 변의 끝은 같은 성분이다. -/
+/-- An edge leaving a support component to a vertex outside the deleted set ends in the same
+component. -/
 theorem mem_sepComponent_of_adj {T : Set V} {c a b : V} (ha : a ∈ sepComponent G T c)
     (hab : G.Adj a b) (hb : b ∉ T) : b ∈ sepComponent G T c :=
   ⟨⟨hab.mem_support_right, hb⟩, ha.2.trans (Adj.reachable ⟨hab, ha.1.2, hb⟩)⟩
 
-/-- 한 지지 성분과 분리 집합을 남긴 쪽. -/
+/-- The side keeping one support component and the separating set. -/
 def separationLeft (G : SimpleGraph V) (T : Set V) (c : V) : SimpleGraph V :=
   deleteVertices G (sepComponent G T c ∪ T)ᶜ
 
-/-- 그 지지 성분만 지운 반대쪽. -/
+/-- The opposite side, with only that support component deleted. -/
 def separationRight (G : SimpleGraph V) (T : Set V) (c : V) : SimpleGraph V :=
   deleteVertices G (sepComponent G T c)
 
 lemma separationLeft_le (T : Set V) (c : V) : separationLeft G T c ≤ G := deleteVertices_le _ _
 lemma separationRight_le (T : Set V) (c : V) : separationRight G T c ≤ G := deleteVertices_le _ _
 
-/-- 두 쪽이 원래 그래프를 덮는다. -/
+/-- The two sides cover the original graph. -/
 theorem separation_sup (T : Set V) (c : V) : separationLeft G T c ⊔ separationRight G T c = G := by
   classical
   refine le_antisymm (sup_le (separationLeft_le T c) (separationRight_le T c)) ?_
@@ -68,7 +73,7 @@ theorem separation_sup (T : Set V) (c : V) : separationLeft G T c ⊔ separation
   · exact Or.inl ⟨hab, not_not.mpr (next b a hab.symm hb), not_not.mpr (Or.inl hb)⟩
   exact Or.inr ⟨hab, ha, hb⟩
 
-/-- 두 쪽 지지 집합의 교집합은 분리 집합 안에 있다. -/
+/-- The supports of the two sides intersect inside the separating set. -/
 theorem separation_support_inter_subset (T : Set V) (c : V) :
     (separationLeft G T c).support ∩ (separationRight G T c).support ⊆ T := by
   classical
@@ -78,7 +83,7 @@ theorem separation_support_inter_subset (T : Set V) (c : V) :
   have hamem : a ∈ sepComponent G T c ∪ T := not_not.mp hab.2.1
   exact hamem.resolve_left had.2.1
 
-/-- 원래 변을 하나라도 놓치는 부분 그래프는 변 수가 더 작다. -/
+/-- A subgraph missing at least one original edge has fewer edges. -/
 theorem ncard_edgeSet_lt_of_not_adj [Finite V] {H : SimpleGraph V} (hHG : H ≤ G) {a b : V}
     (hab : G.Adj a b) (hnot : ¬ H.Adj a b) : H.edgeSet.ncard < G.edgeSet.ncard := by
   refine Set.ncard_lt_ncard ?_ (Set.toFinite _)
@@ -86,14 +91,14 @@ theorem ncard_edgeSet_lt_of_not_adj [Finite V] {H : SimpleGraph V} (hHG : H ≤ 
   intro hback
   exact hnot (H.mem_edgeSet.mp (hback (G.mem_edgeSet.mpr hab)))
 
-/-- 비고립점이 삭제되면 변 수는 엄밀히 줄어든다. -/
+/-- Deleting a non-isolated vertex strictly decreases the number of edges. -/
 theorem ncard_edgeSet_deleteVertices_lt [Finite V] {S : Set V} {a : V}
     (haS : a ∈ S) (ha : a ∈ G.support) :
     (deleteVertices G S).edgeSet.ncard < G.edgeSet.ncard := by
   obtain ⟨b, hab⟩ := (mem_support _).1 ha
   exact ncard_edgeSet_lt_of_not_adj (deleteVertices_le _ _) hab (fun h ↦ h.2.1 haS)
 
-/-- 작은 교집합을 가진 두 평면 그래프의 합집합은 평면이다. -/
+/-- The union of two planar graphs with a small intersection is planar. -/
 theorem IsPlanar.sup_of_ncard_inter_le_one [Finite V] {H : SimpleGraph V}
     (hG : IsPlanar G) (hH : IsPlanar H)
     (hi : (G.support ∩ H.support).ncard ≤ 1) : IsPlanar (G ⊔ H) := by
@@ -107,7 +112,7 @@ theorem IsPlanar.sup_of_ncard_inter_le_one [Finite V] {H : SimpleGraph V}
   obtain ⟨v, hv⟩ := Set.ncard_eq_one.1 hc
   exact hG.sup_of_inter_eq_singleton hH hv
 
-/-- 변 수가 최소인 비평면 KF 그래프는 2-연결이다. -/
+/-- A non-planar KF graph with the fewest edges is 2-connected. -/
 theorem isPlanar_or_twoConnected [Finite V] (hKF : KuratowskiFree G)
     (hIH : ∀ H : SimpleGraph V, KuratowskiFree H → H.edgeSet.ncard < G.edgeSet.ncard → IsPlanar H) :
     IsPlanar G ∨ TwoConnected G := by
@@ -136,7 +141,7 @@ theorem isPlanar_or_twoConnected [Finite V] (hKF : KuratowskiFree G)
   exact Or.inl hP
 
 
-/-- 2-분리의 한 성분을 통과하는 양 끝점 사이 경로. -/
+/-- A path between the two separator vertices through one component of a 2-separation. -/
 theorem exists_path_in_sepComponent [Finite V] (h2 : TwoConnected G) {x y c : V}
     (hxy : x ≠ y) (hsep : Separates G {x, y}) (hc : c ∈ G.support \ {x, y}) :
     ∃ p : G.Walk x y, p.IsPath ∧ ∀ w ∈ walkInterior p, w ∈ sepComponent G {x, y} c := by
@@ -174,7 +179,8 @@ theorem exists_path_in_sepComponent [Finite V] (h2 : TwoConnected G) {x y c : V}
   · exact hb
   · exact False.elim (hw.2.2 h)
 
-/-- 변 둘을 놓치는 부분 그래프에는 변 하나를 더해도 원래보다 변이 적다. -/
+/-- Adding one edge to a subgraph that misses two edges still gives fewer edges than the
+original. -/
 theorem ncard_sup_edge_lt_of_two_missing [Finite V] {H : SimpleGraph V} (hle : H ≤ G)
     {e f : Sym2 V} (he : e ∈ G.edgeSet) (hf : f ∈ G.edgeSet) (hne : e ≠ f)
     (heH : e ∉ H.edgeSet) (hfH : f ∉ H.edgeSet) (x y : V) :
@@ -199,7 +205,8 @@ theorem ncard_sup_edge_lt_of_two_missing [Finite V] {H : SimpleGraph V} (hle : H
       _ ≤ H.edgeSet.ncard + 1 := Set.ncard_insert_le _ _
   omega
 
-/-- 반대쪽 성분의 경로로 추가 변의 KF를 보이고 귀납 가정을 적용한다. -/
+/-- Show that the added edge keeps the side KF using a path through the opposite component, and
+apply the induction hypothesis. -/
 theorem isPlanar_augmented_of_isolated_component [Finite V] (h2 : TwoConnected G)
     (hKF : KuratowskiFree G)
     (hIH : ∀ H : SimpleGraph V, KuratowskiFree H → H.edgeSet.ncard < G.edgeSet.ncard → IsPlanar H)
@@ -222,7 +229,7 @@ theorem isPlanar_augmented_of_isolated_component [Finite V] (h2 : TwoConnected G
   exact hIH _ hKH (ncard_sup_edge_lt_of_two_missing hle hxa hyb hne
     (fun h ↦ hiso a ha x h.symm) (fun h ↦ hiso b hb y h.symm) x y)
 
-/-- 변 수가 최소인 비평면 KF 그래프는 3-연결이다. -/
+/-- A non-planar KF graph with the fewest edges is 3-connected. -/
 theorem isPlanar_or_threeConnected [Finite V] (hKF : KuratowskiFree G)
     (hIH : ∀ H : SimpleGraph V, KuratowskiFree H → H.edgeSet.ncard < G.edgeSet.ncard → IsPlanar H) :
     IsPlanar G ∨ ThreeConnected G := by

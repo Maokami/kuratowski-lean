@@ -2,14 +2,17 @@ import Kuratowski.Connected
 import Kuratowski.Euler
 
 /-!
-# 꼭짓점 쪼개기 (블루프린트 `lem:split2`)
+# Splitting a vertex (blueprint `lem:split2`)
 
-꼭짓점 `w`의 다트 집합 `B`를 새 꼭짓점 `none`에 붙여 `w`를 둘로 쪼갠다. 꼭짓점 타입은 `Option V`이고
-`V`의 점은 `some`으로 들어간다. 다트 `d`의 새 시작점은 `d ∈ B`이면 `none`, 아니면 `some d.fst`다
-(`splitFst`). 새 끝점은 뒤집은 다트의 새 시작점이다.
+Split a vertex `w` in two by attaching a set `B` of its darts to a new vertex `none`. The vertex
+type is `Option V`, with the vertices of `V` embedded by `some`. The new start vertex of a dart `d`
+is `none` if `d ∈ B` and `some d.fst` otherwise (`splitFst`); the new end vertex is the new start
+vertex of the reversed dart.
 
-* `splitGraph`: 새 다트들의 끝점 쌍을 변으로 하는 그래프. `B`가 한 꼭짓점의 다트만 담으면 고리가 없다.
-* `splitDartEquiv`: 원래 다트와 새 다트의 전단사. 뒤집기와 교환한다 (`splitDartEquiv_symm`).
+* `splitGraph`: the graph whose edges are the endpoint pairs of the new darts. It has no loops if
+  `B` contains only darts at one vertex.
+* `splitDartEquiv`: the bijection between old and new darts. It commutes with reversal
+  (`splitDartEquiv_symm`).
 -/
 
 namespace Kuratowski
@@ -19,7 +22,8 @@ open SimpleGraph
 variable {V : Type*} {G : SimpleGraph V}
 
 open Classical in
-/-- 다트의 새 시작점: `B`에 있으면 새 꼭짓점 `none`, 아니면 원래 시작점. -/
+/-- The new start vertex of a dart: the new vertex `none` if it lies in `B`, otherwise the
+original start vertex. -/
 noncomputable def splitFst (B : Set G.Dart) (d : G.Dart) : Option V :=
   if d ∈ B then none else some d.fst
 
@@ -37,7 +41,7 @@ theorem splitFst_eq_none_iff {B : Set G.Dart} {d : G.Dart} : splitFst B d = none
 
 variable {w : V} {B : Set G.Dart}
 
-/-- `B`가 `w`의 다트만 담으면 다트와 그 뒤집기가 둘 다 `B`에 있을 수는 없다. -/
+/-- If `B` contains only darts at `w`, a dart and its reversal cannot both lie in `B`. -/
 theorem symm_not_mem_of_fst (hB : ∀ d ∈ B, d.fst = w) {d : G.Dart} (hd : d ∈ B) :
     d.symm ∉ B := by
   intro h
@@ -56,7 +60,7 @@ theorem splitFst_ne_splitFst_symm (hB : ∀ d ∈ B, d.fst = w) (d : G.Dart) :
     · rw [splitFst_of_not_mem h, splitFst_of_not_mem h']
       exact fun e ↦ d.adj.ne (Option.some.inj e)
 
-/-- `w`를 쪼갠 그래프 (`Option V` 위). -/
+/-- The graph with `w` split (on `Option V`). -/
 def splitGraph (B : Set G.Dart) (hB : ∀ d ∈ B, d.fst = w) : SimpleGraph (Option V) where
   Adj x y := ∃ d : G.Dart, splitFst B d = x ∧ splitFst B d.symm = y
   symm := ⟨fun x y ⟨d, h1, h2⟩ ↦ ⟨d.symm, h2, by rwa [Dart.symm_symm]⟩⟩
@@ -68,7 +72,7 @@ theorem splitGraph_adj {x y : Option V} :
     (splitGraph B hB).Adj x y ↔ ∃ d : G.Dart, splitFst B d = x ∧ splitFst B d.symm = y :=
   Iff.rfl
 
-/-- 원래 다트를 쪼갠 그래프의 다트로 옮긴다. -/
+/-- Transport an original dart to a dart of the split graph. -/
 noncomputable def splitDart (d : G.Dart) : (splitGraph B hB).Dart :=
   ⟨(splitFst B d, splitFst B d.symm), ⟨d, rfl, rfl⟩⟩
 
@@ -79,7 +83,7 @@ theorem splitDart_injective : Function.Injective (splitDart hB) := by
   intro d e h
   have h1 : splitFst B d = splitFst B e := congrArg (fun x ↦ x.toProd.1) h
   have h2 : splitFst B d.symm = splitFst B e.symm := congrArg (fun x ↦ x.toProd.2) h
-  -- 시작점: `B`에 있으면 둘 다 `w`, 아니면 `some`의 값
+  -- start vertices: both `w` if in `B`, otherwise the values under `some`
   have hfst : d.fst = e.fst := by
     by_cases hd : d ∈ B
     · have he : e ∈ B := splitFst_eq_none_iff.1 (h1.symm.trans (splitFst_of_mem hd))
@@ -102,19 +106,19 @@ theorem splitDart_surjective : Function.Surjective (splitDart hB) := by
   obtain ⟨d, h1, h2⟩ := x.adj
   exact ⟨d, Dart.ext _ _ (Prod.ext h1 h2)⟩
 
-/-- 원래 다트와 쪼갠 그래프의 다트의 전단사. -/
+/-- The bijection between the original darts and the darts of the split graph. -/
 noncomputable def splitDartEquiv : G.Dart ≃ (splitGraph B hB).Dart :=
   Equiv.ofBijective (splitDart hB) ⟨splitDart_injective hB, splitDart_surjective hB⟩
 
 @[simp] theorem splitDartEquiv_apply (d : G.Dart) : splitDartEquiv hB d = splitDart hB d := rfl
 
-/-- 다트 대응은 뒤집기와 교환한다. -/
+/-- The dart bijection commutes with reversal. -/
 theorem splitDartEquiv_symm (d : G.Dart) :
     splitDartEquiv hB d.symm = (splitDartEquiv hB d).symm := by
   apply Dart.ext
   simp [Dart.symm_symm]
 
-/-! ### 쪼갠 회전 체계 -/
+/-! ### The split rotation system -/
 
 namespace RotationSystem
 
@@ -122,10 +126,10 @@ open Equiv Equiv.Perm
 
 variable [DecidableEq V] (R : RotationSystem G)
 
-/-- 쪼갠 뒤의 회전 (원래 다트 위): `ρ' = ρ · (ē₁ ē₂)`. -/
+/-- The rotation after splitting (on the original darts): `ρ' = ρ · (ē₁ ē₂)`. -/
 def splitRot (e₁ e₂ : G.Dart) : Perm G.Dart := R.rot * swap e₁.symm e₂.symm
 
-/-- `ē₂`의 `ρ'`-순환. 새 꼭짓점 `none`에 붙는 다트들이다. -/
+/-- The `ρ'`-cycle of `ē₂`: the darts attached to the new vertex `none`. -/
 def splitSet (e₁ e₂ : G.Dart) : Set G.Dart := {d | (R.splitRot e₁ e₂).SameCycle e₂.symm d}
 
 variable {R} {e₁ e₂ : G.Dart}
@@ -145,7 +149,8 @@ theorem splitRot_fst (he : e₁.snd = e₂.snd) (d : G.Dart) :
     · rw [swap_apply_of_ne_of_ne h1 h2]
 
 omit [DecidableEq V] in
-/-- 시작점을 보존하는 순열의 같은 순환에 있는 두 점은 시작점이 같다. -/
+/-- Two points in one cycle of a permutation preserving start vertices have the same start
+vertex. -/
 theorem fst_eq_of_sameCycle [Finite V] {f : Perm G.Dart} (hf : ∀ d, (f d).fst = d.fst)
     {x y : G.Dart} (h : f.SameCycle x y) : x.fst = y.fst := by
   obtain ⟨n, hn⟩ := h.exists_nat_pow_eq
@@ -161,7 +166,7 @@ theorem splitSet_fst [Finite V] (he : e₁.snd = e₂.snd) :
 
 variable [Finite V]
 
-/-- 같은 꼭짓점으로 들어오는 두 다트에서 꼭짓점을 쪼갠 회전 체계. -/
+/-- The rotation system obtained by splitting a vertex at two darts entering it. -/
 noncomputable def split (R : RotationSystem G) (he : e₁.snd = e₂.snd) :
     RotationSystem (splitGraph (R.splitSet e₁ e₂) (splitSet_fst he)) where
   rot := (splitDartEquiv (splitSet_fst he)).permCongr (R.splitRot e₁ e₂)
@@ -198,7 +203,7 @@ noncomputable def split (R : RotationSystem G) (he : e₁.snd = e₂.snd) :
       · exact absurd h1.symm hd
       · exact absurd h1.symm hd
 
-/-- 쪼갠 회전 체계의 면 순열은 `φ · (e₁ e₂)`를 옮긴 것이다. -/
+/-- The face permutation of the split rotation system is the transport of `φ · (e₁ e₂)`. -/
 theorem split_facePerm (R : RotationSystem G) (he : e₁.snd = e₂.snd) :
     (R.split he).facePerm =
       (splitDartEquiv (splitSet_fst he)).permCongr (R.facePerm * swap e₁ e₂) := by
@@ -213,8 +218,8 @@ theorem split_facePerm (R : RotationSystem G) (he : e₁.snd = e₂.snd) :
   exact (Dart.symm_involutive.injective.map_swap e₁ e₂ d).symm
 
 omit [Finite V] in
-/-- `ē₂`는 `none` 쪽, `ē₁`은 `some w` 쪽에 있다. 두 다트가 `w`의 한 `ρ`-순환에 있으므로 호환으로
-그 순환이 갈라진다. -/
+/-- `ē₂` is on the `none` side and `ē₁` on the `some w` side. Both lie in one `ρ`-cycle at `w`,
+so the transposition splits that cycle. -/
 theorem symm_mem_splitSet : e₂.symm ∈ R.splitSet e₁ e₂ := SameCycle.refl _ _
 
 theorem symm_not_mem_splitSet (he : e₁.snd = e₂.snd) (hne : e₁ ≠ e₂) :
@@ -223,13 +228,13 @@ theorem symm_not_mem_splitSet (he : e₁.snd = e₂.snd) (hne : e₁ ≠ e₂) :
   have hne' : e₁.symm ≠ e₂.symm := fun e ↦ hne (Dart.symm_involutive.injective e)
   exact not_sameCycle_mul_swap_of_sameCycle hne' (R.sameCycle_rot _ _ he) h.symm
 
-/-- 같은 면의 두 모서리이면 면 순환이 하나 늘어난다. -/
+/-- Splitting at two corners of the same face adds one face cycle. -/
 theorem orbitCount_split_facePerm (he : e₁.snd = e₂.snd) (hne : e₁ ≠ e₂)
     (hface : R.facePerm.SameCycle e₁ e₂) :
     orbitCount (R.split he).facePerm = orbitCount R.facePerm + 1 := by
   rw [split_facePerm, orbitCount_permCongr, orbitCount_mul_swap_of_sameCycle hne hface]
 
-/-- 다트 대응이 있으므로 변의 수는 같다. -/
+/-- The dart bijection shows that the number of edges is unchanged. -/
 theorem ncard_edgeSet_splitGraph (he : e₁.snd = e₂.snd) :
     (splitGraph (R.splitSet e₁ e₂) (splitSet_fst he)).edgeSet.ncard = G.edgeSet.ncard := by
   have h1 := card_dart_eq (splitGraph (R.splitSet e₁ e₂) (splitSet_fst he))
@@ -237,7 +242,8 @@ theorem ncard_edgeSet_splitGraph (he : e₁.snd = e₂.snd) :
   have h3 := Nat.card_congr (splitDartEquiv (splitSet_fst (R := R) he))
   omega
 
-/-- 고립점은 원래 고립점을 `some`으로 넣은 것이다. `w`의 두 반쪽과 `none`은 고립점이 아니다. -/
+/-- The isolated vertices are the original isolated vertices under `some`. The two halves of `w`,
+`some w` and `none`, are not isolated. -/
 theorem isolated_splitGraph (he : e₁.snd = e₂.snd) (hne : e₁ ≠ e₂) :
     {x | (splitGraph (R.splitSet e₁ e₂) (splitSet_fst he)).IsIsolated x} =
       Option.some '' {v | G.IsIsolated v} := by
@@ -266,7 +272,8 @@ theorem isolated_splitGraph (he : e₁.snd = e₂.snd) (hne : e₁ ≠ e₂) :
       have hdu : d.fst = u := Option.some.inj h1
       exact hiso d.snd (hdu ▸ d.adj)
 
-/-- 블루프린트 `lem:split2`의 χ 부분: 같은 면의 두 모서리에서 쪼개면 `χ`가 2 늘어난다. -/
+/-- The `χ` part of blueprint `lem:split2`: splitting at two corners of the same face increases
+`χ` by 2. -/
 theorem eulerChar_split (he : e₁.snd = e₂.snd) (hne : e₁ ≠ e₂)
     (hface : R.facePerm.SameCycle e₁ e₂) :
     (R.split he).eulerChar = R.eulerChar + 2 := by
@@ -281,11 +288,12 @@ theorem eulerChar_split (he : e₁.snd = e₂.snd) (hne : e₁ ≠ e₂)
 
 end RotationSystem
 
-/-! ### 연결 성분 -/
+/-! ### Connected components -/
 
 section Components
 
-/-- 변마다 도달 가능성을 옮기는 사상은 도달 가능성을 옮긴다 (꼭짓점 타입이 달라도 된다). -/
+/-- A map that transports reachability along each edge transports reachability (the vertex
+types may differ). -/
 theorem reachable_map_of_adj {α β : Type*} {H₁ : SimpleGraph α} {H₂ : SimpleGraph β} (f : α → β)
     (hf : ∀ a b, H₁.Adj a b → H₂.Reachable (f a) (f b)) {u v : α} (h : H₁.Reachable u v) :
     H₂.Reachable (f u) (f v) := by
@@ -294,7 +302,7 @@ theorem reachable_map_of_adj {α β : Type*} {H₁ : SimpleGraph α} {H₂ : Sim
   | nil => exact .refl _
   | cons hab _ ih => exact (hf _ _ hab).trans ih
 
-/-- 변에 대해 닫힌 집합은 도달 가능성에 대해 닫혀 있다. -/
+/-- A set closed under edges is closed under reachability. -/
 theorem mem_of_reachable_of_closed {α : Type*} {H : SimpleGraph α} (X : Set α)
     (hX : ∀ a b, a ∈ X → H.Adj a b → b ∈ X) {u v : α} (hu : u ∈ X) (h : H.Reachable u v) :
     v ∈ X := by
@@ -304,11 +312,11 @@ theorem mem_of_reachable_of_closed {α : Type*} {H : SimpleGraph α} (X : Set α
   | cons hab _ ih => exact ih (hX _ _ hu hab)
 
 include hB in
-/-- `w`의 다트는 뒤집으면 `B`에 없다. -/
+/-- The reversal of a dart at `w` is not in `B`. -/
 theorem symm_not_mem_of_fst_eq {d : G.Dart} (hd : d.fst = w) : d.symm ∉ B :=
   fun h ↦ d.adj.ne (hd.trans (hB _ h).symm)
 
-/-- `none`을 `w`로 보내는 준동형. -/
+/-- The homomorphism sending `none` to `w`. -/
 noncomputable def splitHom : splitGraph B hB →g G where
   toFun x := x.elim w id
   map_rel' := by
@@ -329,7 +337,7 @@ noncomputable def splitHom : splitGraph B hB →g G where
     rw [h1, h2]
     exact d.adj
 
-/-- 꼭짓점 쪼개기는 성분을 합치지 않는다: `c ≤ c'`. -/
+/-- Splitting a vertex does not merge components: `c ≤ c'`. -/
 theorem card_connectedComponent_le_split [Finite V] :
     Nat.card G.ConnectedComponent ≤ Nat.card (splitGraph B hB).ConnectedComponent := by
   apply Nat.card_le_card_of_surjective (ConnectedComponent.map (splitHom hB))
@@ -337,7 +345,8 @@ theorem card_connectedComponent_le_split [Finite V] :
   induction c using ConnectedComponent.ind with
   | h u => exact ⟨(splitGraph B hB).connectedComponentMk (some u), rfl⟩
 
-/-- `some w`와 `none`이 이어진 그래프에서는 원래 도달 가능성이 `some`으로 옮겨진다. -/
+/-- In a graph where `some w` and `none` are connected, original reachability transports along
+`some`. -/
 theorem reachable_some_of_reachable {H : SimpleGraph (Option V)} (hle : splitGraph B hB ≤ H)
     (hlink : H.Reachable (some w) none) {u v : V} (h : G.Reachable u v) :
     H.Reachable (some u) (some v) := by
@@ -361,7 +370,7 @@ theorem reachable_some_of_reachable {H : SimpleGraph (Option V)} (hle : splitGra
       exact .refl _
   exact h1.trans (hd.reachable.trans h2)
 
-/-- `some w`와 `none`이 이어지면 성분 수는 늘지 않는다. -/
+/-- If `some w` and `none` are connected, the number of components does not increase. -/
 theorem card_connectedComponent_le_of_reachable [Finite V] {H : SimpleGraph (Option V)}
     (hle : splitGraph B hB ≤ H) (hlink : H.Reachable (some w) none) :
     Nat.card H.ConnectedComponent ≤ Nat.card G.ConnectedComponent := by
@@ -377,7 +386,8 @@ theorem card_connectedComponent_le_of_reachable [Finite V] {H : SimpleGraph (Opt
     · exact ⟨G.connectedComponentMk w, ConnectedComponent.eq.mpr hlink⟩
     · exact ⟨G.connectedComponentMk u, rfl⟩
 
-/-- 연결 조건: `w`의 `B` 밖 다트 `a`와 `B`의 다트 `b`가 있어 두 끝점이 `G - w`에서 이어진다. -/
+/-- The linking condition: there are a dart `a` at `w` outside `B` and a dart `b` in `B` whose
+end vertices are connected in `G - w`. -/
 def SplitLinked (B : Set G.Dart) (w : V) : Prop :=
   ∃ a b : G.Dart, a.fst = w ∧ a ∉ B ∧ b ∈ B ∧ (deleteVertices G {w}).Reachable a.snd b.snd
 
@@ -398,8 +408,9 @@ theorem reachable_none_of_linked (h : SplitLinked B w) :
     exact Adj.reachable ⟨d, splitFst_of_not_mem hdB, splitFst_of_not_mem hdB'⟩
   exact h1.reachable.trans (h2.trans h3.reachable)
 
-/-- 역으로 `some w`와 `none`이 이어지면 연결 조건이 성립한다. `A`쪽에서 `G - w`로 닿는 점들의
-집합이 쪼갠 그래프의 변에 대해 닫혀 있음을 쓴다. -/
+/-- Conversely, if `some w` and `none` are connected, the linking condition holds. The proof uses
+that the set of vertices reachable in `G - w` from the `A` side is closed under the edges of the
+split graph. -/
 theorem linked_of_reachable_none (h : (splitGraph B hB).Reachable (some w) none) :
     SplitLinked B w := by
   by_contra hno
@@ -415,7 +426,7 @@ theorem linked_of_reachable_none (h : (splitGraph B hB).Reachable (some w) none)
       · exact Option.some_ne_none u hu.symm
     rw [splitFst_of_not_mem hdB] at hx
     rcases hx with hx | ⟨u, hu, a, ha, haB, hau⟩
-    · -- `some w`의 이웃
+    · -- neighbors of `some w`
       have hdw : d.fst = w := Option.some.inj hx
       right
       exact ⟨d.snd, splitFst_of_not_mem (symm_not_mem_of_fst_eq hB hdw), d, hdw, hdB, .refl _⟩
@@ -452,13 +463,13 @@ theorem reachable_none_iff_linked :
     (splitGraph B hB).Reachable (some w) none ↔ SplitLinked B w :=
   ⟨linked_of_reachable_none hB, reachable_none_of_linked hB⟩
 
-/-- 연결 조건이 있으면 `c' = c`. -/
+/-- Under the linking condition, `c' = c`. -/
 theorem card_connectedComponent_split_of_linked [Finite V] (h : SplitLinked B w) :
     Nat.card (splitGraph B hB).ConnectedComponent = Nat.card G.ConnectedComponent :=
   le_antisymm (card_connectedComponent_le_of_reachable hB le_rfl (reachable_none_of_linked hB h))
     (card_connectedComponent_le_split hB)
 
-/-- 쪼갠 그래프에는 `some w`와 `none` 사이의 변이 없다. -/
+/-- The split graph has no edge between `some w` and `none`. -/
 theorem not_adj_some_none : ¬ (splitGraph B hB).Adj (some w) none := by
   rintro ⟨d, h1, h2⟩
   have hdB : d ∉ B := fun h ↦ by
@@ -467,7 +478,8 @@ theorem not_adj_some_none : ¬ (splitGraph B hB).Adj (some w) none := by
   rw [splitFst_of_not_mem hdB] at h1
   exact symm_not_mem_of_fst_eq hB (Option.some.inj h1) (splitFst_eq_none_iff.1 h2)
 
-/-- 항상 `c' ≤ c + 1`. `some w`와 `none` 사이에 변을 더한 그래프와 비교한다. -/
+/-- Always `c' ≤ c + 1`, by comparison with the graph that adds an edge between `some w` and
+`none`. -/
 theorem card_connectedComponent_split_le [Finite V] :
     Nat.card (splitGraph B hB).ConnectedComponent ≤ Nat.card G.ConnectedComponent + 1 := by
   let H := splitGraph B hB ⊔ edge (some w) none
@@ -495,7 +507,7 @@ theorem card_connectedComponent_split_le [Finite V] :
     card_connectedComponent_le_of_reachable hB le_sup_left hlink
   omega
 
-/-- 연결 조건이 없으면 `c' = c + 1`. -/
+/-- Without the linking condition, `c' = c + 1`. -/
 theorem card_connectedComponent_split_of_not_linked [Finite V] (h : ¬ SplitLinked B w) :
     Nat.card (splitGraph B hB).ConnectedComponent = Nat.card G.ConnectedComponent + 1 := by
   have hle := card_connectedComponent_split_le hB
@@ -516,8 +528,9 @@ namespace RotationSystem
 
 variable [DecidableEq V] [Finite V] {R : RotationSystem G} {e₁ e₂ : G.Dart}
 
-/-- J1에서의 쓰임: 종수 0이면 같은 면의 두 모서리에서 쪼갤 때 연결 조건이 성립할 수 없다.
-성립하면 `χ' = χ + 2 = 2c + 2`이고 `c' = c`라 오일러 부등식 `χ' ≤ 2c'`에 어긋난다. -/
+/-- Use in J1: for genus 0, splitting at two corners of the same face cannot satisfy the linking
+condition. Otherwise `χ' = χ + 2 = 2c + 2` and `c' = c`, contradicting Euler's inequality
+`χ' ≤ 2c'`. -/
 theorem not_splitLinked_of_eulerChar (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent)
     (he : e₁.snd = e₂.snd) (hne : e₁ ≠ e₂) (hface : R.facePerm.SameCycle e₁ e₂) :
     ¬ SplitLinked (R.splitSet e₁ e₂) e₂.snd := by

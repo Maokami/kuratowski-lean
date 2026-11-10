@@ -1,14 +1,16 @@
 import Kuratowski.Perm
 
 /-!
-# 순열 위에서 역다트 한 쌍 지우기
+# Deleting a pair of reverse darts at the level of permutations
 
-평행 변을 잠시 유지하는 수술의 중간 상태는 단순 그래프의 다트가 아닐 수 있다. 이 파일은 임의의
-유한 타입에서 두 점을 잘라 내는 식과 순환 수를 다루며, 그래프의 회전 체계라는 가정을 쓰지 않는다.
+Intermediate states of surgeries that temporarily keep parallel edges need not be darts of a simple
+graph. This file handles cutting two points out of a permutation of an arbitrary finite type, and
+the resulting cycle counts, without assuming a rotation system of a graph.
 
-`cut_pair_comp`는 회전 순열에서 두 역다트를 잘라 낸 결과의 면 순열 식이고,
-`orbitCount_cut_pair_face`는 삭제할 두 다트가 서로 다른 면 순환에 있을 때 순환 수가 하나 줄어듦을
-보인다. 전제의 비고정점 조건과 역다트 교환 조건은 호출자가 증명해야 한다.
+`cut_pair_comp` is the face-permutation formula after cutting two reverse darts out of a rotation
+permutation, and `orbitCount_cut_pair_face` shows that the number of cycles drops by one when the
+two deleted darts lie in different face cycles. The caller must prove the hypotheses that the
+points are not fixed and that the reversal swaps the two darts.
 -/
 
 open Equiv Equiv.Perm

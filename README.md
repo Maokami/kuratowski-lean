@@ -78,7 +78,9 @@ Mathlib `Walk`를 묶는다. 각 걸음은 `IsPath`이고 반대 방향은 같�
 `SubdivisionPaths.exists_isSubdivision_le`이며 유한한 꼭짓점 타입 `V`를 가정한다. 합치면
 `containsSubdivision_iff_paths`이고 `W`의 유한성은 단사 분기점 배치에서 유도하므로 별도 가정하지 않는다. 무한 완전 그래프의 모든 변을 한 번씩 나누는 경로 체계는
 기존 유한 단계의 세분 정의로 표현할 수 없는 예다(이 무한 반례 자체는 Lean으로 형식화하지 않았다).
-`PathsBuild.lean`에서는 `W`가 유한하면 `V`가 무한해도 세분을 구성함을 보였다.
+`SubdivisionOfPaths.lean`의 `exists_isSubdivision_le_of_finite`는 `W`가 유한하면
+`V`가 무한해도 세분을 구성한다. `PathsBuild.lean`의 `containsSubdivision_of_finite`는 이로부터
+세분 포함을 얻는다.
 `ofLT` 생성자는 원래 꼭짓점 타입에 선형 순서가 있을 때 한 방향의 경로만 받아 역방향을 구성한다.
 
 ### 순환 꼭짓점 수열 (`Cyclic.lean`)
@@ -280,10 +282,10 @@ lake build   # 라이브러리와 공리 감사 (KuratowskiAudit.lean)
 | `CyclicWalk.lean` | 순환 수열에서 Mathlib 사이클·호 경로 구성, 두 방향 호의 내부 서로소성 |
 | `Paths.lean` | 세분의 경로 체계와 내부 꼭짓점 조건 |
 | `PathsSubdivision.lean` | 기존 세분에서 분기점 배치를 보존하는 경로 체계 구성 |
-| `SubdivisionOfPaths.lean` | 유한 그래프에서 경로 체계로 세분을 구성하고 두 표현의 동치 증명 |
+| `SubdivisionOfPaths.lean` | 원본 또는 대상 꼭짓점 타입이 유한할 때 세분 구성, 유한 대상에서 두 표현의 동치 |
 | `CyclicWord.lean` | 네 글자 순환 단어의 구간·공통 위치 셋·교대 배치 분류 |
 | `CyclicArcs.lean` | 위치 구간이 겹치지 않는 호의 내부 분리, 사이클·구간 밖 점의 회피 |
-| `PathsBuild.lean` | 원래 꼭짓점 타입이 유한할 때 세분 구성, 한 방향 경로에서 체계 생성 |
+| `PathsBuild.lean` | 유한 원본의 경로 체계에서 세분 포함 도출, 한 방향 경로에서 체계 생성 |
 | `CommonNeighbors.lean` | 인접한 두 점과 사이클 위의 공통 이웃 셋에서 K₅ 세분 구성 |
 | `AlternatingNeighbors.lean` | 교대하는 사이클 위 네 점과 바깥 허브 둘에서 K₃,₃ 세분 구성 |
 | `Sum.lean` | 서로소 타입 합의 회전·면·성분 수, 지지 집합이 서로소인 합집합의 평면성 |

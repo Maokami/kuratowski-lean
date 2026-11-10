@@ -26,20 +26,6 @@ namespace SubdivisionPaths
 
 variable {K : SimpleGraph W} {G : SimpleGraph V}
 
-/-- `exists_isSubdivision_le`에서 `V` 대신 `W`의 유한성만 가정한 판. -/
-theorem exists_isSubdivision_le_of_finite [Finite W] (P : SubdivisionPaths K G) :
-    ∃ H, IsSubdivision K P.branch H ∧ H ≤ G := by
-  classical
-  have : Fintype W := Fintype.ofFinite W
-  have hfin : K.edgeSet.Finite := Set.toFinite _
-  refine ⟨P.partialGraph hfin.toFinset, P.isSubdivision_partialGraph _ (by simp), ?_⟩
-  rw [Set.Finite.coe_toFinset]
-  intro x y hxy
-  rw [partialGraph, fromEdgeSet_adj] at hxy
-  rcases hxy.1 with ⟨c, d, h', hcd, -⟩ | ⟨c, d, h', -, he⟩
-  · exact (hcd h').elim
-  · exact (P.path c d h').edges_subset_edgeSet he
-
 theorem containsSubdivision_of_finite [Finite W] (P : SubdivisionPaths K G) :
     ContainsSubdivision G K := by
   obtain ⟨H, hS, hle⟩ := P.exists_isSubdivision_le_of_finite

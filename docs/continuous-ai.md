@@ -41,6 +41,9 @@ gh workflow run lean-improvement.yml -f batch=0 -f retry_failed=true
   게시한다. 후보 보고서의 숨은 ID 마커를 지우지 않는다. 실패 기록은 성공 상태를 덮어쓰지 않는다.
 - 상태 이슈는 기계가 관리하는 JSON이다. 편집·삭제·복제로 조작하지 않는다. 형식 손상·중복·이력 조회
   한도 초과 시 실행이 중단된다. 후보 이력 300개/상태 50KB를 넘으면 유지관리자가 보관·정리해야 한다.
+  게시 이슈에서도 ID가 복구되므로 상태만 지워서는 정리되지 않는다. 해당 보고서를 별도 보관하고
+  첫 마커를 `lean-improvement-report:`에서 `archived-lean-improvement-report:`로 바꾼 뒤
+  상태의 해당 ID도 함께 정리한다. 마커의 ID 원문은 보존한다.
   이 정리는 자동 재시도 한도와 중복 억제를 초기화할 수 있으므로 의도적으로 수행한다.
 - plan/review artifact는 30일간 보관한다. `reviewed_files`는 자기 보고이고, 인용 일치는 주장 정확성이나
   불필요한 가정의 실제 제거 가능성을 증명하지 않는다. 이 단계에서 Lean은 실행하지 않는다.

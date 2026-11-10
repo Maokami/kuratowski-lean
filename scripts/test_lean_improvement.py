@@ -66,7 +66,9 @@ class Tests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.out = Path(self.temp.name)
-        for obj, name, value in ((m, "OUT", self.out), (m, "source", lambda: (SOURCES, BATCHES, DIGEST)),
+        schema = Path(__file__).resolve().parent.parent / m.SCHEMA
+        for obj, name, value in ((m, "SCHEMA", schema), (m, "OUT", self.out),
+                                 (m, "source", lambda: (SOURCES, BATCHES, DIGEST)),
                                  (m, "git", lambda *args: SHA)):
             p = patch.object(obj, name, value)
             p.start()

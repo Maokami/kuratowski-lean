@@ -3,27 +3,31 @@ import Kuratowski.RotationOrder
 import Kuratowski.PermutationDeletion
 
 /-!
-# 공통 이웃이 없는 변의 수축 되돌리기 (블루프린트 `lem:uncontract`)
+# Undoing the contraction of an edge without common neighbors (blueprint `lem:uncontract`)
 
-`G`에서 `x ∼ y`이고 `x`, `y`의 공통 이웃이 없을 때, `G/xy`의 회전 체계 `R'`에서 `x` 둘레의 `G`쪽 이웃이
-`x`쪽 호와 `y`쪽 호로 나뉘면 `G`의 회전 체계를 만든다. 면 순환 수는 그대로다.
+Let `x ∼ y` in `G` with no common neighbor of `x` and `y`, and let `R'` be a rotation system of
+`G/xy`. Classify the neighbors of `x` in `G/xy` by adjacency in `G`: each is adjacent in `G` to
+exactly one of `x`, `y`. If, around `x`, they split into an `x`-arc of neighbors of `x` and a
+`y`-arc of neighbors of `y` (vertices adjacent only to `y` in `G`), we build a rotation system of
+`G` with the same number of face cycles.
 
-* 다트 대응 `uncontractDartEquiv`: `(x, y)`, `(y, x)`가 아닌 `G`의 다트에서 `y`를 `x`로 바꾸면
-  `G/xy`의 다트와 전단사다 (공통 이웃이 없으므로).
-* 회전: 대응으로 옮긴 `ρ'`에 `xy`, `yx`를 고정점으로 붙이고 조건부 호환 세 개를 곱한다.
+* Dart bijection `uncontractDartEquiv`: replacing `y` by `x` maps the darts of `G` other than
+  `(x, y)`, `(y, x)` bijectively to the darts of `G/xy` (since there is no common neighbor).
+* Rotation: transport `ρ'` along the bijection, add `xy` and `yx` as fixed points, and multiply by
+  three conditional transpositions.
 -/
 
 namespace Kuratowski
 
 open SimpleGraph Equiv Equiv.Perm Function
 
-/-! ### 조건부 호환과 순환 수 -/
+/-! ### Conditional transpositions and cycle counts -/
 
 section CSwap
 
 variable {α : Type*} [DecidableEq α]
 
-/-- 조건이 참일 때만 호환, 거짓이면 항등. -/
+/-- The transposition if the condition holds, and the identity otherwise. -/
 def cswap (c : Prop) [Decidable c] (a b : α) : Perm α := if c then swap a b else 1
 
 theorem cswap_pos {c : Prop} [Decidable c] (h : c) (a b : α) : cswap c a b = swap a b := by
@@ -39,7 +43,8 @@ theorem cswap_apply_of_ne (c : Prop) [Decidable c] {a b d : α} (ha : d ≠ a) (
   · exact swap_apply_of_ne_of_ne ha hb
   · rfl
 
-/-- 대합 `σ`로 켤레를 취하면 조건부 호환의 두 점이 `σ`로 옮겨진다. -/
+/-- Conjugating by an involution `σ` moves the two points of a conditional transposition by
+`σ`. -/
 theorem mul_cswap_mul_involutive (f σ : Perm α) (hσ : Involutive σ) (c : Prop) [Decidable c]
     (a b : α) : f * cswap c a b * σ = f * σ * cswap c (σ a) (σ b) := by
   unfold cswap
@@ -53,15 +58,16 @@ theorem mul_cswap_mul_involutive (f σ : Perm α) (hσ : Involutive σ) (c : Pro
 
 variable [Finite α]
 
-/-- 2-순환 `(p q)` 밖의 점 `u`를 `q`와 바꾸면 순환이 합쳐져 하나 준다. -/
+/-- Swapping a point `u` outside the 2-cycle `(p q)` with `q` merges cycles, decreasing their
+number by one. -/
 theorem orbitCount_mul_swap_two_cycle (f : Perm α) {p q u : α} (hpq : f p = q) (hqp : f q = p)
     (hup : u ≠ p) (huq : u ≠ q) : orbitCount (f * swap u q) + 1 = orbitCount f :=
   orbitCount_mul_swap_of_not_sameCycle fun h ↦
     PermutationDeletion.not_sameCycle_of_two_cycle f hqp hpq huq hup h.symm
 
-/-- 2-순환 `(p q)` 밖의 서로 다른 두 점 `u`, `w`에 대해 `(u w)`, `(u q)`, `(w p)`를 차례로 곱하면
-순환 수가 하나 준다. `u`, `w`가 같은 순환이면 나누기·합치기·합치기, 다른 순환이면
-합치기·합치기·나누기다. -/
+/-- For distinct points `u`, `w` outside the 2-cycle `(p q)`, multiplying by `(u w)`, `(u q)`,
+`(w p)` in turn decreases the number of cycles by one: split, merge, merge if `u` and `w` lie in
+the same cycle, and merge, merge, split otherwise. -/
 theorem orbitCount_three_swaps (f : Perm α) {p q u w : α} (hpq : f p = q) (hqp : f q = p)
     (hup : u ≠ p) (huq : u ≠ q) (hwp : w ≠ p) (hwq : w ≠ q) (huw : u ≠ w) :
     orbitCount (f * swap u w * swap u q * swap w p) + 1 = orbitCount f := by
@@ -91,11 +97,11 @@ theorem orbitCount_three_swaps (f : Perm α) {p q u w : α} (hpq : f p = q) (hqp
 
 end CSwap
 
-/-! ### 다트 대응 -/
+/-! ### The dart bijection -/
 
 variable {V : Type*} [DecidableEq V] {G : SimpleGraph V} {x y : V}
 
-/-- `(x, y)`, `(y, x)`가 아닌 `G`의 다트. -/
+/-- Darts of `G` other than `(x, y)` and `(y, x)`. -/
 abbrev UncontractDart (G : SimpleGraph V) (x y : V) :=
   {d : G.Dart // d.toProd ≠ (x, y) ∧ d.toProd ≠ (y, x)}
 
@@ -119,7 +125,7 @@ theorem contractEdge_adj_contractDart (hxy : G.Adj x y) (d : UncontractDart G x 
     · rw [contractVertex_of_ne hp, contractVertex_of_ne hq]
       exact ⟨h.ne, hp, hq, Or.inl h⟩
 
-/-- 다트 대응: 양 끝의 `y`를 `x`로 바꾼다. -/
+/-- The dart map: replace `y` by `x` at both ends. -/
 def contractDart (hxy : G.Adj x y) (d : UncontractDart G x y) : (contractEdge G x y).Dart :=
   ⟨(contractVertex x y d.1.fst, contractVertex x y d.1.snd), contractEdge_adj_contractDart hxy d⟩
 
@@ -138,7 +144,7 @@ theorem contractDart_injective (hxy : G.Adj x y) (hcommon : ∀ z, ¬ (G.Adj x z
   rcases contractVertex_eq_cases h₁ with e₁ | ⟨a₁, b₁⟩ | ⟨a₁, b₁⟩ <;>
     rcases contractVertex_eq_cases h₂ with e₂ | ⟨a₂, b₂⟩ | ⟨a₂, b₂⟩
   · rw [e₁, e₂]
-  · -- `p₁ = q₁`는 `x`, `y`의 공통 이웃
+  · -- `p₁ = q₁` would be a common neighbor of `x` and `y`
     refine absurd ⟨?_, ?_⟩ (hcommon p₁)
     · rw [e₁, ← b₂]; exact hq.symm
     · rw [← a₂]; exact hp.symm
@@ -177,7 +183,8 @@ theorem contractDart_surjective (hxy : G.Adj x y) : Surjective (contractDart hxy
     rw [contractVertex_self, contractVertex_of_ne ha]
     exact Prod.ext rfl hbx.symm
 
-/-- 공개 API: 공통 이웃이 없으면 `(x, y)`, `(y, x)`가 아닌 `G`의 다트와 `G/xy`의 다트는 전단사다. -/
+/-- Public API: without common neighbors, the darts of `G` other than `(x, y)`, `(y, x)` are in
+bijection with the darts of `G/xy`. -/
 noncomputable def uncontractDartEquiv (hxy : G.Adj x y) (hcommon : ∀ z, ¬ (G.Adj x z ∧ G.Adj y z)) :
     UncontractDart G x y ≃ (contractEdge G x y).Dart :=
   Equiv.ofBijective _ ⟨contractDart_injective hxy hcommon, contractDart_surjective hxy⟩
@@ -194,10 +201,11 @@ theorem uncontractDartEquiv_symm (hxy : G.Adj x y) (hcommon : ∀ z, ¬ (G.Adj x
       (uncontractDartEquiv hxy hcommon d).symm := rfl
 
 
-/-! ### 되돌린 회전 -/
+/-! ### The uncontracted rotation -/
 
-/-- 수축 되돌리기의 자료. `G/xy`의 회전 `R'`, `x`에서 나가는 다트 `d₀`, 호 길이 `k`가 있어
-`u_j = (ρ'⁻¹^j d₀).snd`가 `j < k`이면 `G`에서 `x`의 이웃, `k ≤ j < N`이면 `y`의 이웃이다. -/
+/-- Data for undoing a contraction: a rotation `R'` of `G/xy`, a dart `d₀` leaving `x`, and an
+arc length `k`, such that `u_j = (ρ'⁻¹^j d₀).snd` is a neighbor of `x` in `G` for `j < k` and a
+neighbor of `y` for `k ≤ j < N`. -/
 structure UncontractData (G : SimpleGraph V) (x y : V) where
   hxy : G.Adj x y
   hcommon : ∀ z, ¬ (G.Adj x z ∧ G.Adj y z)
@@ -214,29 +222,29 @@ namespace UncontractData
 
 variable (D : UncontractData G x y)
 
-/-- `G/xy`에서 `x`의 이웃 수. -/
+/-- The number of neighbors of `x` in `G/xy`. -/
 noncomputable abbrev N (_ : UncontractData G x y) : ℕ := ((contractEdge G x y).neighborSet x).ncard
 
-/-- 다트 `(x, y)`. -/
+/-- The dart `(x, y)`. -/
 def xyDart : G.Dart := ⟨(x, y), D.hxy⟩
 
-/-- 다트 `(y, x)`. -/
+/-- The dart `(y, x)`. -/
 def yxDart : G.Dart := ⟨(y, x), D.hxy.symm⟩
 
-/-- 다트 대응. -/
+/-- The dart bijection. -/
 noncomputable def equiv : UncontractDart G x y ≃ (contractEdge G x y).Dart :=
   uncontractDartEquiv D.hxy D.hcommon
 
-/-- `x` 둘레의 `j`번째 다트 `ρ'⁻¹^j d₀`. -/
+/-- The `j`-th dart `ρ'⁻¹^j d₀` around `x`. -/
 def kd (j : ℕ) : (contractEdge G x y).Dart := (D.R'.rot⁻¹ ^ j) D.d₀
 
-/-- `kd j`에 대응하는 `G`의 다트. -/
+/-- The dart of `G` corresponding to `kd j`. -/
 noncomputable def lift (j : ℕ) : G.Dart := (D.equiv.symm (D.kd j)).1
 
 theorem lift_mem (j : ℕ) : (D.lift j).toProd ≠ (x, y) ∧ (D.lift j).toProd ≠ (y, x) :=
   (D.equiv.symm (D.kd j)).2
 
-/-- 대응으로 옮긴 `ρ'`. `xy`, `yx`는 고정점이다. -/
+/-- `ρ'` transported along the bijection; `xy` and `yx` are fixed points. -/
 noncomputable def τ : Perm G.Dart := Perm.ofSubtype (D.equiv.symm.permCongr D.R'.rot)
 
 omit [DecidableEq V] in
@@ -275,7 +283,7 @@ theorem lift_fst_mem (j : ℕ) : (D.lift j).fst = x ∨ (D.lift j).fst = y := by
   have h' := congrArg (·.toProd.1) h
   exact h'.trans (D.kd_fst j)
 
-/-- `j < k`이면 `kd j`의 짝은 `(x, u_j)`다. -/
+/-- If `j < k`, the dart corresponding to `kd j` is `(x, u_j)`. -/
 theorem lift_toProd_of_lt {j : ℕ} (hj : j < D.k) : (D.lift j).toProd = (x, (D.kd j).snd) := by
   have h : D.equiv ⟨⟨(x, (D.kd j).snd), D.hA j hj⟩, fun h ↦ D.kd_snd_ne_y j (congrArg Prod.snd h),
       fun h ↦ D.hxy.ne (congrArg Prod.fst h)⟩ = D.kd j := by
@@ -287,7 +295,7 @@ theorem lift_toProd_of_lt {j : ℕ} (hj : j < D.k) : (D.lift j).toProd = (x, (D.
   unfold lift
   rw [h']
 
-/-- `k ≤ j < N`이면 `kd j`의 짝은 `(y, u_j)`다. -/
+/-- If `k ≤ j < N`, the dart corresponding to `kd j` is `(y, u_j)`. -/
 theorem lift_toProd_of_ge {j : ℕ} (hkj : D.k ≤ j) (hj : j < D.N) :
     (D.lift j).toProd = (y, (D.kd j).snd) := by
   have h : D.equiv ⟨⟨(y, (D.kd j).snd), D.hY j hkj hj⟩,
@@ -377,8 +385,9 @@ theorem τ_lift_zero : D.τ (D.lift 0) = D.lift (D.N - 1) := by
   rw [D.τ_apply _ (D.lift_mem 0), equiv_lift, rot_kd_zero]
   rfl
 
-/-- 되돌린 회전: `τ`에 조건부 호환 세 개를 곱한다. `(lift 0, lift k)`는 `x`의 순환을 두 호로 나누고,
-뒤의 두 호환은 `xy`, `yx`를 각 호의 끝에 넣는다. -/
+/-- The uncontracted rotation: `τ` times three conditional transpositions. `(lift 0, lift k)`
+splits the cycle of `x` into two arcs, and the other two transpositions insert `xy` and `yx` at the
+ends of the arcs. -/
 noncomputable def rot : Perm G.Dart :=
   D.τ * cswap (0 < D.k ∧ D.k < D.N) (D.lift 0) (D.lift D.k) *
     cswap (0 < D.k) (D.lift 0) D.xyDart * cswap (D.k < D.N) (D.lift D.k) D.yxDart
@@ -397,7 +406,7 @@ theorem lift_ne_lift_k {j : ℕ} (hj : j < D.N) (hjk : j ≠ D.k) (h0 : j ≠ 0)
   · rw [hk, lift_N]
     exact D.lift_ne_lift_zero hj h0
 
-/-- 호 안쪽: `j ≠ 0, k`이면 `rot (lift j) = lift (j - 1)`. -/
+/-- Inside an arc: if `j ≠ 0, k`, then `rot (lift j) = lift (j - 1)`. -/
 theorem rot_lift_of_ne {j : ℕ} (hj : j < D.N) (h0 : j ≠ 0) (hjk : j ≠ D.k) :
     D.rot (D.lift j) = D.lift (j - 1) := by
   have h1 := D.lift_ne_lift_zero hj h0
@@ -407,7 +416,7 @@ theorem rot_lift_of_ne {j : ℕ} (hj : j < D.N) (h0 : j ≠ 0) (hjk : j ≠ D.k)
   obtain ⟨i, rfl⟩ : ∃ i, j = i + 1 := ⟨j - 1, by omega⟩
   rw [τ_lift_succ, Nat.add_sub_cancel]
 
-/-- `x`쪽 호의 끝: `0 < k`이면 `rot (lift 0) = xy`. -/
+/-- End of the `x`-arc: if `0 < k`, then `rot (lift 0) = xy`. -/
 theorem rot_lift_zero (hk : 0 < D.k) : D.rot (D.lift 0) = D.xyDart := by
   have hxy0 : D.xyDart ≠ D.lift 0 := (D.lift_ne_xy 0).symm
   have hxyk : D.xyDart ≠ D.lift D.k := (D.lift_ne_xy D.k).symm
@@ -420,7 +429,7 @@ theorem rot_lift_zero (hk : 0 < D.k) : D.rot (D.lift 0) = D.xyDart := by
   · rw [rot_apply, cswap_neg hkN, Perm.one_apply, cswap_pos hk, swap_apply_left,
       cswap_neg (fun h ↦ hkN h.2), Perm.one_apply, τ_xy]
 
-/-- `0 < k`이면 `rot xy = lift (k - 1)`. -/
+/-- If `0 < k`, then `rot xy = lift (k - 1)`. -/
 theorem rot_xy (hk : 0 < D.k) : D.rot D.xyDart = D.lift (D.k - 1) := by
   have hxyk : D.xyDart ≠ D.lift D.k := (D.lift_ne_xy D.k).symm
   rw [rot_apply, cswap_apply_of_ne _ hxyk D.xyDart_ne_yxDart, cswap_pos hk, swap_apply_right]
@@ -433,21 +442,21 @@ theorem rot_xy (hk : 0 < D.k) : D.rot D.xyDart = D.lift (D.k - 1) := by
     rw [this]
 
 omit [Finite V] in
-/-- `k = 0`이면 `xy`는 고정점이다 (`x`는 `G`에서 잎). -/
+/-- If `k = 0`, then `xy` is a fixed point (`x` is a leaf of `G`). -/
 theorem rot_xy_of_eq_zero (hk : D.k = 0) : D.rot D.xyDart = D.xyDart := by
   have hxyk : D.xyDart ≠ D.lift D.k := (D.lift_ne_xy D.k).symm
   rw [rot_apply, cswap_apply_of_ne _ hxyk D.xyDart_ne_yxDart, cswap_neg (by omega),
     Perm.one_apply, cswap_neg (by omega), Perm.one_apply, τ_xy]
 
 omit [Finite V] in
-/-- `y`쪽 호의 끝: `k < N`이면 `rot (lift k) = yx`. -/
+/-- End of the `y`-arc: if `k < N`, then `rot (lift k) = yx`. -/
 theorem rot_lift_k (hkN : D.k < D.N) : D.rot (D.lift D.k) = D.yxDart := by
   have hyx0 : D.yxDart ≠ D.lift 0 := (D.lift_ne_yx 0).symm
   have hyxk : D.yxDart ≠ D.lift D.k := (D.lift_ne_yx D.k).symm
   rw [rot_apply, cswap_pos hkN, swap_apply_left, cswap_apply_of_ne _ hyx0 D.xyDart_ne_yxDart.symm,
     cswap_apply_of_ne _ hyx0 hyxk, τ_yx]
 
-/-- `k < N`이면 `rot yx = lift (N - 1)`. -/
+/-- If `k < N`, then `rot yx = lift (N - 1)`. -/
 theorem rot_yx (hkN : D.k < D.N) : D.rot D.yxDart = D.lift (D.N - 1) := by
   rw [rot_apply, cswap_pos hkN, swap_apply_right]
   by_cases hk : 0 < D.k
@@ -461,7 +470,7 @@ theorem rot_yx (hkN : D.k < D.N) : D.rot D.yxDart = D.lift (D.N - 1) := by
       τ_lift_zero]
 
 omit [Finite V] in
-/-- `k = N`이면 `yx`는 고정점이다 (`y`는 `G`에서 잎). -/
+/-- If `k = N`, then `yx` is a fixed point (`y` is a leaf of `G`). -/
 theorem rot_yx_of_eq (hk : D.k = D.N) : D.rot D.yxDart = D.yxDart := by
   have hyx0 : D.yxDart ≠ D.lift 0 := (D.lift_ne_yx 0).symm
   have hyxk : D.yxDart ≠ D.lift D.k := (D.lift_ne_yx D.k).symm
@@ -469,13 +478,14 @@ theorem rot_yx_of_eq (hk : D.k = D.N) : D.rot D.yxDart = D.yxDart := by
     cswap_apply_of_ne _ hyx0 D.xyDart_ne_yxDart.symm, cswap_apply_of_ne _ hyx0 hyxk, τ_yx]
 
 
-/-! ### 회전 체계 조건 -/
+/-! ### Rotation system conditions -/
 
 omit [Finite V] in
 theorem equiv_fst (s : UncontractDart G x y) : (D.equiv s).fst = contractVertex x y s.1.fst := rfl
 
 omit [Finite V] in
-/-- 시작점이 `x`가 아닌 `G/xy` 다트의 짝은 시작점이 같다. -/
+/-- A dart of `G/xy` whose start vertex is not `x` corresponds to a dart with the same start
+vertex. -/
 theorem equiv_symm_fst_of_ne (e : (contractEdge G x y).Dart) (he : e.fst ≠ x) :
     (D.equiv.symm e).1.fst = e.fst := by
   have h : contractVertex x y (D.equiv.symm e).1.fst = e.fst := by
@@ -503,7 +513,7 @@ theorem τ_fst_of_ne (d : G.Dart) (hx : d.fst ≠ x) (hy : d.fst ≠ y) : (D.τ 
   rw [D.equiv_symm_fst_of_ne _ (by rw [D.R'.fst_rot, he]; exact hx), D.R'.fst_rot, he]
 
 omit [Finite V] in
-/-- 시작점이 `x`, `y`가 아니면 `rot = τ`다. -/
+/-- If the start vertex is neither `x` nor `y`, then `rot = τ`. -/
 theorem rot_of_fst_ne (d : G.Dart) (hx : d.fst ≠ x) (hy : d.fst ≠ y) : D.rot d = D.τ d := by
   have hl : ∀ j, d ≠ D.lift j := fun j h ↦ (D.lift_fst_mem j).elim
     (fun h' ↦ hx (by rw [h]; exact h')) (fun h' ↦ hy (by rw [h]; exact h'))
@@ -570,7 +580,7 @@ theorem rot_pow_yx : ∀ i, i < D.N - D.k → (D.rot ^ (i + 1)) D.yxDart = D.lif
     rw [pow_succ', Perm.mul_apply, ih (by omega), D.rot_lift_of_ne (by omega) (by omega) (by omega)]
     congr 1
 
-/-- 시작점이 `x`인 옛 다트는 어떤 `lift j`로 열거된다. -/
+/-- An old dart starting at `x` is enumerated as some `lift j`. -/
 theorem lift_of_fst_x {d : G.Dart} (hd : d.toProd ≠ (x, y) ∧ d.toProd ≠ (y, x)) (hx : d.fst = x) :
     ∃ j < D.N, d = D.lift j := by
   have he : (D.equiv ⟨d, hd⟩).fst = x := by rw [equiv_fst, hx, contractVertex_of_ne D.hxy.ne]
@@ -644,16 +654,16 @@ theorem sameCycle_rot (d d' : G.Dart) (h : d.fst = d'.fst) : D.rot.SameCycle d d
   refine ⟨(n : ℤ), ?_⟩
   rw [zpow_natCast, D.rot_pow_of_fst_ne d hx hy, hn, Equiv.symm_apply_apply]
 
-/-- 되돌린 회전 체계. -/
+/-- The uncontracted rotation system. -/
 noncomputable def rotationSystem : RotationSystem G where
   rot := D.rot
   fst_rot := D.fst_rot
   sameCycle_rot := D.sameCycle_rot
 
 
-/-! ### 면 순환 수 -/
+/-! ### Number of face cycles -/
 
-/-- 다트 뒤집기. -/
+/-- Dart reversal. -/
 def rev (_ : UncontractData G x y) : Perm G.Dart :=
   Function.Involutive.toPerm _ Dart.symm_involutive
 
@@ -695,7 +705,7 @@ omit [Finite V] in
 theorem τ_rev_yx : (D.τ * D.rev) D.yxDart = D.xyDart := by
   rw [Perm.mul_apply, rev_yx, τ_xy]
 
-/-- `τ ∘ σ`에서 `xy`, `yx`의 2-순환을 떼면 옮긴 `φ'`이다. -/
+/-- Removing the 2-cycle of `xy` and `yx` from `τ ∘ σ` leaves the transported `φ'`. -/
 theorem orbitCount_τ_rev : orbitCount (D.τ * D.rev) = orbitCount D.R'.facePerm + 1 := by
   set g := D.τ * D.rev * swap D.xyDart D.yxDart with hg
   have hgxy : g D.xyDart = D.xyDart := by
@@ -755,7 +765,8 @@ theorem orbitCount_τ_rev : orbitCount (D.τ * D.rev) = orbitCount D.R'.facePerm
   rw [h5] at h4
   omega
 
-/-- 블루프린트 `lem:uncontract`의 면 순환 수: 되돌려도 면 순환 수는 그대로다. -/
+/-- Face count of blueprint `lem:uncontract`: undoing the contraction preserves the number of
+face cycles. -/
 theorem orbitCount_facePerm : orbitCount D.rotationSystem.facePerm = orbitCount D.R'.facePerm := by
   have hτ := D.orbitCount_τ_rev
   have hface : D.rot * D.rev = D.τ * D.rev *
@@ -788,14 +799,15 @@ theorem orbitCount_facePerm : orbitCount D.rotationSystem.facePerm = orbitCount 
     omega
 
 
-/-! ### 세기와 종수 -/
+/-! ### Counts and genus -/
 
 include D in
 omit [DecidableEq V] [Finite V] in
 theorem not_isIsolated_x : ¬ (contractEdge G x y).IsIsolated x := fun h ↦
   h D.d₀.snd (by have h' := D.d₀.adj; rw [D.hd₀] at h'; exact h')
 
-/-- 두 역다트 `xy`, `yx`를 뺀 다트와 `G/xy`의 다트의 전단사 (두 다트를 뺀 전단사의 변 세기 형식). -/
+/-- The bijection between the darts other than the reverse pair `xy`, `yx` and the darts of
+`G/xy` (the form used for edge counting with a deleted pair). -/
 noncomputable def equivDeletePair :
     {d : G.Dart // d ≠ D.xyDart ∧ d ≠ D.xyDart.symm} ≃ (contractEdge G x y).Dart :=
   (Equiv.subtypeEquivRight fun d ↦ by
@@ -809,7 +821,7 @@ include D in
 theorem ncard_edgeSet : G.edgeSet.ncard = (contractEdge G x y).edgeSet.ncard + 1 :=
   ncard_edgeSet_of_dartEquiv_delete_pair D.xyDart D.equivDeletePair
 
-/-- 되돌리면 오일러 지표가 2 줄어든다. -/
+/-- Undoing the contraction decreases the Euler characteristic by 2. -/
 theorem eulerChar_rotationSystem : D.rotationSystem.eulerChar + 2 = D.R'.eulerChar := by
   have hO := D.orbitCount_facePerm
   have hE := D.ncard_edgeSet
@@ -819,7 +831,8 @@ theorem eulerChar_rotationSystem : D.rotationSystem.eulerChar + 2 = D.R'.eulerCh
   push_cast
   omega
 
-/-- 블루프린트 `lem:uncontract`: `R'`이 종수 0이면 되돌린 회전 체계도 종수 0이다. -/
+/-- Blueprint `lem:uncontract`: if `R'` has genus 0, so does the uncontracted rotation
+system. -/
 theorem eulerChar_eq (hR' : D.R'.eulerChar = 2 * Nat.card (contractEdge G x y).ConnectedComponent) :
     D.rotationSystem.eulerChar = 2 * Nat.card G.ConnectedComponent := by
   have h := D.eulerChar_rotationSystem
@@ -828,45 +841,46 @@ theorem eulerChar_eq (hR' : D.R'.eulerChar = 2 * Nat.card (contractEdge G x y).C
   push_cast at h
   omega
 
-/-! ### 공개 회전 식 (다트 대응과 `toProd`) -/
+/-! ### Public rotation formulas (dart bijection and `toProd`) -/
 
 theorem rotationSystem_rot (d : G.Dart) : D.rotationSystem.rot d = D.rot d := rfl
 
-/-- `0 < k`이면 `(x, y)` 다음은 `(x, u_{k-1})`이다. -/
+/-- If `0 < k`, the successor of `(x, y)` is `(x, u_{k-1})`. -/
 theorem rotationSystem_rot_xy (hk : 0 < D.k) :
     (D.rotationSystem.rot D.xyDart).toProd = (x, (D.kd (D.k - 1)).snd) := by
   rw [rotationSystem_rot, D.rot_xy hk, D.lift_toProd_of_lt (by omega)]
 
-/-- `0 < k`이면 `(x, u_0)` 다음은 `(x, y)`이다. -/
+/-- If `0 < k`, the successor of `(x, u_0)` is `(x, y)`. -/
 theorem rotationSystem_rot_to_xy (hk : 0 < D.k) (d : G.Dart) (hd : d.toProd = (x, (D.kd 0).snd)) :
     D.rotationSystem.rot d = D.xyDart := by
   have h : d = D.lift 0 := Dart.ext _ _ (hd.trans (D.lift_toProd_of_lt hk).symm)
   rw [rotationSystem_rot, h, D.rot_lift_zero hk]
 
-/-- `k < N`이면 `(y, x)` 다음은 `(y, u_{N-1})`이다. -/
+/-- If `k < N`, the successor of `(y, x)` is `(y, u_{N-1})`. -/
 theorem rotationSystem_rot_yx (hk : D.k < D.N) :
     (D.rotationSystem.rot D.yxDart).toProd = (y, (D.kd (D.N - 1)).snd) := by
   rw [rotationSystem_rot, D.rot_yx hk, D.lift_toProd_of_ge (by omega) (by omega)]
 
-/-- `k < N`이면 `(y, u_k)` 다음은 `(y, x)`이다. -/
+/-- If `k < N`, the successor of `(y, u_k)` is `(y, x)`. -/
 theorem rotationSystem_rot_to_yx (hk : D.k < D.N) (d : G.Dart)
     (hd : d.toProd = (y, (D.kd D.k).snd)) : D.rotationSystem.rot d = D.yxDart := by
   have h : d = D.lift D.k := Dart.ext _ _ (hd.trans (D.lift_toProd_of_ge le_rfl hk).symm)
   rw [rotationSystem_rot, h, D.rot_lift_k hk]
 
-/-- `k = 0`이면 `(x, y)`는 고정점이다. -/
+/-- If `k = 0`, then `(x, y)` is a fixed point. -/
 theorem rotationSystem_rot_xy_of_eq_zero (hk : D.k = 0) :
     D.rotationSystem.rot D.xyDart = D.xyDart := D.rot_xy_of_eq_zero hk
 
-/-- `k = N`이면 `(y, x)`는 고정점이다. -/
+/-- If `k = N`, then `(y, x)` is a fixed point. -/
 theorem rotationSystem_rot_yx_of_eq (hk : D.k = D.N) :
     D.rotationSystem.rot D.yxDart = D.yxDart := D.rot_yx_of_eq hk
 
-/-- 호 안쪽(`j ≠ 0, k`)에서는 `u_j` 다음이 `u_{j-1}`이다. -/
+/-- Inside an arc (`j ≠ 0, k`), the successor of `u_j` is `u_{j-1}`. -/
 theorem rotationSystem_rot_lift {j : ℕ} (hj : j < D.N) (h0 : j ≠ 0) (hjk : j ≠ D.k) :
     D.rotationSystem.rot (D.lift j) = D.lift (j - 1) := D.rot_lift_of_ne hj h0 hjk
 
-/-- `x`, `y`가 아닌 꼭짓점에서는 다트 대응으로 옮긴 `ρ'`이다. -/
+/-- At vertices other than `x` and `y`, the rotation is `ρ'` transported along the dart
+bijection. -/
 theorem equiv_rotationSystem_rot (d : G.Dart) (hx : d.fst ≠ x) (hy : d.fst ≠ y) :
     D.equiv ⟨D.rotationSystem.rot d, mem_of_fst_ne (by rw [rotationSystem_rot, D.fst_rot]; exact hx)
       (by rw [rotationSystem_rot, D.fst_rot]; exact hy)⟩ =
@@ -881,9 +895,12 @@ theorem equiv_rotationSystem_rot (d : G.Dart) (hx : d.fst ≠ x) (hy : d.fst ≠
 
 end UncontractData
 
-/-- 블루프린트 `lem:uncontract`. 공통 이웃이 없는 변 `xy`의 수축 `G/xy`의 회전 체계 `R'`에서 `x` 둘레의
-`G`쪽 이웃이 `x`쪽 호(`j < k`)와 `y`쪽 호(`k ≤ j < N`)로 나뉘면, 면 순환 수가 같은 `G`의 회전 체계가 있고
-`R'`이 종수 0이면 그것도 종수 0이다. 회전 식은 `UncontractData`의 `rotationSystem_rot_*`에 있다. -/
+/-- Blueprint `lem:uncontract`. Let `xy` be an edge without common neighbors and `R'` a rotation
+system of `G/xy`, and classify the neighbors of `x` in `G/xy` by adjacency in `G`. If, around `x`,
+they split into an `x`-arc of neighbors of `x` in `G` (`j < k`) and a `y`-arc of neighbors of `y`
+in `G` (`k ≤ j < N`), there is a rotation system of `G` with the same number of face cycles, and
+it has genus 0 if `R'` does. The rotation formulas are the `rotationSystem_rot_*` lemmas of
+`UncontractData`. -/
 theorem RotationSystem.exists_uncontract [Finite V] (hxy : G.Adj x y)
     (hcommon : ∀ z, ¬ (G.Adj x z ∧ G.Adj y z)) (R' : RotationSystem (contractEdge G x y))
     (d₀ : (contractEdge G x y).Dart) (hd₀ : d₀.fst = x) (k : ℕ)

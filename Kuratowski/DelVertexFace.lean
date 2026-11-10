@@ -3,24 +3,28 @@ import Kuratowski.FaceCycle
 import Kuratowski.VertexDeletion
 
 /-!
-# 지운 꼭짓점 둘레의 면 (블루프린트 `lem:J2`)
+# The face around a deleted vertex (blueprint `lem:J2`)
 
-종수 0 회전 체계 `R`에서 꼭짓점 `v`를 지운 회전 체계 `R.delVertex v`의 면 하나가 `v`의 이웃을
-`v` 둘레 회전의 역순으로 지난다 (`RotationSystem.exists_cyclicSequence_delVertex_neighbors`).
-면은 `φ(d₀)`와 양 끝이 같은 다트 `e`로 고정한다.
+Let `R` be a genus-0 rotation system of `H`, let `v` have `N ≥ 2` neighbors, and assume
+`ConnectedOn (H - v) 2 (S_H \ {v})`. Then one face of `R.delVertex v`, the rotation system with
+`v` deleted, passes through the neighbors of `v` in the reverse order of the rotation around `v`
+(`RotationSystem.exists_cyclicSequence_delVertex_neighbors`). The face is fixed as that of the dart
+`e` with the same endpoints as `φ(d₀)`.
 
-* `v`에서 나가는 다트는 회전의 한 순환이므로 `d_j = ρ⁻¹^j d₀`의 최소 주기는 `v`의 이웃 수 `N`이고,
-  `d_j`의 끝점 `u_j`(`j < N`)는 이웃을 한 번씩 열거한다 (`minimalPeriod_rot_inv`).
-* 가정 `ConnectedOn (H - v) 2 (S_H \ {v})`와 `N ≥ 2`에서 `H - v`와 `H`가 모두 2-연결이다.
-* `L_j`를 `d_j`의 면 길이라 하면 `φ^{L_j - 1} d_j`는 `d_{j+1}`의 역다트이고, J1에서
-  `P_j = (φ¹ d_j, …, φ^{L_j - 2} d_j)`는 `v`에 닿지 않는다. 지운 회전의 면 순열은 `P_j` 안에서 원래
-  면 순열과 같고, `P_j`의 끝에서 `P_{j+1}`의 첫 다트 `φ(d_{j+1})`로 넘어간다 (`sector_iterate`,
-  `sector_iterate_next`).
-* 서로 다른 `j`의 `d_j`는 J1에서 서로 다른 면에 있으므로 조각들은 다트를 공유하지 않는다. 따라서
-  `e`의 면 길이는 `M = Σ_{j<N} (L_j - 2)`이고 (`faceLength_delVertex_eq_sectorStart`), `u_j`의 위치는
-  `p_j = Σ_{t<j} (L_t - 2)`다.
-* `exists_cyclicSequence_face`는 길이를 존재로 감추므로, 수열에서 길이가 면 길이와 같음을 다시
-  보인다 (`eq_faceLength_of_cyclicSequence`).
+* The darts leaving `v` form one cycle of the rotation, so `d_j = ρ⁻¹^j d₀` has minimal period
+  `N`, the number of neighbors of `v`, and the end vertices `u_j` (`j < N`) of `d_j` enumerate the
+  neighbors once each (`minimalPeriod_rot_inv`, in `RotationOrder`).
+* From the hypothesis `ConnectedOn (H - v) 2 (S_H \ {v})` and `N ≥ 2`, both `H - v` and `H` are
+  2-connected.
+* Let `L_j` be the face length of `d_j`. Then `φ^{L_j - 1} d_j` is the reverse of `d_{j+1}`, and by
+  J1 the segment `P_j = (φ¹ d_j, …, φ^{L_j - 2} d_j)` does not meet `v`. Inside `P_j` the face
+  permutation after deletion agrees with the original one, and from the end of `P_j` it moves to
+  the first dart `φ(d_{j+1})` of `P_{j+1}` (`sector_iterate`, `sector_iterate_next`).
+* By J1, the darts `d_j` for distinct `j` lie on distinct faces, so the segments share no dart.
+  Hence the face of `e` has length `M = Σ_{j<N} (L_j - 2)` (`faceLength_delVertex_eq_sectorStart`),
+  and `u_j` occurs at position `p_j = Σ_{t<j} (L_t - 2)`.
+* `exists_cyclicSequence_face` hides the length in an existential, so we show again that the length
+  of the sequence equals the face length (`eq_faceLength_of_cyclicSequence`).
 -/
 
 namespace Kuratowski
@@ -35,11 +39,11 @@ variable (R : RotationSystem G)
 
 variable [Finite V]
 
-/-! ### 2-연결성 -/
+/-! ### 2-connectivity -/
 
 variable {H : SimpleGraph V} {v : V}
 
-/-- 가정에서 `H - v`의 지지 집합은 `S_H \ {v}`다. -/
+/-- Under the hypothesis, the support of `H - v` is `S_H \ {v}`. -/
 theorem support_deleteVertices_of_connectedOn
     (hconn : ConnectedOn (deleteVertices H {v}) 2 (H.support \ {v})) :
     (deleteVertices H {v}).support = H.support \ {v} := by
@@ -61,7 +65,7 @@ theorem support_deleteVertices_of_connectedOn
     | nil => exact absurd rfl hba
     | cons h _ => exact (mem_support _).2 ⟨_, h⟩
 
-/-- 가정에서 `H - v`는 2-연결이다. -/
+/-- Under the hypothesis, `H - v` is 2-connected. -/
 theorem twoConnected_deleteVertices_of_connectedOn
     (hconn : ConnectedOn (deleteVertices H {v}) 2 (H.support \ {v})) :
     TwoConnected (deleteVertices H {v}) := by
@@ -69,7 +73,7 @@ theorem twoConnected_deleteVertices_of_connectedOn
   rw [support_deleteVertices_of_connectedOn hconn]
   exact hconn
 
-/-- 가정과 `v`의 이웃이 둘 이상이라는 조건에서 `H`는 2-연결이다. -/
+/-- Under the hypothesis, and if `v` has at least two neighbors, `H` is 2-connected. -/
 theorem twoConnected_of_connectedOn_deleteVertices (hdeg : 2 ≤ (H.neighborSet v).ncard)
     (hconn : ConnectedOn (deleteVertices H {v}) 2 (H.support \ {v})) : TwoConnected H := by
   refine ⟨?_, ?_⟩
@@ -77,7 +81,7 @@ theorem twoConnected_of_connectedOn_deleteVertices (hdeg : 2 ≤ (H.neighborSet 
     have hsub : (H.support \ {v}).ncard ≤ H.support.ncard := Set.ncard_le_ncard Set.sdiff_subset
     omega
   · intro S hS
-    -- `S_H \ S`의 각 점은 `H - S`에서 `(S_H \ {v}) \ S`의 점과 이어진다
+    -- each vertex of `S_H \ S` is connected in `H - S` to a vertex of `(S_H \ {v}) \ S`
     have hreach : ∀ u ∈ H.support \ S,
         ∃ u' ∈ (H.support \ {v}) \ S, (deleteVertices H S).Reachable u u' := by
       intro u hu
@@ -95,11 +99,12 @@ theorem twoConnected_of_connectedOn_deleteVertices (hdeg : 2 ≤ (H.neighborSet 
     obtain ⟨w', hw', hw'r⟩ := hreach w hw
     exact hu'r.trans (((hconn.2 S hS u' hu' w' hw').mono hle).trans hw'r.symm)
 
-/-! ### 면 위의 시작점과 좋은 다트 `e` -/
+/-! ### Start vertices on a face and the good dart `e` -/
 
 variable [DecidableEq V]
 
-/-- 2-연결 종수 0에서 `0 < i < L`이면 `φ^i d`의 시작점은 `d`의 시작점과 다르다 (J1). -/
+/-- For a 2-connected graph and genus 0, if `0 < i < L`, then the start vertex of `φ^i d` differs
+from the start vertex of `d` (J1). -/
 theorem fst_facePerm_pow_ne (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d : G.Dart) {i : ℕ} (hi : 0 < i)
     (hiL : i < R.faceLength d) : ((R.facePerm ^ i) d).fst ≠ d.fst := by
@@ -109,14 +114,15 @@ theorem fst_facePerm_pow_ne (hG : TwoConnected G)
   have := R.eq_of_facePerm_pow_eq hiL (R.faceLength_pos d) (by simpa using hd)
   omega
 
-/-- `i + 2 ≤ L`이면 `φ^i d`의 끝점은 `d`의 시작점과 다르다. -/
+/-- If `i + 2 ≤ L`, the end vertex of `φ^i d` differs from the start vertex of `d`. -/
 theorem snd_facePerm_pow_ne (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d : G.Dart) {i : ℕ}
     (hi : i + 2 ≤ R.faceLength d) : ((R.facePerm ^ i) d).snd ≠ d.fst := by
   rw [← R.facePerm_fst, ← Perm.mul_apply, ← pow_succ']
   exact R.fst_facePerm_pow_ne hG hR d (Nat.succ_pos i) (by omega)
 
-/-- `φ(d₀)`는 `d₀`의 시작점에 닿지 않으므로 그 점을 지운 그래프의 다트로 옮길 수 있다. -/
+/-- `φ(d₀)` does not meet the start vertex of `d₀`, so it transports to a dart of the graph with
+that vertex deleted. -/
 theorem exists_delVertex_dart_facePerm (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d₀ : G.Dart) :
     ∃ e : (deleteVertices G {d₀.fst}).Dart, e.toProd = (R.facePerm d₀).toProd := by
@@ -126,7 +132,7 @@ theorem exists_delVertex_dart_facePerm (hG : TwoConnected G)
   refine ⟨⟨(R.facePerm d₀).toProd, (R.facePerm d₀).adj, fun h ↦ ?_, fun h ↦ h2 h⟩, rfl⟩
   exact d₀.adj.ne ((Set.mem_singleton_iff.1 h).symm.trans (R.facePerm_fst d₀))
 
-/-! ### 지운 회전 체계의 면 순열 한 걸음 -/
+/-! ### One step of the face permutation after deletion -/
 
 theorem delVertex_facePerm_toProd_of_snd_ne {v : V} (x : (deleteVertices G {v}).Dart)
     (y : G.Dart) (hxy : x.toProd = y.toProd) (h : (R.facePerm y).snd ≠ v) :
@@ -142,10 +148,10 @@ theorem delVertex_facePerm_toProd_of_snd_eq {v : V} (x : (deleteVertices G {v}).
   have h' : (R.rot y.symm).snd = v := h
   simp [h']
 
-/-! ### 면 조각 `P_j` -/
+/-! ### The face segments `P_j` -/
 
 omit [DecidableEq V] in
-/-- 면에서 `d` 바로 앞의 다트는 `ρ⁻¹ d`의 역다트다. -/
+/-- On a face, the dart just before `d` is the reverse of `ρ⁻¹ d`. -/
 theorem facePerm_pow_faceLength_sub_one (d : G.Dart) :
     (R.facePerm ^ (R.faceLength d - 1)) d = (R.rot⁻¹ d).symm := by
   apply R.facePerm.injective
@@ -153,10 +159,11 @@ theorem facePerm_pow_faceLength_sub_one (d : G.Dart) :
     R.facePerm_pow_faceLength, facePerm_apply, Dart.symm_symm]
   simp
 
-/-- 면 조각 `P_j`의 길이 `ℓ_j = L_j - 2` (`d_j = ρ⁻¹^j d₀`, `L_j`는 `d_j`의 면 길이). -/
+/-- The length `ℓ_j = L_j - 2` of the face segment `P_j` (`d_j = ρ⁻¹^j d₀`, and `L_j` is the
+face length of `d_j`). -/
 noncomputable def sectorLen (d₀ : G.Dart) (j : ℕ) : ℕ := R.faceLength ((R.rot⁻¹ ^ j) d₀) - 2
 
-/-- 조각 `P_j`가 시작하는 위치 `s_j = ℓ_0 + ⋯ + ℓ_{j-1}`. -/
+/-- The position `s_j = ℓ_0 + ⋯ + ℓ_{j-1}` where the segment `P_j` starts. -/
 noncomputable def sectorStart (d₀ : G.Dart) (j : ℕ) : ℕ :=
   ∑ t ∈ Finset.range j, R.sectorLen d₀ t
 
@@ -185,7 +192,7 @@ theorem sectorStart_lt (hG : TwoConnected G) (d₀ : G.Dart) {j n : ℕ} (hjn : 
   omega
 
 omit [Finite V] [DecidableEq V] in
-/-- `s_n`보다 작은 위치는 어떤 조각 `P_j` (`j < n`)의 `i`번째 자리다. -/
+/-- A position below `s_n` is the `i`-th place of some segment `P_j` with `j < n`. -/
 theorem exists_sector_of_lt (d₀ : G.Dart) :
     ∀ n k, k < R.sectorStart d₀ n →
       ∃ j < n, ∃ i < R.sectorLen d₀ j, k = R.sectorStart d₀ j + i := by
@@ -200,7 +207,8 @@ theorem exists_sector_of_lt (d₀ : G.Dart) :
       exact ⟨j, by omega, i, hi, rfl⟩
     · exact ⟨n, by omega, k - R.sectorStart d₀ n, by omega, by omega⟩
 
-/-- 조각 안에서는 지운 회전의 면 순열이 원래 면 순열과 같다. -/
+/-- Inside a segment, the face permutation after deletion agrees with the original face
+permutation. -/
 theorem sector_iterate (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d₀ : G.Dart)
     (e : (deleteVertices G {d₀.fst}).Dart) (j : ℕ)
@@ -221,7 +229,7 @@ theorem sector_iterate (hG : TwoConnected G)
     rw [← Perm.mul_apply, ← pow_succ', ← hdv]
     exact R.snd_facePerm_pow_ne hG hR _ (by omega)
 
-/-- 조각 `P_j`의 마지막 다트 다음은 조각 `P_{j+1}`의 첫 다트다. -/
+/-- After the last dart of the segment `P_j` comes the first dart of `P_{j+1}`. -/
 theorem sector_iterate_next (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d₀ : G.Dart)
     (e : (deleteVertices G {d₀.fst}).Dart) (j : ℕ)
@@ -248,7 +256,7 @@ theorem sector_iterate_next (hG : TwoConnected G)
   rw [hs, pow_succ' (R.delVertex d₀.fst).facePerm, Perm.mul_apply,
     R.delVertex_facePerm_toProd_of_snd_eq _ _ hlast hv, hy, facePerm_apply]
 
-/-- `φ'^{s_j} e`는 조각 `P_j`의 첫 다트 `φ(d_j)`다. -/
+/-- `φ'^{s_j} e` is the first dart `φ(d_j)` of the segment `P_j`. -/
 theorem sector_iterate_start (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d₀ : G.Dart)
     (e : (deleteVertices G {d₀.fst}).Dart) (he : e.toProd = (R.facePerm d₀).toProd) (j : ℕ) :
@@ -258,7 +266,7 @@ theorem sector_iterate_start (hG : TwoConnected G)
   | zero => simpa [sectorStart] using he
   | succ j ih => exact R.sector_iterate_next hG hR d₀ e j ih
 
-/-- `j ≠ j'`(`< N`)이면 `d_j`, `d_j'`은 서로 다른 면에 있다 (J1). -/
+/-- If `j ≠ j'` (both `< N`), then `d_j` and `d_j'` lie on different faces (J1). -/
 theorem not_sameCycle_sector (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d₀ : G.Dart) {j j' : ℕ}
     (hj : j < (G.neighborSet d₀.fst).ncard) (hj' : j' < (G.neighborSet d₀.fst).ncard)
@@ -269,7 +277,7 @@ theorem not_sameCycle_sector (hG : TwoConnected G)
   rw [← R.minimalPeriod_rot_inv d₀] at hj hj'
   exact hne (iterate_injOn_Iio_minimalPeriod hj hj' (by simpa only [coe_pow] using heq))
 
-/-- `M = s_N`보다 작은 지수에서 `φ'^k e`는 서로 다르다. -/
+/-- The darts `φ'^k e` are distinct for exponents below `M = s_N`. -/
 theorem delVertex_facePerm_pow_inj (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d₀ : G.Dart)
     (e : (deleteVertices G {d₀.fst}).Dart) (he : e.toProd = (R.facePerm d₀).toProd)
@@ -300,7 +308,7 @@ theorem delVertex_facePerm_pow_inj (hG : TwoConnected G)
   have := R.eq_of_facePerm_pow_eq (by omega) (by omega) hH
   omega
 
-/-- 고정한 면의 길이는 조각 길이의 합 `M = Σ_{j<N} (L_j - 2)`이다. -/
+/-- The fixed face has length `M = Σ_{j<N} (L_j - 2)`, the sum of the segment lengths. -/
 theorem faceLength_delVertex_eq_sectorStart (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d₀ : G.Dart)
     (e : (deleteVertices G {d₀.fst}).Dart) (he : e.toProd = (R.facePerm d₀).toProd) :
@@ -324,10 +332,11 @@ theorem faceLength_delVertex_eq_sectorStart (hG : TwoConnected G)
     (by rw [(R.delVertex d₀.fst).facePerm_pow_faceLength, pow_zero, Perm.one_apply])
   omega
 
-/-! ### 순환 수열의 길이와 주정리 -/
+/-! ### The length of the cyclic sequence and the main theorem -/
 
-/-- 면을 따라가는 순환 수열의 길이는 그 면의 길이다. `exists_cyclicSequence_face`가 길이를
-존재로 감추므로, 수열에서 길이를 되찾는다 (J1로 `φ^m d = d`). -/
+/-- The length of a cyclic sequence following a face is the face length.
+`exists_cyclicSequence_face` hides the length in an existential, so we recover it from the
+sequence (by J1, `φ^m d = d`). -/
 theorem eq_faceLength_of_cyclicSequence (hG : TwoConnected G)
     (hR : R.eulerChar = 2 * Nat.card G.ConnectedComponent) (d : G.Dart) {m : ℕ}
     (C : CyclicSequence G m) (hC : ∀ k : ℕ, C (k : ZMod m) = ((R.facePerm ^ k) d).fst) :
@@ -347,9 +356,11 @@ theorem eq_faceLength_of_cyclicSequence (hG : TwoConnected G)
       rw [← coe_pow]
       exact heq)
 
-/-- 블루프린트 `lem:J2`. `v`의 이웃이 둘 이상이고 `S_H \ {v}`가 `H - v`에서 2-연결이면, 실제 지운
-회전 체계 `R.delVertex v`에서 `φ(d₀)`와 양 끝이 같은 다트 `e`의 면은 순환 꼭짓점 수열 `C`이고,
-`v` 둘레 회전의 역순 이웃 `u_j = (ρ⁻¹^j d₀).snd`를 위치 `p_0 = 0 < p_1 < ⋯ < p_{N-1} < m`에서 지난다. -/
+/-- Blueprint `lem:J2`. Let `R` be a genus-0 rotation system. If `v` has at least two neighbors
+and `S_H \ {v}` is 2-connected in `H - v`, then in the actual rotation system `R.delVertex v`,
+the face of the dart `e` with the same endpoints as `φ(d₀)` is a cyclic vertex sequence `C`. It
+passes through the neighbors `u_j = (ρ⁻¹^j d₀).snd` of `v`, in the reverse order of the rotation
+around `v`, at positions `p_0 = 0 < p_1 < ⋯ < p_{N-1} < m`. -/
 theorem exists_cyclicSequence_delVertex_neighbors {H : SimpleGraph V} (R : RotationSystem H)
     (hR : R.eulerChar = 2 * Nat.card H.ConnectedComponent) (v : V)
     (hdeg : 2 ≤ (H.neighborSet v).ncard)

@@ -1,9 +1,10 @@
 import Kuratowski.Sum
 
 /-!
-# 한 점에서 평면 그래프 붙이기
+# Gluing planar graphs at one vertex
 
-변이 서로소인 두 그래프의 다트를 합치고, 공통 꼭짓점의 두 회전 순환을 호환으로 잇는다.
+Combine the darts of two edge-disjoint graphs, and join the two rotation cycles at the common
+vertex by a transposition.
 -/
 
 namespace Kuratowski
@@ -12,7 +13,7 @@ open SimpleGraph Equiv Equiv.Perm
 
 variable {V : Type*} {G H : SimpleGraph V}
 
-/-- 공유하는 지지 집합이 한 점 이하면 공유하는 변은 없다. -/
+/-- If the supports share at most one vertex, the graphs share no edge. -/
 theorem disjoint_of_support_inter_subsingleton (hs : (G.support ∩ H.support).Subsingleton) :
     Disjoint G H := by
   refine disjoint_iff_inf_le.mpr ?_
@@ -20,7 +21,7 @@ theorem disjoint_of_support_inter_subsingleton (hs : (G.support ∩ H.support).S
   exact (huv.1.ne (hs ⟨huv.1.mem_support_left, huv.2.mem_support_left⟩
     ⟨huv.1.mem_support_right, huv.2.mem_support_right⟩)).elim
 
-/-- 변이 서로소인 그래프의 합집합 다트는 두 다트 집합의 서로소 합이다. -/
+/-- The darts of the union of edge-disjoint graphs are the disjoint sum of the two dart sets. -/
 noncomputable def dartEquivSup (hd : Disjoint G H) : G.Dart ⊕ H.Dart ≃ (G ⊔ H).Dart := by
   classical
   exact
@@ -52,7 +53,7 @@ noncomputable def dartEquivSup (hd : Disjoint G H) : G.Dart ⊕ H.Dart ≃ (G �
 
 namespace RotationSystem
 
-/-- 두 그래프의 유일한 공통 꼭짓점에서 회전 순환들을 호환으로 잇는다. -/
+/-- Join the rotation cycles at the unique common vertex of the two graphs by a transposition. -/
 noncomputable def glue [Finite V] (hd : Disjoint G H) (R : RotationSystem G)
     (S : RotationSystem H) (p : G.Dart) (q : H.Dart) (hpq : p.fst = q.fst)
     (hshare : ∀ (a : G.Dart) (b : H.Dart), a.fst = b.fst → a.fst = p.fst) :
@@ -107,7 +108,7 @@ noncomputable def glue [Finite V] (hd : Disjoint G H) (R : RotationSystem G)
     · exact (hcross d' d hd'.symm).symm
     · exact hkeep (hright (S.sameCycle_rot d d' hd'))
 
-/-- 공통 꼭짓점의 두 회전을 이으면 두 면 순환이 하나로 합쳐진다. -/
+/-- Joining the two rotations at the common vertex merges two face cycles into one. -/
 theorem orbitCount_glue_facePerm [Finite V] (hd : Disjoint G H) (R : RotationSystem G)
     (S : RotationSystem H) (p : G.Dart) (q : H.Dart) (hpq : p.fst = q.fst)
     (hshare : ∀ (a : G.Dart) (b : H.Dart), a.fst = b.fst → a.fst = p.fst) :
@@ -148,7 +149,7 @@ theorem orbitCount_glue_facePerm [Finite V] (hd : Disjoint G H) (R : RotationSys
 
 end RotationSystem
 
-/-! ### 한 점 합집합의 연결 성분 -/
+/-! ### Connected components of a one-vertex union -/
 
 private abbrev SupportComponent (G : SimpleGraph V) :=
   (G.induce G.support).ConnectedComponent
@@ -301,7 +302,8 @@ private theorem unlabel_classify (v : V) (hvG : v ∈ G.support) (hvH : v ∈ H.
     · simp only [componentLabel, huG, huH, ↓reduceDIte]
       rfl
 
-/-- 모든 공통 지지점이 양쪽에서 같은 지정 성분에 있으면 지지 성분 하나씩만 합쳐진다. -/
+/-- If every common support vertex lies in the same designated component on both sides, exactly
+one support component from each side is merged. -/
 theorem card_connectedComponent_sup_of_shared_component [Finite V] {v : V}
     (hvG : v ∈ G.support) (hvH : v ∈ H.support)
     (hs : ∀ u (huG : u ∈ G.support) (huH : u ∈ H.support),
@@ -346,7 +348,8 @@ theorem card_connectedComponent_sup_of_shared_component [Finite V] {v : V}
     Nat.card V at hN
   omega
 
-/-- 공통 변의 두 끝점에서만 만나는 두 그래프의 연결 성분 수. -/
+/-- The number of connected components of two graphs meeting only at the two endpoints of a
+common edge. -/
 theorem card_connectedComponent_sup_of_inter_eq_edge [Finite V] {x y : V}
     (hGxy : G.Adj x y) (hHxy : H.Adj x y) (hs : G.support ∩ H.support = {x, y}) :
     Nat.card (G ⊔ H).ConnectedComponent + Nat.card V =
@@ -366,7 +369,8 @@ theorem card_connectedComponent_sup_of_inter_eq_edge [Finite V] {x y : V}
   rw [hs, Set.ncard_pair hGxy.ne] at hc
   omega
 
-/-- 한 점에서 만나는 그래프의 연결 성분 수를 고정된 꼭짓점 타입에서 센다. -/
+/-- The number of connected components of graphs meeting at one vertex, counted on the fixed
+vertex type. -/
 theorem card_connectedComponent_sup_of_inter_eq_singleton [Finite V] {v : V}
     (hs : G.support ∩ H.support = {v}) :
     Nat.card (G ⊔ H).ConnectedComponent + Nat.card V =
@@ -382,7 +386,8 @@ theorem card_connectedComponent_sup_of_inter_eq_singleton [Finite V] {v : V}
   rw [hs, Set.ncard_singleton] at h
   omega
 
-/-- 합집합의 고립점 수에는 지지 집합 교집합의 크기만큼 보정이 들어간다. -/
+/-- The number of isolated vertices of the union is corrected by the size of the intersection of
+the supports. -/
 theorem ncard_isolated_sup_add [Finite V] :
     {u | (G ⊔ H).IsIsolated u}.ncard + Nat.card V =
       {u | G.IsIsolated u}.ncard + {u | H.IsIsolated u}.ncard +
@@ -401,14 +406,16 @@ theorem ncard_isolated_sup_add [Finite V] :
   have hI := Set.ncard_union_add_ncard_inter G.support H.support
   omega
 
-/-- 한 점에서 만나는 그래프의 고립점 수를 고정된 꼭짓점 타입에서 센다. -/
+/-- The number of isolated vertices of graphs meeting at one vertex, counted on the fixed vertex
+type. -/
 theorem ncard_isolated_sup_of_inter_eq_singleton [Finite V] {v : V}
     (hs : G.support ∩ H.support = {v}) :
     {u | (G ⊔ H).IsIsolated u}.ncard + Nat.card V =
       {u | G.IsIsolated u}.ncard + {u | H.IsIsolated u}.ncard + 1 := by
   simpa only [hs, Set.ncard_singleton] using ncard_isolated_sup_add (G := G) (H := H)
 
-/-- 블루프린트 `lem:sum1`: 지지 집합이 꼭짓점 하나에서 만나는 평면 그래프의 합집합은 평면이다. -/
+/-- Blueprint `lem:sum1`: the union of planar graphs whose supports meet in one vertex is
+planar. -/
 theorem IsPlanar.sup_of_inter_eq_singleton [Finite V] {v : V} (hG : IsPlanar G) (hH : IsPlanar H)
     (hs : G.support ∩ H.support = {v}) : IsPlanar (G ⊔ H) := by
   classical

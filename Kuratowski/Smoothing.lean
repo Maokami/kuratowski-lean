@@ -2,23 +2,19 @@ import Kuratowski.Basic
 import Kuratowski.Components
 
 /-!
-# 세분의 역: 차수 2인 꼭짓점 펴기
+# Reversing an edge subdivision
 
-`H₂ = subdivideEdge H x y w`는 `H`의 변 `xy`를 `H`의 고립점 `w`로 세분한 그래프다
-(`xy`를 지우고 `xw`, `wy`를 넣는다). `H₂`가 평면 그래프이면 `H`도 평면 그래프다
-(`IsPlanar.of_subdivideEdge`).
+`H₂ = subdivideEdge H x y w` replaces an edge `xy` by `xw` and `wy`, where `w`
+is isolated in `H`. If `H₂` is planar, so is `H` (`IsPlanar.of_subdivideEdge`).
 
-회전 체계 `R₂`에서 `w`의 두 다트 `(w, x)`, `(w, y)`를 빼고 다트 `(x, w)`, `(y, w)`를 각각
-`(x, y)`, `(y, x)`로 이름만 바꾸면 `H`의 회전 체계가 된다. 면 순열로 보면 `x → w → y`를 지나던
-면이 `x → y`로 바로 가게 되는 것이고, 이는 면 순열에서 `(w, x)`, `(w, y)`를 잘라 낸 것과 같다.
-두 다트 모두 고정점이 아니므로 면의 수는 그대로다. 대신 `w`가 고립점이 되어 면이 하나,
-성분이 하나 늘고, 변은 하나 준다. 그래서 `V - E + F = 2c`가 유지된다.
+Starting from a rotation system on `H₂`, remove the darts `(w, x)` and `(w, y)`
+and rename `(x, w)`, `(y, w)` to `(x, y)`, `(y, x)`. The face permutation skips
+the removed darts, preserving its orbit count. The vertex `w` becomes isolated,
+so the total face and component counts each increase by one, while the edge count
+decreases by one. Thus the equation `|V| - |E| + |F| = 2c` is preserved.
 -/
 
 namespace Kuratowski
-
--- `include hxy hw`로 두 가설을 모든 보조정리의 명시적 인자로 고정해 두었다 (호출 형태를 맞추려고).
-set_option linter.unusedSectionVars false
 
 open Equiv Equiv.Perm SimpleGraph
 
@@ -26,10 +22,10 @@ variable {V : Type*} [DecidableEq V] {H : SimpleGraph V} {x y w : V}
 
 namespace Smooth
 
-/-- `H₂`의 다트 `(p, q)` (`p ≠ w`)에 대응하는 `H`의 다트의 끝점. -/
+/-- Endpoint in `H` corresponding to a dart `(p, q)` of `H₂` with `p ≠ w`. -/
 def tgt (x y w p q : V) : V := if q = w then (if p = x then y else x) else q
 
-/-- `H`의 다트 `(p, q)`에 대응하는 `H₂`의 다트의 끝점. -/
+/-- Endpoint in `H₂` corresponding to a dart `(p, q)` of `H`. -/
 def src (x y w p q : V) : V := if s(p, q) = s(x, y) then w else q
 
 section Adj
@@ -37,10 +33,13 @@ section Adj
 variable (hxy : H.Adj x y) (hw : H.IsIsolated w)
 include hxy hw
 
+omit [DecidableEq V] in
 lemma x_ne_w : x ≠ w := (ne_of_subdivide hxy hw).1
 
+omit [DecidableEq V] in
 lemma w_ne_y : w ≠ y := (ne_of_subdivide hxy hw).2
 
+omit [DecidableEq V] in
 lemma adj_w_iff {z : V} : (subdivideEdge H x y w).Adj w z ↔ z = x ∨ z = y := by
   rw [subdivideEdge_adj (x_ne_w hxy hw) (w_ne_y hxy hw)]
   constructor
@@ -56,6 +55,7 @@ lemma adj_w_iff {z : V} : (subdivideEdge H x y w).Adj w z ↔ z = x ∨ z = y :=
     · exact Or.inr (Or.inl Sym2.eq_swap)
     · exact Or.inr (Or.inr rfl)
 
+omit [DecidableEq V] in
 lemma adj_ne_w_iff {p q : V} (hp : p ≠ w) (hq : q ≠ w) :
     (subdivideEdge H x y w).Adj p q ↔ H.Adj p q ∧ s(p, q) ≠ s(x, y) := by
   rw [subdivideEdge_adj (x_ne_w hxy hw) (w_ne_y hxy hw)]
@@ -70,8 +70,10 @@ lemma adj_ne_w_iff {p q : V} (hp : p ≠ w) (hq : q ≠ w) :
       · exact absurd h2 hq
   · exact Or.inl
 
+omit [DecidableEq V] hxy in
 lemma fst_ne_w (a : H.Dart) : a.fst ≠ w := fun h => hw a.snd (h ▸ a.adj)
 
+omit [DecidableEq V] hxy in
 lemma snd_ne_w (a : H.Dart) : a.snd ≠ w := fun h => hw a.fst (h ▸ a.adj.symm)
 
 lemma tgt_adj (z : (subdivideEdge H x y w).Dart) (hz : z.fst ≠ w) :
@@ -93,7 +95,7 @@ lemma src_adj (a : H.Dart) : (subdivideEdge H x y w).Adj a.fst (src x y w a.fst 
   · rcases Sym2.eq_iff.1 he with ⟨h1, _⟩ | ⟨h1, _⟩ <;> rw [h1]
     · exact ((adj_w_iff hxy hw).2 (Or.inl rfl)).symm
     · exact ((adj_w_iff hxy hw).2 (Or.inr rfl)).symm
-  · exact (adj_ne_w_iff hxy hw (fst_ne_w hxy hw a) (snd_ne_w hxy hw a)).2 ⟨a.adj, he⟩
+  · exact (adj_ne_w_iff hxy hw (fst_ne_w hw a) (snd_ne_w hw a)).2 ⟨a.adj, he⟩
 
 lemma src_tgt (z : (subdivideEdge H x y w).Dart) (hz : z.fst ≠ w) :
     src x y w z.fst (tgt x y w z.fst z.snd) = z.snd := by
@@ -119,25 +121,27 @@ lemma tgt_src (a : H.Dart) : tgt x y w a.fst (src x y w a.fst a.snd) = a.snd := 
     rcases Sym2.eq_iff.1 he with ⟨h1, h2⟩ | ⟨h1, h2⟩
     · rw [ite_eq_left h1, h2]
     · rw [ite_eq_right (by rw [h1]; exact hxy.ne.symm), h2]
-  · rw [ite_eq_right he, ite_eq_right (snd_ne_w hxy hw a)]
+  · rw [ite_eq_right he, ite_eq_right (snd_ne_w hw a)]
 
-/-- `w`에서 나가지 않는 `H₂`의 다트와 `H`의 다트의 일대일 대응. `(x, w) ↦ (x, y)`,
-`(y, w) ↦ (y, x)`이고 나머지는 그대로다. -/
+/-- Darts of `H₂` not starting at `w` correspond to darts of `H`:
+`(x, w) ↦ (x, y)`, `(y, w) ↦ (y, x)`, with all other darts unchanged. -/
 def dartEquiv : {z : (subdivideEdge H x y w).Dart // z.fst ≠ w} ≃ H.Dart where
   toFun z := ⟨(z.1.fst, tgt x y w z.1.fst z.1.snd), tgt_adj hxy hw z.1 z.2⟩
-  invFun a := ⟨⟨(a.fst, src x y w a.fst a.snd), src_adj hxy hw a⟩, fst_ne_w hxy hw a⟩
+  invFun a := ⟨⟨(a.fst, src x y w a.fst a.snd), src_adj hxy hw a⟩, fst_ne_w hw a⟩
   left_inv z := Subtype.ext (Dart.ext _ _ (Prod.ext rfl (src_tgt hxy hw z.1 z.2)))
   right_inv a := Dart.ext _ _ (Prod.ext rfl (tgt_src hxy hw a))
 
-/-- `w`에서 `x`로 가는 다트. -/
+/-- The dart from `w` to `x`. -/
 def dwx : (subdivideEdge H x y w).Dart := ⟨(w, x), (adj_w_iff hxy hw).2 (Or.inl rfl)⟩
 
-/-- `w`에서 `y`로 가는 다트. -/
+/-- The dart from `w` to `y`. -/
 def dwy : (subdivideEdge H x y w).Dart := ⟨(w, y), (adj_w_iff hxy hw).2 (Or.inr rfl)⟩
 
+omit [DecidableEq V] in
 lemma dwx_ne_dwy : dwx hxy hw ≠ dwy hxy hw := fun h =>
   hxy.ne (congrArg (fun z : (subdivideEdge H x y w).Dart => z.snd) h)
 
+omit [DecidableEq V] in
 lemma fst_eq_w_iff (z : (subdivideEdge H x y w).Dart) :
     z.fst = w ↔ z = dwx hxy hw ∨ z = dwy hxy hw := by
   constructor
@@ -156,42 +160,48 @@ variable [Finite V] (hxy : H.Adj x y) (hw : H.IsIsolated w)
   (R₂ : RotationSystem (subdivideEdge H x y w))
 include hxy hw
 
+omit [DecidableEq V] [Finite V] hxy hw in
 lemma rot_pred (z : (subdivideEdge H x y w).Dart) : (R₂.rot z).fst ≠ w ↔ z.fst ≠ w := by
   rw [R₂.fst_rot]
 
-/-- 펴진 그래프 `H`의 회전 체계. -/
+/-- The induced rotation system on the smoothed graph `H`. -/
 def rotH : RotationSystem H where
   rot := (dartEquiv hxy hw).permCongr
-    (R₂.rot.subtypePerm (p := fun z => z.fst ≠ w) (rot_pred hxy hw R₂))
+    (R₂.rot.subtypePerm (p := fun z => z.fst ≠ w) (rot_pred R₂))
   fst_rot a := R₂.fst_rot _
   sameCycle_rot a a' h := by
     rw [← (dartEquiv hxy hw).apply_symm_apply a, ← (dartEquiv hxy hw).apply_symm_apply a',
       sameCycle_permCongr_iff, sameCycle_subtypePerm]
     exact R₂.sameCycle_rot _ _ h
 
+omit [Finite V] in
 lemma rot_dwx : R₂.rot (dwx hxy hw) = dwy hxy hw := by
   have h := (fst_eq_w_iff hxy hw (R₂.rot (dwx hxy hw))).1 (R₂.fst_rot _)
   rcases h with h | h
   · exact absurd h (R₂.rot_ne_self (w := y) ((adj_w_iff hxy hw).2 (Or.inr rfl)) hxy.ne.symm)
   · exact h
 
+omit [Finite V] in
 lemma rot_dwy : R₂.rot (dwy hxy hw) = dwx hxy hw := by
   have h := (fst_eq_w_iff hxy hw (R₂.rot (dwy hxy hw))).1 (R₂.fst_rot _)
   rcases h with h | h
   · exact h
   · exact absurd h (R₂.rot_ne_self (w := x) ((adj_w_iff hxy hw).2 (Or.inl rfl)) hxy.ne)
 
-/-- `H₂`의 면 순열 `φ₂`에서 `(w, x)`, `(w, y)`를 잘라 낸 순열 (`H₂`의 다트 전체 위). -/
+/-- Cut `(w, x)` and `(w, y)` out of the face permutation on all darts of `H₂`. -/
 def face₂ : Perm (subdivideEdge H x y w).Dart :=
   cut (cut R₂.facePerm (dwx hxy hw)) (dwy hxy hw)
 
+omit [Finite V] in
 lemma face₂_dwx : face₂ hxy hw R₂ (dwx hxy hw) = dwx hxy hw := by
   unfold face₂
   rw [cut_apply_of_ne _ (dwx_ne_dwy hxy hw), cut_apply_self]
   simp [dwx_ne_dwy hxy hw]
 
+omit [Finite V] in
 lemma face₂_dwy : face₂ hxy hw R₂ (dwy hxy hw) = dwy hxy hw := cut_apply_self _ _
 
+omit [Finite V] in
 lemma face₂_pred (z : (subdivideEdge H x y w).Dart) :
     (face₂ hxy hw R₂ z).fst ≠ w ↔ z.fst ≠ w := by
   rw [not_iff_not, fst_eq_w_iff hxy hw, fst_eq_w_iff hxy hw]
@@ -203,8 +213,9 @@ lemma face₂_pred (z : (subdivideEdge H x y w).Dart) :
     · exact Or.inl (face₂_dwx hxy hw R₂)
     · exact Or.inr (face₂_dwy hxy hw R₂)
 
-/-- `w`에서 나가지 않는 다트에서 `φ₂`의 값이 `w`에서 나가지 않으면 잘라 내기는 아무 일도
-하지 않는다. -/
+omit [Finite V] in
+/-- The cuts leave a dart unchanged when neither it nor its face successor
+starts at `w`. -/
 lemma face₂_of_ne (z : (subdivideEdge H x y w).Dart) (h1 : z.fst ≠ w)
     (h2 : (R₂.facePerm z).fst ≠ w) : face₂ hxy hw R₂ z = R₂.facePerm z := by
   have hz1 : z ≠ dwx hxy hw := fun h => h1 (by rw [h]; rfl)
@@ -214,6 +225,7 @@ lemma face₂_of_ne (z : (subdivideEdge H x y w).Dart) (h1 : z.fst ≠ w)
   unfold face₂
   rw [cut_apply_of_ne _ hz2, cut_apply_of_ne _ hz1, ite_eq_right hf1, ite_eq_right hf2]
 
+omit [Finite V] in
 lemma face₂_dwx_symm :
     face₂ hxy hw R₂ (dwx hxy hw).symm = R₂.rot (dwy hxy hw).symm := by
   have hne : (dwx hxy hw).symm ≠ dwx hxy hw := Dart.symm_ne _
@@ -230,6 +242,7 @@ lemma face₂_dwx_symm :
   rw [cut_apply_of_ne _ hne', cut_apply_of_ne _ hne, hφ, ite_eq_right (dwx_ne_dwy hxy hw).symm,
     ite_eq_left rfl, cut_apply_of_ne _ (dwx_ne_dwy hxy hw).symm, ite_eq_right hφy, RotationSystem.facePerm_apply]
 
+omit [Finite V] in
 lemma face₂_dwy_symm :
     face₂ hxy hw R₂ (dwy hxy hw).symm = R₂.rot (dwx hxy hw).symm := by
   have hne : (dwy hxy hw).symm ≠ dwx hxy hw := fun h =>
@@ -246,7 +259,8 @@ lemma face₂_dwy_symm :
   rw [cut_apply_of_ne _ hne', cut_apply_of_ne _ hne, ite_eq_left hφ]
   rw [ite_eq_right hφx, RotationSystem.facePerm_apply]
 
-/-- 핵심 대응: `H`의 다트 `a`에 대해 `rot₂ (a.symm에 대응하는 다트) = face₂ (a에 대응하는 다트)`. -/
+omit [Finite V] in
+/-- The dart correspondence intertwines rotation after reversal with the cut face permutation. -/
 lemma rot_symm_eq_face₂ (a : H.Dart) :
     R₂.rot ((dartEquiv hxy hw).symm a.symm).1 =
       face₂ hxy hw R₂ ((dartEquiv hxy hw).symm a).1 := by
@@ -287,14 +301,14 @@ lemma rot_symm_eq_face₂ (a : H.Dart) :
       show src x y w a.fst a.snd ≠ w
       unfold src
       rw [ite_eq_right he]
-      exact snd_ne_w hxy hw a
-    rw [hz, face₂_of_ne hxy hw R₂ z (fst_ne_w hxy hw a) h2, RotationSystem.facePerm_apply]
+      exact snd_ne_w hw a
+    rw [hz, face₂_of_ne hxy hw R₂ z (fst_ne_w hw a) h2, RotationSystem.facePerm_apply]
 
 lemma rotH_facePerm :
     (rotH hxy hw R₂).facePerm = (dartEquiv hxy hw).permCongr
       ((face₂ hxy hw R₂).subtypePerm (p := fun z => z.fst ≠ w) (face₂_pred hxy hw R₂)) := by
   ext a : 1
-  show (dartEquiv hxy hw) (R₂.rot.subtypePerm (p := fun z => z.fst ≠ w) (rot_pred hxy hw R₂)
+  show (dartEquiv hxy hw) (R₂.rot.subtypePerm (p := fun z => z.fst ≠ w) (rot_pred R₂)
       ((dartEquiv hxy hw).symm a.symm)) =
     (dartEquiv hxy hw) ((face₂ hxy hw R₂).subtypePerm (p := fun z => z.fst ≠ w)
       (face₂_pred hxy hw R₂) ((dartEquiv hxy hw).symm a))
@@ -302,7 +316,7 @@ lemma rotH_facePerm :
   apply Subtype.ext
   exact rot_symm_eq_face₂ hxy hw R₂ a
 
-/-- 펴도 면 순열의 순환 수는 그대로다. -/
+/-- Smoothing preserves the number of face-permutation orbits. -/
 lemma orbitCount_rotH : orbitCount (rotH hxy hw R₂).facePerm = orbitCount R₂.facePerm := by
   have hfix : ∀ z, ¬ (z.fst ≠ w) → face₂ hxy hw R₂ z = z := by
     intro z hz
@@ -341,8 +355,7 @@ end Rot
 
 end Smooth
 
-/-- **세분의 역**: 변 `xy`를 고립점 `w`로 세분한 그래프가 평면 그래프이면 원래 그래프도
-평면 그래프다. -/
+/-- If subdividing an edge through an isolated vertex gives a planar graph, so is the original. -/
 theorem IsPlanar.of_subdivideEdge [Finite V] (hxy : H.Adj x y) (hw : H.IsIsolated w)
     (h : IsPlanar (subdivideEdge H x y w)) : IsPlanar H := by
   obtain ⟨R₂, hR₂⟩ := h

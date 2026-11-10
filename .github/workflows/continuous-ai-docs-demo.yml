@@ -18,7 +18,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-    uses: Maokami/continuous-ai-kit/.github/workflows/scan-report.yml@d17b8cf395a9bc6fc48799850f4d80c72386e767
+    uses: Maokami/continuous-ai-kit/.github/workflows/scan-report.yml@55a5329192df029d909bdfbe8d936088dd16e2a0
     with:
       config: .github/continuous-ai/docs-demo.json
       default_branch: "main"

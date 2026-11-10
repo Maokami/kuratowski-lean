@@ -1,0 +1,28 @@
+name: Continuous AI (docs-demo)
+on:
+  workflow_dispatch:
+    inputs:
+      batch:
+        type: string
+        default: auto
+      retry_failed:
+        type: boolean
+        default: false
+permissions: {}
+concurrency:
+  group: continuous-ai-docs-demo
+  cancel-in-progress: false
+jobs:
+  scan:
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      issues: write
+    uses: Maokami/continuous-ai-kit/.github/workflows/scan-report.yml@d17b8cf395a9bc6fc48799850f4d80c72386e767
+    with:
+      config: .github/continuous-ai/docs-demo.json
+      default_branch: "main"
+      batch: ${{ inputs.batch || 'auto' }}
+      retry_failed: ${{ inputs.retry_failed || false }}
+    secrets:
+      claude_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

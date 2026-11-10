@@ -6,7 +6,7 @@
 정기적인 Lean 개선 후보 탐색과 gh-aw 신규 레인의 검토는
 [지속 개선 설계안](continuous-improvement.md)에 정리했다. 현재 운영 설정과 구분되는 도입 제안이다.
 
-## 정기 개선 후보 조사 (첫 운영 단계)
+## 정기 개선 후보 조사
 
 `lean-improvement.yml`은 Claude Action과 기존 구독 인증으로 월요일 06:23 KST에 조사한다.
 GitHub 예약 실행은 지연되거나 저장소의 비활성 상태에 따라 중단될 수 있다.
@@ -22,13 +22,13 @@ gh workflow run lean-improvement.yml -f batch=0 -f retry_failed=true
 
 - prepare는 GitHub Actions 봇이 만든 `[Continuous AI] Lean 개선 조사 상태` 이슈에 입력 digest와
   실행 ID·시도 횟수·상태를 먼저 기록한다. 모델 실행 도중 취소되어도 예약이 남는다.
-- digest는 전체 Lean 소스와 조사 스크립트·workflow·prompt·schema·AGENTS/CLAUDE 지침을 포함한다.
+- digest는 전체 Lean 소스와 패키지 SHA·설정·prompt·schema·AGENTS/CLAUDE 지침을 포함한다.
   batch별 같은 digest는 다시 실행하지 않는다. 실패·중단의 재시도는 batch 지정 수동 실행 한 번뿐이다.
-  소스나 정책이 바뀌면 새 조사다. 모델 제공자의 `sonnet` 별칭 변경은 digest로 감지하지 못한다.
+  소스나 정책이 바뀌면 새 조사다. 모델은 `claude-sonnet-5-5`로 지정하며 제공자 내부 변경까지 감지하지는 못한다.
 - 한 번에 네 파일을 먼저 읽고 필요한 Lean 의존 선언만 따라간다. 다른 batch는 이후 실행에서 순환한다.
   auto는 한 번도 조사하지 않은 묶음, 가장 오래전에 조사한 묶음 순으로 선택해 소스 변경이 잦아도
   앞 묶음만 반복하지 않는다. 준비 단계에서 main이 이미 바뀌었으면 모델 실행을 건너뛴다.
-  현재 48파일은 12묶음이다. 모든 묶음의 조사가 끝나면 같은 입력에서는 모델 호출을 건너뛴다.
+  이관 시점의 50파일은 13묶음이다. 모든 묶음의 조사가 끝나면 같은 입력에서는 모델 호출을 건너뛴다.
 - scan은 GitHub 읽기 권한과 Read/Glob/Grep만 갖는다. 최대 32턴·10분, job 15분이다.
   편집·셸·MCP·하위 에이전트는 제공하지 않는다. 게시 권한은 prepare/publish/failure job에만 있다.
 - 결과의 SHA·batch·필수 파일 포함·후보 개수·선언 이름과 인용문 시작줄을 실제 소스와 대조한다.
@@ -53,7 +53,7 @@ GitHub Actions의 전체 run 재실행에서도 prepare가 현재 이력을 다�
 않는다. `auto`라면 다음 batch를 고를 수 있다. 특정 실패를 재시도하려면 위 명령을 쓴다.
 
 gh-aw 비교에서는 같은 plan의 SHA·required_files와 공통 prompt/schema를 재사용한다.
-`sonnet`은 별칭이므로 비교 실행에서는 양쪽에 같은 구체적 모델 버전·제공자를 지정해야 한다.
+비교 실행에서도 양쪽에 같은 모델 ID·제공자를 지정해야 한다.
 최대 턴·검토 시간도 맞추고, 실제 모델과 턴·사용량은 실행 로그에서 확인해 기록한다.
 후보별 정확성·채택 여부·검토 시간·중복·실패 이유를 사람이 평가한다. 후보 수나 실행 성공만을
 개선 효과로 계산하지 않는다. gh-aw 실행과 작성 에이전트는 아직 활성화하지 않았다.
@@ -174,3 +174,31 @@ Conventional Commit은 `type(scope): 한국어 설명` 형식을 사용한다. �
 - [Claude Code GitHub Actions](https://code.claude.com/docs/en/github-actions)
 - [CLI 옵션](https://code.claude.com/docs/en/cli-reference)
 - [Continuous AI 개념](https://githubnext.com/projects/continuous-ai/)
+
+
+## 재사용 패키지 이관 (2026-11-10)
+
+`lean-improvement.yml`은 [continuous-ai-kit](https://github.com/Maokami/continuous-ai-kit)의
+`scan-report.yml`을 전체 SHA로 고정해 호출한다. 기존 주간 schedule·concurrency·원장(#32)·보고서 ID를
+유지하며, 설정은 `.github/continuous-ai/lean.json`에 있다. 소스·정책·패키지 SHA가 digest에 들어가므로
+첫 이관은 새 조사 주기를 시작하지만 이전 후보 ID는 중복 게시하지 않는다. PR 리뷰·머지 정책은 그대로다.
+
+이 설명은 고정한 kit `d17b8cf`의
+[configure/source/posted_ids/publish 구현](https://github.com/Maokami/continuous-ai-kit/blob/d17b8cf395a9bc6fc48799850f4d80c72386e767/cai/scan.py)과
+[기본 브랜치 가드·실행 시도 artifact·always 실패 기록](https://github.com/Maokami/continuous-ai-kit/blob/d17b8cf395a9bc6fc48799850f4d80c72386e767/.github/workflows/scan-report.yml)을
+Root와 Claude가 독립적으로 대조한 결과다. 패키지 PR #1의 원격 CI는 88개 시험을 통과했다.
+caller에도 main ref 제한을 두어 이 저장소의 diff에서 확인할 수 있게 했다.
+50파일·13묶음은 릴리스 `138e567`의 추적된 `Kuratowski/*.lean` 목록을 직접 세어 확인했다.
+이는 소스 검토와 시험 근거이며, 재사용 workflow의 실제 실행 검증은 머지 후 별도로 기록한다.
+
+CLI restricted mode로 프로젝트 설정을 자동 로드하지 않으므로 프롬프트에서 AGENTS.md를 명시적으로 읽는다.
+모델은 `claude-sonnet-5-5`, 32턴, 10분이고 job은 15분이다. 취소 기록과 실행 시도별 artifact를 제공한다.
+재시도는 부분 job 재실행 대신 batch 번호와 retry_failed를 지정한 새 수동 실행을 쓴다.
+기존 `scripts/lean_improvement.py`와 시험은 롤백용으로 남기며, 예전 workflow와 동시에 실행하지 않는다.
+
+`continuous-ai-docs-demo.yml`은 비-Lean text adapter의 수동 시험이다. 별도 원장·concurrency를 사용하며
+고의로 모순을 넣은 `.github/continuous-ai/fixtures/cache-guide.md`만 조사한다. 이 fixture는 실제 사용
+설명이나 품질 벤치마크가 아니다. 한 번의 검증 후 정기 실행하지 않는다.
+
+증명 공개 릴리스: [v1.0.0](https://github.com/Maokami/kuratowski-lean/releases/tag/v1.0.0).
+Mathlib 제출은 이 릴리스에 포함하지 않으며, API와 증명의 사람 검토를 별도로 거친다.

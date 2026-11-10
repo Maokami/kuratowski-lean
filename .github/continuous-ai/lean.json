@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "lane": "lean",
+  "default_branch": "main",
+  "source_globs": [
+    "Kuratowski/*.lean"
+  ],
+  "prompt_file": ".github/prompts/lean-improvement.md",
+  "policy_files": [
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+  "adapter": "lean",
+  "batch_size": 4,
+  "model": "claude-sonnet-5-5",
+  "max_turns": 32,
+  "legacy": "kuratowski-v1"
+}
